@@ -23,6 +23,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
   const [activeIndex, setActiveIndex] = useState(0);
   const totalDots = Math.min(visibleCategories.length, 5);
   const dragRef = useRef({ startX: 0, scrollLeft: 0, dragging: false, moved: false });
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -43,13 +44,14 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
 
   const onPointerDown = (e: React.PointerEvent) => {
     dragRef.current = { startX: e.clientX, scrollLeft: scrollRef.current?.scrollLeft || 0, dragging: true, moved: false };
+    setIsDragging(true);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragRef.current.dragging) return;
     if (Math.abs(e.clientX - dragRef.current.startX) > 5) dragRef.current.moved = true;
     if (scrollRef.current) scrollRef.current.scrollLeft = dragRef.current.scrollLeft - (e.clientX - dragRef.current.startX);
   };
-  const onPointerUp = () => { dragRef.current.dragging = false; };
+  const onPointerUp = () => { dragRef.current.dragging = false; setIsDragging(false); };
 
   if (visibleCategories.length === 0) return null;
 
@@ -75,7 +77,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
         </div>
       </motion.div>
 
-      <div ref={scrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none", cursor: dragRef.current.dragging ? "grabbing" : "grab" }}
+      <div ref={scrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none", cursor: isDragging ? "grabbing" : "grab" }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}
       >
         {visibleCategories.map((cat, i) => {

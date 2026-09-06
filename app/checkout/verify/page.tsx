@@ -25,7 +25,7 @@ export default function VerifyPage() {
   useEffect(() => {
     const raw = sessionStorage.getItem("verify_data");
     if (!raw) { router.replace("/cart"); return; }
-    setData(JSON.parse(raw));
+    setTimeout(() => setData(JSON.parse(raw)), 0);
     history.pushState(null, "", window.location.href);
     const block = () => history.pushState(null, "", window.location.href);
     window.addEventListener("popstate", block);

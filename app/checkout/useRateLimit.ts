@@ -52,7 +52,7 @@ export function useRateLimit() {
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === "visible") startTimer(calcSecondsLeft()); };
     document.addEventListener("visibilitychange", onVisible);
-    startTimer(calcSecondsLeft());
+    setTimeout(() => startTimer(calcSecondsLeft()), 0);
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
       if (intervalRef.current) clearInterval(intervalRef.current);

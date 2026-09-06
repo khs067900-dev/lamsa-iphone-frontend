@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useSyncExternalStore, useEffect } from "react";
+import { useState, useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IoChevronBack, IoWalletOutline, IoCalendarOutline, IoCheckmarkCircle } from "react-icons/io5";
@@ -51,7 +51,7 @@ export default function PaymentMethodPage() {
   }
 
   const handleNext = async () => {
-    setCustomer({ ...(customer ?? {} as any), installmentType, months, downPayment });
+    setCustomer({ name: "", nationalId: "", whatsapp: "", address: "", ...customer, installmentType, months, downPayment });
     setTransitioning(true);
     await new Promise(r => setTimeout(r, 2500));
     router.push("/checkout");
