@@ -92,7 +92,7 @@ export async function middleware(req: NextRequest) {
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `img-src 'self' data: blob: https:`,
     `font-src 'self' data: https://fonts.gstatic.com`,
-    `connect-src 'self' https://*.railway.app https://*.render.com https://*.onrender.com http://localhost:5000 https://maps.googleapis.com https://maps.gstatic.com https://nominatim.openstreetmap.org`,
+    `connect-src 'self' https://lamsa-iphone-backend.vercel.app https://maps.googleapis.com https://maps.gstatic.com https://nominatim.openstreetmap.org`,
     `frame-ancestors 'self'`,
     `base-uri 'self'`,
     `form-action 'self'`,
