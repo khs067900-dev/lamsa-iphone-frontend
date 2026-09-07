@@ -18,7 +18,7 @@ const resolveImg = (src: string) => src?.startsWith("http") ? src : `${API}${src
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, totalPrice, setCustomer, clear } = useCartStore();
+  const { items, totalPrice, setCustomer, clear, customer: customer_store } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const { blocked, fmtTime, recordAttempt } = useRateLimit();
 
@@ -132,7 +132,9 @@ export default function CheckoutPage() {
           items: items.map(i => ({ productId: i.product._id, name: i.product.name, price: i.product.salePrice ?? i.product.originalPrice, quantity: i.qty })),
           total: finalTotal, customer: fullName, whatsapp: customer.phone, nationalId: customer.nationalId, address,
           shippingCompany: selectedShipping?.companyName ?? "",
-          installmentType: "full", months: 0, downPayment: 0,
+          installmentType: customer_store?.installmentType ?? "full",
+          months: customer_store?.months ?? 0,
+          downPayment: customer_store?.downPayment ?? 0,
           fingerprint: getFingerprint(),
         }),
       });
