@@ -23,7 +23,7 @@ export const getAllProducts = unstable_cache(
     return Array.isArray(data) ? data : (data.products ?? []);
   },
   ["all-products"],
-  { revalidate: false, tags: ["products"] }
+  { revalidate: 300, tags: ["products"] }
 );
 
 export const getAllProductsWithBanners = unstable_cache(
@@ -52,7 +52,7 @@ export const getAllProductsWithBanners = unstable_cache(
     return { products, bannerMap };
   },
   ["all-products-with-banners"],
-  { revalidate: false, tags: ["products", "banners"] }
+  { revalidate: 300, tags: ["products", "banners"] }
 );
 
 export async function getProductById(id: string) {
