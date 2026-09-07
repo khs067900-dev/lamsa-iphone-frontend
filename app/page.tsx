@@ -1,7 +1,7 @@
 import { Banner } from "./components/banner";
 import { ProductGrid } from "./components/products";
 import dynamic from "next/dynamic";
-import { getAllProducts } from "./lib/productsCache";
+import { getAllProductsWithBanners } from "./lib/productsCache";
 
 const ShopByCategory = dynamic(() => import("./components/ShopByCategory"));
 const CustomerReviews = dynamic(() => import("./components/CustomerReviews"));
@@ -32,29 +32,12 @@ async function getHomeConfig() {
   }
 }
 
-async function getCategoryBanners(categories: string[]) {
-  if (!categories.length) return {};
-  try {
-    const r = await fetch(
-      `${BACKEND}/api/admin/category-banners-bulk?categories=${encodeURIComponent(categories.join(","))}`,
-      { next: { revalidate: 300 } }
-    );
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
-
 export default async function Home() {
-  const [c, products, homeConfig] = await Promise.all([
+  const [c, { products, bannerMap }, homeConfig] = await Promise.all([
     getCompany(),
-    getAllProducts(),
+    getAllProductsWithBanners(),
     getHomeConfig(),
   ]);
-
-  // Get category banners in parallel after we know the categories
-  const categories = [...new Set((products as { category?: string }[]).map((p) => p.category).filter(Boolean))] as string[];
-  const bannerMap = await getCategoryBanners(categories);
 
   const siteName = c.nameAr || "لمسه للاجهزه الذكيه";
   const logoUrl = c.logo
