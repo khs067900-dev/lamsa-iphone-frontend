@@ -27,7 +27,7 @@ async function trackCartVisit() {
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, removeItem, updateQty, totalPrice, totalItems, setCustomer } = useCartStore();
+  const { items, removeItem, updateQty, totalPrice, totalItems } = useCartStore();
   const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   useEffect(() => { trackCartVisit(); }, []);

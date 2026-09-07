@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import type { Product } from "../components/products/types";
 
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,description,specs,network,price";
@@ -33,9 +34,9 @@ export const getAllProductsWithBanners = unstable_cache(
     );
     if (!r.ok) return { products: [], bannerMap: {} };
     const data = await r.json();
-    const products: any[] = Array.isArray(data) ? data : (data.products ?? []);
+    const products: Product[] = Array.isArray(data) ? data : (data.products ?? []);
 
-    const categories = [...new Set(products.map((p: any) => p.category).filter(Boolean))] as string[];
+    const categories = [...new Set(products.map((p) => p.category).filter(Boolean))] as string[];
 
     let bannerMap: Record<string, string[]> = {};
     if (categories.length) {
@@ -56,6 +57,5 @@ export const getAllProductsWithBanners = unstable_cache(
 
 export async function getProductById(id: string) {
   const products = await getAllProducts();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (products as any[]).find((p) => p._id === id) ?? null;
+  return (products as Product[]).find((p) => p._id === id) ?? null;
 }

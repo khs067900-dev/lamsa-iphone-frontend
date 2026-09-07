@@ -3,7 +3,6 @@
 import { useRef, useEffect } from "react";
 import Image from "next/image";
 import { Lock, CreditCard, Clock } from "lucide-react";
-import { RL_MAX } from "./useRateLimit";
 
 interface CheckoutPaymentProps {
   shippingConfirmed: boolean;
@@ -32,7 +31,7 @@ export default function CheckoutPayment({
 
   useEffect(() => {
     if (shippingConfirmed && !selectedPayment) setSelectedPayment("mada");
-  }, [shippingConfirmed]);
+  }, [shippingConfirmed, selectedPayment, setSelectedPayment]);
 
   const paymentLabel = selectedPayment === "mada" ? "مدى" : selectedPayment === "mastercard" ? "بطاقة ائتمانية" : selectedPayment === "applepay" ? "Apple Pay" : "مدى أو بطاقة ائتمانية";
 

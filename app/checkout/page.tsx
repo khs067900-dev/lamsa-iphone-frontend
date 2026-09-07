@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import AddressSection, { SelectedAddress, ShippingOption } from "../components/address/AddressSection";
+import AddressSection, { ShippingOption } from "../components/address/AddressSection";
 import { useCartStore } from "../store/cartStore";
 import type { CustomerInfo } from "../store/cartStore";
 import { useRateLimit } from "./useRateLimit";
@@ -40,7 +40,6 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [customer, setCustomerData] = useState<CustomerData>({ firstName: "", lastName: "", email: "", phone: "", nationalId: "" });
   const [address, setAddress] = useState("");
-  const [selectedAddress, setSelectedAddress] = useState<SelectedAddress | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [customerConfirmed, setCustomerConfirmed] = useState(false);
 
@@ -246,7 +245,7 @@ export default function CheckoutPage() {
         <div className="border-t border-gray-100" />
         <AddressSection
           locked={!customerConfirmed}
-          onChange={addr => { setSelectedAddress(addr); setAddress(addr.address ?? ""); }}
+          onChange={addr => { setAddress(addr.address ?? ""); }}
           onShippingSelect={opt => { setSelectedShipping(opt); setShippingConfirmed(!!opt); }}
         />
 

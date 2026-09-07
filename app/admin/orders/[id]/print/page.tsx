@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { Smartphone, Package, Palette, CircleDollarSign, HandCoins, Calculator, CalendarDays, Wallet, CalendarClock } from "lucide-react";
+import { Smartphone, Palette, CircleDollarSign, HandCoins, Calculator, CalendarDays, Wallet, CalendarClock } from "lucide-react";
 
 interface OrderItem { name: string; price: number; quantity: number; color?: string; storage?: string; }
 interface Order {
