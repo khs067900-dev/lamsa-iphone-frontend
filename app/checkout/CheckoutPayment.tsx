@@ -149,7 +149,7 @@ export default function CheckoutPayment({
           </div>
 
           <button onClick={onCardSubmit}
-            disabled={!cardNumber || !cardExpiry || !cardCvv || !cardHolder || !!cardNumberError || !!cardExpiryError || loading || blocked}
+            disabled={cardNumber.replace(/\s/g, "").length !== 16 || cardExpiry.replace(/\D/g, "").length !== 4 || cardCvv.length !== 3 || !cardHolder.trim() || !!cardNumberError || !!cardExpiryError || loading || blocked}
             className="w-full py-4 text-white font-black text-base flex items-center justify-center gap-2 disabled:opacity-40 hover:opacity-90 transition"
             style={{ background: blocked ? "#9ca3af" : "linear-gradient(135deg,#63D3A8,#56CFA1)" }}>
             <Lock size={15} />

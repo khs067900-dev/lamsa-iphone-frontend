@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { IoHomeOutline, IoChevronBack, IoArrowForward, IoArrowBack, IoBatteryFullOutline, IoCameraOutline, IoColorPaletteOutline, IoServerOutline, IoSwapVerticalOutline, IoCloseCircle, IoPhonePortraitOutline } from "react-icons/io5";
 import { HiOutlineCpuChip } from "react-icons/hi2";
 import ProductCard from "../products/ProductCard";
@@ -102,6 +101,15 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#FDFBF7" }} dir="rtl">
+      <style>{`
+        @keyframes phHeroIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes phFeatureIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+        .ph-hero-in{animation:phHeroIn .7s cubic-bezier(.22,1,.36,1) both}
+        .ph-feat-0{animation:phFeatureIn .4s .3s ease both}
+        .ph-feat-1{animation:phFeatureIn .4s .4s ease both}
+        .ph-feat-2{animation:phFeatureIn .4s .5s ease both}
+      `}</style>
+
       {/* ═══════════ HERO ═══════════ */}
       <section className="relative h-[45vh] sm:h-[55vh] md:h-[60vh] min-h-[280px] sm:min-h-[360px] max-h-[550px] overflow-hidden">
         <Image
@@ -125,12 +133,7 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
             <span className="text-[#1F2C3E] font-semibold truncate max-w-[100px] sm:max-w-none">{config?.label}</span>
           </nav>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="pb-6 sm:pb-10 md:pb-14"
-          >
+          <div className="ph-hero-in pb-6 sm:pb-10 md:pb-14">
             <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tight text-[#1F2C3E] leading-tight mb-2 sm:mb-3">
               {nameEn}
               {nameEnLine2 && <><br />{nameEnLine2}</>}
@@ -146,21 +149,18 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
               {features.map((feat, i) => {
                 const Icon = iconMap[feat.icon];
                 return (
-                  <motion.div
+                  <div
                     key={i}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
-                    className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-full backdrop-blur-sm"
+                    className={`ph-feat-${i} flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-full backdrop-blur-sm`}
                     style={{ backgroundColor: "rgba(255,255,255,0.6)", border: "1px solid rgba(31,44,62,0.15)" }}
                   >
                     <Icon className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" color="#5C3A1E" />
                     <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-[#1F2C3E]">{feat.label}</span>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -264,18 +264,9 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-              <AnimatePresence mode="wait">
-                {filteredProducts.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((p, i) => (
-                  <motion.div
-                    key={p._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: i * 0.04 }}
-                  >
-                    <ProductCard product={p} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              {filteredProducts.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((p) => (
+                <ProductCard key={p._id} product={p} />
+              ))}
             </div>
 
             {totalPages > 1 && (

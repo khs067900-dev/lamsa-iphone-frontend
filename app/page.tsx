@@ -1,22 +1,13 @@
 import { Banner } from "./components/banner";
 import { ProductGrid } from "./components/products";
 import dynamic from "next/dynamic";
-import { getAllProductsWithBanners } from "./lib/productsCache";
+import { getAllProductsWithBanners, BACKEND } from "./lib/productsCache";
+import { getCompany } from "./lib/config";
+import CustomerReviews from "./components/CustomerReviews";
 
 const ShopByCategory = dynamic(() => import("./components/ShopByCategory"));
-const CustomerReviews = dynamic(() => import("./components/CustomerReviews"));
 
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 const SITE_URL = "https://lamsasmart.com";
-
-async function getCompany() {
-  try {
-    const r = await fetch(`${BACKEND}/api/admin/company`, { next: { revalidate: 3600 } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
 
 async function getHomeConfig() {
   try {

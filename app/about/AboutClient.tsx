@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import ContactSection from "../components/ContactSection";
+import { useCompanyStore } from "../store/companyStore";
 
 function useInView(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
@@ -115,15 +116,10 @@ const sections = [
 
 export default function AboutClient() {
   const [heroVisible, setHeroVisible] = useState(false);
-  const [company, setCompany] = useState<{ whatsapp?: string; email?: string; addressAr?: string } | null>(null);
+  const { whatsapp, email, fetchCompany } = useCompanyStore();
 
   useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 60); return () => clearTimeout(t); }, []);
-  useEffect(() => {
-    fetch("/api/admin/company")
-      .then((r) => r.json())
-      .then((d) => setCompany(d))
-      .catch(() => {});
-  }, []);
+  useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
   const anim = (delay: number, extra = "") =>
     ({
@@ -217,9 +213,9 @@ export default function AboutClient() {
 
         <ContactSection
           title="وسائل التواصل"
-          phone={company?.whatsapp}
-          whatsapp={company?.whatsapp}
-          email={company?.email}
+          phone={whatsapp}
+          whatsapp={whatsapp}
+          email={email}
           fadeDelay={300}
         />
       </section>

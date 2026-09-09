@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { Product } from "../components/products/types";
 
-const ALLOWED_HOSTS = ["lamsasmart.com", "lamsa-iphone-backend.vercel.app", "localhost", "127.0.0.1"];
+const ALLOWED_HOSTS = ["lamsasmart.com", "localhost", "127.0.0.1"];
 
 function validateBackendUrl(raw: string): string {
   try {
@@ -82,6 +82,7 @@ export const getProductById = (id: string) => {
   return unstable_cache(
     async () => {
       const url = new URL(`/api/products/${safeId}`, BACKEND);
+      url.searchParams.set("fields", PRODUCT_DETAIL_FIELDS);
       const r = await safeFetch(url, { next: { tags: ["products", `product-${safeId}`] } } as RequestInit);
       if (!r.ok) return null;
       return (await r.json()) as Product;

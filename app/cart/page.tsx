@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IoCartOutline, IoChevronBack } from "react-icons/io5";
@@ -12,25 +12,10 @@ const subscribe = (cb: () => void) => { cb(); return () => {}; };
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-async function trackCartVisit() {
-  try {
-    let fingerprint: string | null = null;
-    const fpCookie = document.cookie.split(";").find((c) => c.trim().startsWith("_fp="));
-    if (fpCookie) fingerprint = fpCookie.split("=")[1]?.trim() || null;
-    await fetch("/api/track-visit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fingerprint, path: "/cart" }),
-    });
-  } catch {}
-}
-
 export default function CartPage() {
   const router = useRouter();
   const { items, removeItem, updateQty, totalPrice, totalItems } = useCartStore();
   const mounted = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-
-  useEffect(() => { trackCartVisit(); }, []);
 
   const total = mounted ? totalPrice() : 0;
   const count = mounted ? totalItems() : 0;

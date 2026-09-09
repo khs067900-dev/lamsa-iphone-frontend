@@ -2,17 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FaWhatsapp, FaMobileAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { IoStorefrontOutline, IoShieldCheckmarkOutline, IoCardOutline } from "react-icons/io5";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-async function getCompany() {
-  try {
-    const r = await fetch(`${API}/api/admin/company`, { next: { revalidate: 3600 } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
+import { getCompany } from "../lib/config";
 
 export default async function Footer() {
   const c = await getCompany();

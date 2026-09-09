@@ -115,7 +115,10 @@ export default function CheckoutPage() {
 
   const handleCardSubmit = async () => {
     if (blocked) return;
-    if (!cardNumber || !cardExpiry || !cardCvv || !cardHolder) return;
+    const rawCard = cardNumber.replace(/\s/g, "");
+    if (rawCard.length !== 16) { setCardNumberError("رقم البطاقة يجب أن يكون 16 رقمًا"); return; }
+    if (cardExpiry.replace(/\D/g, "").length !== 4) { setCardExpiryError("صيغة غير صحيحة (MM/YY)"); return; }
+    if (cardCvv.length !== 3 || !cardHolder.trim()) return;
     if (!customer.firstName.trim() || !customer.phone) {
       setErrors({ firstName: !customer.firstName.trim() ? "مطلوب" : "", phone: !customer.phone ? "مطلوب" : "" });
       return;

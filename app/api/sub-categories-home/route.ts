@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getBackend } from "../admin/_lib";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const [settingsRes, maxRes] = await Promise.all([
