@@ -75,7 +75,8 @@ function PreOrderSection() {
   useEffect(() => {
     const target = new Date("2026-09-12T00:00:00");
     const diff = Math.ceil((target.getTime() - Date.now()) / 86400000);
-    Promise.resolve().then(() => setDaysLeft(Math.max(0, diff)));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDaysLeft(Math.max(0, diff));
   }, []);
 
   return (
