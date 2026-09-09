@@ -4,14 +4,9 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FaApple } from "react-icons/fa";
-import { IoChevronForward, IoChevronBack } from "react-icons/io5";
+import { IoChevronForward, IoChevronBack, IoArrowBack } from "react-icons/io5";
 
-interface FilterItem {
-  slug: string;
-  label: string;
-  desc: string;
-}
-
+interface FilterItem { slug: string; label: string; desc: string; }
 interface Props {
   filters: FilterItem[];
   categoryImages: Record<string, string>;
@@ -21,28 +16,25 @@ interface Props {
 export default function ShopByModel({ filters, categoryImages, categoryCounts }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0);
+  const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0 || cat.slug === "iphone-18");
   const [activeIndex, setActiveIndex] = useState(0);
-  const totalDots = Math.min(visibleCategories.length, 5);
+  const totalDots = Math.min(visibleCategories.length, 6);
   const dragRef = useRef({ startX: 0, scrollLeft: 0, dragging: false, moved: false });
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const handleScroll = () => {
-      const scrollRatio = el.scrollLeft / (el.scrollWidth - el.clientWidth || 1);
-      setActiveIndex(Math.round(scrollRatio * (totalDots - 1)));
+    const onScroll = () => {
+      const ratio = el.scrollLeft / (el.scrollWidth - el.clientWidth || 1);
+      setActiveIndex(Math.round(ratio * (totalDots - 1)));
     };
-    el.addEventListener("scroll", handleScroll);
-    return () => el.removeEventListener("scroll", handleScroll);
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
   }, [visibleCategories.length, totalDots]);
 
-  const scroll = (dir: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
-  };
+  const scroll = (dir: "left" | "right") =>
+    scrollRef.current?.scrollBy({ left: dir === "left" ? -280 : 280, behavior: "smooth" });
 
   const onPointerDown = (e: React.PointerEvent) => {
     dragRef.current = { startX: e.clientX, scrollLeft: scrollRef.current?.scrollLeft || 0, dragging: true, moved: false };
@@ -50,7 +42,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragRef.current.dragging) return;
-    if (Math.abs(e.clientX - dragRef.current.startX) > 10) dragRef.current.moved = true;
+    if (Math.abs(e.clientX - dragRef.current.startX) > 8) dragRef.current.moved = true;
     if (scrollRef.current) scrollRef.current.scrollLeft = dragRef.current.scrollLeft - (e.clientX - dragRef.current.startX);
   };
   const onPointerUp = () => { dragRef.current.dragging = false; setIsDragging(false); };
@@ -59,72 +51,148 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
 
   return (
     <section className="mb-14">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg border border-[#DFC4A4]/20" style={{ background: "linear-gradient(135deg, #1F2C3E, #2a3d55)" }}>
-            <FaApple size={18} className="text-[#DFC4A4]" />
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-md border border-[#DFC4A4]/20"
+            style={{ background: "linear-gradient(135deg, #1F2C3E, #2a3d55)" }}
+          >
+            <FaApple size={22} style={{ color: "#DFC4A4" }} />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-black" style={{ color: "#1F2C3E" }}>تسوّق حسب الطراز</h2>
-            <p className="text-[10px] sm:text-[11px] text-[#1F2C3E]/40">اضغط على الطراز للذهاب لصفحته</p>
+            <h2 className="text-lg sm:text-xl font-black" style={{ color: "#1F2C3E" }}>تسوّق حسب الطراز</h2>
+            <p className="text-[10px] sm:text-[12px]" style={{ color: "rgba(31,44,62,0.4)" }}>
+              {visibleCategories.length} طراز متاح — اختر طرازك
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => scroll("right")} className="w-8 h-8 rounded-full flex items-center justify-center border border-[#1F2C3E]/10 hover:bg-[#1F2C3E] hover:text-[#DFC4A4] text-[#1F2C3E] transition-all duration-300">
-            <IoChevronForward size={14} />
+          <button onClick={() => scroll("right")} className="w-9 h-9 rounded-full flex items-center justify-center border border-[#1F2C3E]/10 hover:bg-[#1F2C3E] hover:text-[#DFC4A4] text-[#1F2C3E] transition-all duration-300">
+            <IoChevronForward size={15} />
           </button>
-          <button onClick={() => scroll("left")} className="w-8 h-8 rounded-full flex items-center justify-center border border-[#1F2C3E]/10 hover:bg-[#1F2C3E] hover:text-[#DFC4A4] text-[#1F2C3E] transition-all duration-300">
-            <IoChevronBack size={14} />
+          <button onClick={() => scroll("left")} className="w-9 h-9 rounded-full flex items-center justify-center border border-[#1F2C3E]/10 hover:bg-[#1F2C3E] hover:text-[#DFC4A4] text-[#1F2C3E] transition-all duration-300">
+            <IoChevronBack size={15} />
           </button>
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none", cursor: isDragging ? "grabbing" : "grab" }}
+      {/* Cards */}
+      <div
+        ref={scrollRef}
+        className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 scrollbar-hide"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none", cursor: isDragging ? "grabbing" : "grab" }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}
       >
         {visibleCategories.map((cat) => {
           const img = categoryImages[cat.slug];
+          const count = categoryCounts[cat.slug] || 0;
+
           return (
             <div
               key={cat.slug}
               draggable={false}
-              className="relative flex-shrink-0 w-[130px] sm:w-[175px] rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 group border border-transparent hover:border-[#DFC4A4]/40"
-              style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F8F5F1 100%)", boxShadow: "0 4px 20px rgba(31,44,62,0.06)", userSelect: "none" }}
+              className="group relative flex-shrink-0 w-[158px] sm:w-[205px] rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+              style={{
+                background: "linear-gradient(160deg, #FFFFFF 0%, #F5F0EA 100%)",
+                border: "1.5px solid #EBE6E2",
+                userSelect: "none",
+                boxShadow: "0 2px 16px rgba(31,44,62,0.07)",
+              }}
             >
-                <div className="relative w-full h-[95px] sm:h-[140px] overflow-hidden">
-                  {img ? (
-                    <Image src={img} alt={cat.label} fill className="object-contain p-3 sm:p-4 transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1" sizes="(max-width: 640px) 130px, 175px" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <FaApple size={28} className="text-[#1F2C3E]/15" />
-                    </div>
-                  )}
-                  <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[8px] sm:text-[9px] font-bold" style={{ backgroundColor: "#1F2C3E", color: "#DFC4A4" }}>
-                    {categoryCounts[cat.slug]}
+              {/* Top accent line */}
+              <div
+                className="absolute top-0 left-0 right-0 h-[3px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ background: "linear-gradient(90deg, transparent, #DFC4A4, transparent)" }}
+              />
+
+              {/* Image area */}
+              <div className="relative w-full h-[148px] sm:h-[195px] overflow-hidden">
+                {/* Subtle bg pattern */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "radial-gradient(ellipse at 50% 80%, rgba(223,196,164,0.12) 0%, transparent 65%)" }}
+                />
+
+                {img ? (
+                  <Image
+                    src={img}
+                    alt={cat.label}
+                    fill
+                    className="object-cover transition-all duration-500 group-hover:scale-110"
+                    sizes="(max-width: 640px) 158px, 205px"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <FaApple size={40} style={{ color: "rgba(31,44,62,0.08)" }} />
                   </div>
-                </div>
-                <div className="px-2 py-2 sm:px-3 sm:py-3 text-center border-t border-[#EBE6E2]/60">
-                  <p className="text-[11px] sm:text-[13px] font-bold truncate" style={{ color: "#1F2C3E" }}>{cat.label}</p>
-                  <p className="text-[9px] sm:text-[11px] mt-0.5 sm:mt-1 text-[#1F2C3E]/50 truncate">{cat.desc}</p>
-                  <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => { if (!dragRef.current.moved) router.push(`/smartphones/${cat.slug}`); }}
-                    className="mt-1.5 sm:mt-2 w-full text-[9px] sm:text-[10px] font-bold py-1 sm:py-1.5 rounded-lg transition-all duration-300"
-                    style={{ backgroundColor: "#1F2C3E", color: "#DFC4A4" }}
-                  >
-                    تسوّق الآن
-                  </button>
-                </div>
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl" style={{ background: "radial-gradient(circle at 50% 30%, rgba(223,196,164,0.08), transparent 70%)" }} />
+                )}
+
+                {/* Badges */}
+                {cat.slug === "iphone-18" && (
+                  <div className="absolute top-2.5 right-2.5">
+                    <div
+                      className="px-2 py-1 rounded-full text-[8px] font-black backdrop-blur-sm"
+                      style={{ background: "rgba(31,44,62,0.6)", color: "rgba(255,255,255,0.6)" }}
+                    >
+                      قريباً
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom fade into card */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-10 pointer-events-none"
+                  style={{ background: "linear-gradient(to top, #F5F0EA, transparent)" }}
+                />
+              </div>
+
+              {/* Divider */}
+              <div className="mx-3 h-px" style={{ background: "linear-gradient(90deg, transparent, #DFC4A4, transparent)" }} />
+
+              {/* Info */}
+              <div className="px-3 sm:px-4 py-3 sm:py-3.5">
+                <p className="text-[12px] sm:text-[14px] font-black mb-0.5 truncate" style={{ color: "#1F2C3E" }}>{cat.label}</p>
+                <p className="text-[9px] sm:text-[11px] mb-3 truncate" style={{ color: "rgba(31,44,62,0.45)" }}>{cat.desc}</p>
+
+                <button
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => { if (!dragRef.current.moved) router.push(`/smartphones/${cat.slug}`); }}
+                  className="group/btn w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black transition-all duration-300 hover:gap-3 hover:shadow-md"
+                  style={{ background: "linear-gradient(135deg, #1F2C3E, #2a3d55)", color: "#DFC4A4" }}
+                >
+                  تسوّق الآن
+                  <IoArrowBack size={11} className="transition-transform duration-300 group-hover/btn:-translate-x-1" />
+                </button>
+              </div>
+
+              {/* Border glow on hover */}
+              <div
+                className="absolute inset-0 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{ boxShadow: "inset 0 0 0 1.5px rgba(223,196,164,0.5)" }}
+              />
             </div>
           );
         })}
       </div>
 
       {/* Dots */}
-      <div className="flex justify-center gap-1.5 mt-5">
+      <div className="flex justify-center gap-2 mt-5">
         {Array.from({ length: totalDots }).map((_, i) => (
-          <div key={i} className="rounded-full transition-all duration-300" style={{ width: activeIndex === i ? 22 : 6, height: 6, backgroundColor: activeIndex === i ? "#DFC4A4" : "#E5E0DB" }} />
+          <button
+            key={i}
+            onClick={() => {
+              const el = scrollRef.current;
+              if (!el) return;
+              el.scrollTo({ left: (i / (totalDots - 1)) * (el.scrollWidth - el.clientWidth), behavior: "smooth" });
+            }}
+            className="rounded-full transition-all duration-300"
+            style={{
+              width: activeIndex === i ? 28 : 7,
+              height: 7,
+              background: activeIndex === i ? "linear-gradient(90deg, #DFC4A4, #c9a87c)" : "rgba(31,44,62,0.12)",
+            }}
+          />
         ))}
       </div>
     </section>

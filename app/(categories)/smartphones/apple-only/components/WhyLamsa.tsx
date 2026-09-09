@@ -3,42 +3,42 @@
 import { HiShieldCheck, HiCreditCard, HiTruck } from "react-icons/hi2";
 
 const features = [
-  { icon: HiCreditCard, title: "دفع آمن", desc: "طرق دفع متعددة ومشفّرة" },
-  { icon: HiShieldCheck, title: "ضمان رسمي", desc: "ضمان معتمد على جميع الأجهزة" },
-  { icon: HiTruck, title: "توصيل سريع", desc: "شحن سريع لجميع المناطق" },
+  { icon: HiShieldCheck, title: "ضمان رسمي", desc: "ضمان معتمد على جميع الأجهزة من أبل" },
+  { icon: HiCreditCard, title: "دفع آمن", desc: "طرق دفع متعددة ومشفّرة بالكامل" },
+  { icon: HiTruck, title: "توصيل سريع", desc: "شحن سريع لجميع مناطق المملكة" },
 ];
 
 export default function WhyLamsa() {
   return (
     <section className="mb-10 sm:mb-16">
-      <style>{`
-        @keyframes wlFadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
-        .wl-fade{animation:wlFadeUp .5s ease both}
-        .wl-card-0{animation:wlFadeUp .5s ease both}
-        .wl-card-1{animation:wlFadeUp .5s .1s ease both}
-        .wl-card-2{animation:wlFadeUp .5s .2s ease both}
-      `}</style>
-
-      <div className="wl-fade flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-6 sm:mb-8">
         <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#DFC4A4" }} />
-        <h2 className="text-lg sm:text-xl font-black" style={{ color: "#1F2C3E" }}>لماذا لمسة؟</h2>
+        <div>
+          <h2 className="text-base sm:text-lg font-black" style={{ color: "#1F2C3E" }}>لماذا لمسة؟</h2>
+          <p className="text-[10px] sm:text-[11px]" style={{ color: "rgba(31,44,62,0.4)" }}>ثقة آلاف العملاء في المملكة</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-        {features.map((f, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        {features.map((f) => (
           <div
             key={f.title}
-            className={`wl-card-${i} relative p-4 sm:p-5 rounded-2xl border border-[#EBE6E2] hover:border-[#DFC4A4]/40 transition-all duration-300 group overflow-hidden`}
-            style={{ background: "linear-gradient(135deg, #FFFFFF, #FAF7F3)" }}
+            className="group relative overflow-hidden rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+            style={{ background: "linear-gradient(135deg, #1F2C3E 0%, #162030 100%)" }}
           >
-            <div className="flex items-center gap-3 mb-1.5 sm:mb-2">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110" style={{ background: "linear-gradient(135deg, #1F2C3E, #2a3d55)" }}>
-                <f.icon size={16} className="text-[#DFC4A4]" />
+            {/* Glow */}
+            <div className="absolute top-0 right-0 w-28 h-28 rounded-full blur-[40px] opacity-20 group-hover:opacity-40 transition-opacity duration-500" style={{ background: "#DFC4A4" }} />
+
+            <div className="relative z-10">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 border border-[#DFC4A4]/20 transition-transform duration-300 group-hover:scale-110" style={{ background: "rgba(223,196,164,0.12)" }}>
+                <f.icon size={20} style={{ color: "#DFC4A4" }} />
               </div>
-              <span className="text-[12px] sm:text-[14px] font-bold" style={{ color: "#1F2C3E" }}>{f.title}</span>
+              <h3 className="text-[13px] sm:text-[15px] font-black mb-1.5 text-white">{f.title}</h3>
+              <p className="text-[10px] sm:text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>{f.desc}</p>
             </div>
-            <p className="text-[10px] sm:text-[12px] mr-[48px] sm:mr-[52px]" style={{ color: "rgba(31,44,62,0.5)" }}>{f.desc}</p>
-            <div className="absolute top-0 right-0 w-20 h-20 rounded-full blur-[30px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "rgba(223,196,164,0.15)" }} />
+
+            {/* Bottom accent */}
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "linear-gradient(90deg, transparent, #DFC4A4, transparent)" }} />
           </div>
         ))}
       </div>

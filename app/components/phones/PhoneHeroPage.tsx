@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { IoHomeOutline, IoChevronBack, IoArrowForward, IoArrowBack, IoBatteryFullOutline, IoCameraOutline, IoColorPaletteOutline, IoServerOutline, IoSwapVerticalOutline, IoCloseCircle, IoPhonePortraitOutline } from "react-icons/io5";
+import { IoHomeOutline, IoChevronBack, IoArrowForward, IoArrowBack, IoBatteryFullOutline, IoCameraOutline, IoColorPaletteOutline, IoServerOutline, IoSwapVerticalOutline, IoCloseCircle, IoPhonePortraitOutline, IoCalendarOutline, IoCubeOutline, IoNotificationsOutline } from "react-icons/io5";
 import { HiOutlineCpuChip } from "react-icons/hi2";
 import ProductCard from "../products/ProductCard";
 import type { Product } from "../products/types";
@@ -52,6 +52,7 @@ export interface PhoneHeroPageProps {
   description: string;
   features?: { icon: "battery" | "camera" | "chip" | "display" | "design"; label: string }[];
   initialProducts?: Product[];
+  hideHero?: boolean;
 }
 
 const iconMap = {
@@ -68,7 +69,78 @@ const defaultFeatures: { icon: "battery" | "camera" | "chip" | "display" | "desi
   { icon: "chip", label: "معالج فائق السرعة" },
 ];
 
-export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, tagline, description, features = defaultFeatures, initialProducts = [] }: PhoneHeroPageProps) {
+function PreOrderSection() {
+  const [daysLeft, setDaysLeft] = useState(0);
+
+  useEffect(() => {
+    const target = new Date("2026-09-12T00:00:00");
+    const diff = Math.ceil((target.getTime() - Date.now()) / 86400000);
+    setDaysLeft(Math.max(0, diff));
+  }, []);
+
+  return (
+    <div className="flex flex-col items-center justify-center py-16 gap-8 text-center" dir="rtl">
+      <style>{`
+        @keyframes po-fade{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes po-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        .po-a{animation:po-fade .6s .05s cubic-bezier(.22,1,.36,1) both}
+        .po-b{animation:po-fade .6s .15s cubic-bezier(.22,1,.36,1) both}
+        .po-c{animation:po-fade .6s .25s cubic-bezier(.22,1,.36,1) both}
+        .po-d{animation:po-fade .6s .35s cubic-bezier(.22,1,.36,1) both}
+        .po-dot{animation:po-pulse 1.8s ease-in-out infinite}
+      `}</style>
+
+      {/* قريبًا على لمسة — كبير */}
+      <div className="po-a flex flex-col items-center gap-3">
+        <div className="flex items-center gap-3">
+          <span className="po-dot inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#A77D4B" }} />
+          <span className="text-2xl sm:text-3xl font-black tracking-wide" style={{ color: "#A77D4B" }}>قريبًا على لمسة</span>
+          <span className="po-dot inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#A77D4B" }} />
+        </div>
+      </div>
+
+      {/* Headline */}
+      <div className="po-b space-y-2">
+        <h2 className="text-3xl sm:text-4xl font-black leading-snug" style={{ color: "#1F2C3E" }}>iPhone 18 في طريقه إليك</h2>
+        <p className="text-sm font-semibold" style={{ color: "#5C3A1E" }}>الجيل القادم من Apple</p>
+        <p className="text-sm font-medium max-w-sm mx-auto leading-relaxed" style={{ color: "#5C3A1E", opacity: 0.7 }}>
+          تصميم جديد، أداء أقوى، وتجربة تتجاوز كل التوقعات.
+        </p>
+      </div>
+
+      {/* Days counter */}
+      {daysLeft > 0 && (
+        <div className="po-c px-8 py-5 rounded-2xl" style={{ background: "linear-gradient(135deg,#FFF8F0,#FFF3E8)", border: "1.5px solid rgba(167,125,75,0.3)" }}>
+          <p className="text-xs font-semibold mb-2" style={{ color: "#A77D4B" }}>الوقت المتبقي على الطلب المسبق</p>
+          <p className="text-5xl font-black" style={{ color: "#1F2C3E" }}>
+            {daysLeft}
+            <span className="text-xl font-bold mr-2" style={{ color: "#A77D4B" }}> يوم</span>
+          </p>
+        </div>
+      )}
+
+      {/* Pre-order info */}
+      <div className="po-d flex flex-col items-center gap-3">
+        <div className="flex items-center gap-2.5 px-6 py-3 rounded-2xl" style={{ backgroundColor: "#1F2C3E" }}>
+          <IoCalendarOutline size={16} color="#A77D4B" />
+          <span className="text-sm font-bold text-white">الطلب المسبق يبدأ 12 سبتمبر 2026</span>
+        </div>
+        <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl" style={{ backgroundColor: "#F5EBE0" }}>
+          <IoCubeOutline size={15} color="#A77D4B" />
+          <span className="text-sm font-semibold" style={{ color: "#5C3A1E" }}>متوفر ابتداءً من 18 سبتمبر</span>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <IoNotificationsOutline size={14} color="#A77D4B" />
+          <p className="text-xs font-medium" style={{ color: "#A77D4B" }}>
+            سجّل اهتمامك الآن وكن من أوائل من يقتني iPhone 18
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, tagline, description, features = defaultFeatures, initialProducts = [], hideHero = false }: PhoneHeroPageProps) {
   const config = slugConfigs[slug];
   const [page, setPage] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -111,7 +183,7 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
       `}</style>
 
       {/* ═══════════ HERO ═══════════ */}
-      <section className="relative h-[45vh] sm:h-[55vh] md:h-[60vh] min-h-[280px] sm:min-h-[360px] max-h-[550px] overflow-hidden">
+      {!hideHero && <section className="relative h-[45vh] sm:h-[55vh] md:h-[60vh] min-h-[280px] sm:min-h-[360px] max-h-[550px] overflow-hidden">
         <Image
           src={heroImage}
           alt={nameEn}
@@ -162,25 +234,27 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ═══════════ PRODUCTS ═══════════ */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#BC9255" }} />
-            <h2 className="text-lg sm:text-xl font-bold text-[#1F2C3E]">المنتجات المتوفرة</h2>
-            <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: "#F5EBE0", color: "#A77D4B" }}>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-10 sm:pb-16">
+        {products.length > 0 && (
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#BC9255" }} />
+              <h2 className="text-lg sm:text-xl font-bold text-[#1F2C3E]">المنتجات المتوفرة</h2>
+              <span className="text-xs font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: "#F5EBE0", color: "#A77D4B" }}>
                 {filteredProducts.length} منتج
               </span>
+            </div>
+            {hasFilters && (
+              <button onClick={clearFilters} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition hover:opacity-80" style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}>
+                <IoCloseCircle size={14} />
+                مسح الفلاتر
+              </button>
+            )}
           </div>
-          {hasFilters && (
-            <button onClick={clearFilters} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition hover:opacity-80" style={{ backgroundColor: "#FEE2E2", color: "#DC2626" }}>
-              <IoCloseCircle size={14} />
-              مسح الفلاتر
-            </button>
-          )}
-        </div>
+        )}
 
         {products.length > 0 && (
           <div className="flex flex-wrap items-center gap-3 mb-8 p-4 rounded-2xl" style={{ backgroundColor: "#FFF", border: "1px solid #EBE6E2" }}>
@@ -251,16 +325,7 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
         )}
 
         {!products.length ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl" style={{ backgroundColor: "#F5EBE0" }}>
-              📱
-            </div>
-            <p className="text-[#1F2C3E] text-lg font-bold">المنتجات ستُضاف قريباً</p>
-            <Link href="/" className="text-sm font-bold flex items-center gap-1.5 px-5 py-2 rounded-full transition" style={{ color: "#A77D4B", backgroundColor: "#F5EBE0" }}>
-              <IoArrowForward size={14} />
-              العودة للرئيسية
-            </Link>
-          </div>
+          <PreOrderSection />
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">

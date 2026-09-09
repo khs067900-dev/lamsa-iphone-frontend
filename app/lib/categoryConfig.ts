@@ -114,6 +114,12 @@ export const slugConfigs: Record<string, SlugConfig> = {
     parentHref: "/smartphones",
     filters: { category: "ابل ايفون 17 اير" },
   },
+  "iphone-18": {
+    label: "ابل ايفون 18",
+    parentLabel: "الهواتف الذكية",
+    parentHref: "/smartphones",
+    filters: { category: "ابل ايفون 18" },
+  },
   "apple-only": {
     label: "فقط آبل",
     parentLabel: "الهواتف الذكية",

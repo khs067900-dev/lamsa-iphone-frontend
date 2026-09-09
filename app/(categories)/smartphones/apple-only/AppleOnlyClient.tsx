@@ -17,6 +17,7 @@ const resolveImg = (src: string) =>
   src.startsWith("http") ? src : `${API}${src.startsWith("/") ? src : "/" + src}`;
 
 const appleFilters = [
+  { slug: "iphone-18", label: "آيفون 18", desc: "الجيل القادم" },
   { slug: "iphone-17-pro-max", label: "آيفون 17 برو ماكس", desc: "الأقوى والأكبر" },
   { slug: "iphone-17-pro", label: "آيفون 17 برو", desc: "أداء احترافي" },
   { slug: "iphone-17", label: "آيفون 17 عادي", desc: "الجيل الجديد" },
@@ -46,29 +47,30 @@ export default function AppleOnlyClient({ initialProducts = [] }: { initialProdu
     ),
     [initialProducts]
   );
-  const allProducts = applePhones;
-  const loading = false;
 
-  const { categoryImages, categoryCounts } = useMemo(
-    () => buildModelMeta(allProducts, appleFilters, resolveImg),
-    [allProducts]
+  const { categoryImages: rawImages, categoryCounts } = useMemo(
+    () => buildModelMeta(applePhones, appleFilters, resolveImg),
+    [applePhones]
   );
 
+  const categoryImages = useMemo(() => ({
+    ...rawImages,
+    "iphone-18": rawImages["iphone-18"] || "/06550573-067f-4102-8bf9-0e0c02236776.webp",
+  }), [rawImages]);
+
   return (
-    <main className="min-h-screen bg-[#FDFBF8]" dir="rtl">
-      <HeroSection productCount={allProducts.length} loading={loading} />
+    <main className="min-h-screen" style={{ background: "linear-gradient(180deg, #FDFBF8 0%, #F5F0EA 60%, #FDFBF8 100%)" }} dir="rtl">
+      <HeroSection productCount={applePhones.length} loading={false} />
 
-      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-14">
-        {!loading && (
-          <ShopByModel
-            filters={appleFilters}
-            categoryImages={categoryImages}
-            categoryCounts={categoryCounts}
-          />
-        )}
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-8 sm:py-14 space-y-2">
+        <ShopByModel
+          filters={appleFilters}
+          categoryImages={categoryImages}
+          categoryCounts={categoryCounts}
+        />
 
-        {!loading && allProducts.length > 0 && (
-          <LatestPhones products={allProducts} />
+        {applePhones.length > 0 && (
+          <LatestPhones products={applePhones} />
         )}
 
         <WhyLamsa />
