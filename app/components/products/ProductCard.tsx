@@ -34,6 +34,7 @@ export default function ProductCard({ product, priority = false }: { product: Pr
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     addItem(product);
     setAdded(true);
     setToast(true);
