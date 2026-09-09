@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import type { Product } from "../components/products/types";
 
-const ALLOWED_HOSTS = ["lamsasmart.com", "localhost", "127.0.0.1"];
+const ALLOWED_HOSTS = ["lamsasmart.com", "localhost", "127.0.0.1", "vercel.app"];
 
 function validateBackendUrl(raw: string): string {
   try {
