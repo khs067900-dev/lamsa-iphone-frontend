@@ -70,13 +70,25 @@ const defaultFeatures: { icon: "battery" | "camera" | "chip" | "display" | "desi
 ];
 
 function PreOrderSection() {
-  const [daysLeft, setDaysLeft] = useState(0);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const target = new Date("2026-09-12T00:00:00");
-    const diff = Math.ceil((target.getTime() - Date.now()) / 86400000);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDaysLeft(Math.max(0, diff));
+    const target = new Date("2026-09-12T00:00:00").getTime();
+    const calc = () => {
+      const diff = Math.max(0, target - Date.now());
+      setTimeLeft({
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    calc();
+    const id = setInterval(calc, 1000);
+    // لما الزبون يرجع للتاب، نحدث الوقت فوراً عشان نعوض أي تأخير
+    const onVisible = () => { if (document.visibilityState === "visible") calc(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
   }, []);
 
   return (
@@ -109,14 +121,28 @@ function PreOrderSection() {
         </p>
       </div>
 
-      {/* Days counter */}
-      {daysLeft > 0 && (
+      {/* Countdown timer */}
+      {(timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
         <div className="po-c px-8 py-5 rounded-2xl" style={{ background: "linear-gradient(135deg,#FFF8F0,#FFF3E8)", border: "1.5px solid rgba(167,125,75,0.3)" }}>
-          <p className="text-xs font-semibold mb-2" style={{ color: "#A77D4B" }}>الوقت المتبقي على الطلب المسبق</p>
-          <p className="text-5xl font-black" style={{ color: "#1F2C3E" }}>
-            {daysLeft}
-            <span className="text-xl font-bold mr-2" style={{ color: "#A77D4B" }}> يوم</span>
-          </p>
+          <p className="text-xs font-semibold mb-4" style={{ color: "#A77D4B" }}>الوقت المتبقي على الطلب المسبق</p>
+          <div className="flex items-center gap-3 justify-center">
+            {[
+              { value: timeLeft.days, label: "يوم" },
+              { value: timeLeft.hours, label: "ساعة" },
+              { value: timeLeft.minutes, label: "دقيقة" },
+              { value: timeLeft.seconds, label: "ثانية" },
+            ].map(({ value, label }, i) => (
+              <>
+                <div key={label} className="flex flex-col items-center">
+                  <span className="text-4xl font-black tabular-nums" style={{ color: "#1F2C3E" }}>
+                    {String(value).padStart(2, "0")}
+                  </span>
+                  <span className="text-[11px] font-semibold mt-1" style={{ color: "#A77D4B" }}>{label}</span>
+                </div>
+                {i < 3 && <span className="text-2xl font-black pb-4" style={{ color: "#A77D4B" }}>:</span>}
+              </>
+            ))}
+          </div>
         </div>
       )}
 

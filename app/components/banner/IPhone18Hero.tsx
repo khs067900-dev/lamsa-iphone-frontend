@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function IPhone18Hero() {
-  // eslint-disable-next-line react-hooks/purity
   const stars = useMemo(() =>
     Array.from({ length: 60 }, () => ({
       // eslint-disable-next-line react-hooks/purity
