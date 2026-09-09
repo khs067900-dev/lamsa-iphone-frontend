@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { FaApple } from "react-icons/fa";
 
 const categories = [
@@ -18,26 +18,9 @@ const categories = [
 
 export default function ShopByCategory() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
-  const [isDragging, setIsDragging] = useState(false);
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    dragRef.current = { active: true, startX: e.clientX, scrollLeft: scrollRef.current?.scrollLeft || 0, moved: false };
-    scrollRef.current?.setPointerCapture(e.pointerId);
-    setIsDragging(true);
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current.active) return;
-    const dx = e.clientX - dragRef.current.startX;
-    if (Math.abs(dx) > 5) dragRef.current.moved = true;
-    if (scrollRef.current) scrollRef.current.scrollLeft = dragRef.current.scrollLeft - dx;
-  };
-
-  const onPointerUp = (e: React.PointerEvent) => {
-    dragRef.current.active = false;
-    scrollRef.current?.releasePointerCapture(e.pointerId);
-    setIsDragging(false);
+  const scroll = (dir: "left" | "right") => {
+    if (scrollRef.current) scrollRef.current.scrollBy({ left: dir === "left" ? -280 : 280, behavior: "smooth" });
   };
 
   return (
@@ -60,23 +43,26 @@ export default function ShopByCategory() {
         </div>
       </div>
 
-      {/* Scrollable cards with auto-scroll + drag */}
+      {/* Arrow buttons */}
+      <div className="flex justify-end gap-2 px-4 sm:px-8 mb-4">
+        <button onClick={() => scroll("right")} className="p-2 rounded-full border border-[#BC9255]/40 hover:bg-[#BC9255] hover:text-white text-[#BC9255] transition-colors duration-200">
+          <ChevronRight className="w-5 h-5" />
+        </button>
+        <button onClick={() => scroll("left")} className="p-2 rounded-full border border-[#BC9255]/40 hover:bg-[#BC9255] hover:text-white text-[#BC9255] transition-colors duration-200">
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Scrollable cards */}
       <div
         ref={scrollRef}
-        className="flex gap-3 sm:gap-4 overflow-x-auto px-4 sm:px-8 pb-4 select-none"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none", cursor: isDragging ? "grabbing" : "grab" }}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
-
+        className="flex gap-3 sm:gap-4 overflow-x-auto px-4 sm:px-8 pb-4"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {categories.map((cat, i) => (
           <Link
             href={cat.href}
             key={`${cat.name}-${i}`}
-            draggable={false}
-            onClick={(e) => { if (dragRef.current.moved) e.preventDefault(); }}
             className="group relative w-40 sm:w-52 md:w-60 flex-shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-[#BC9255]/10 hover:border-[#BC9255]/40 shadow-[0_4px_20px_rgba(188,146,85,0.08)] transition-shadow duration-300"
           >
             <div className="relative w-full h-28 sm:h-36 md:h-44 overflow-hidden">
