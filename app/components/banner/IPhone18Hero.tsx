@@ -1,9 +1,18 @@
 "use client";
 
+import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function IPhone18Hero() {
+  const stars = useMemo(() =>
+    Array.from({ length: 60 }, () => ({
+      width: Math.random() * 2 + 1,
+      height: Math.random() * 2 + 1,
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      opacity: Math.random() * 0.6 + 0.1,
+    })), []);
   return (
     <section
       dir="rtl"
@@ -33,17 +42,17 @@ export default function IPhone18Hero() {
 
       {/* Stars background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(60)].map((_, i) => (
+        {stars.map((s, i) => (
           <div
             key={i}
             className="absolute rounded-full"
             style={{
-              width: Math.random() * 2 + 1,
-              height: Math.random() * 2 + 1,
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
+              width: s.width,
+              height: s.height,
+              top: s.top,
+              left: s.left,
               backgroundColor: "white",
-              opacity: Math.random() * 0.6 + 0.1,
+              opacity: s.opacity,
             }}
           />
         ))}

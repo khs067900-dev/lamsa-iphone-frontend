@@ -86,7 +86,6 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
       >
         {visibleCategories.map((cat) => {
           const img = categoryImages[cat.slug];
-          const count = categoryCounts[cat.slug] || 0;
 
           return (
             <div
