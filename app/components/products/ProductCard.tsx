@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -29,19 +30,16 @@ export default function ProductCard({ product, priority = false }: { product: Pr
 
   const addItem = useCartStore((s) => s.addItem);
   const [added, setAdded] = useState(false);
-  const [toast, setToast] = useState(false);
   const [liked, setLiked] = useState(false);
+  const router = useRouter();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(product);
     setAdded(true);
-    setToast(true);
-    // [FIX M1] Remove forced scroll-to-top and auto-navigation — let user decide
     setTimeout(() => {
-      setToast(false);
-      setAdded(false);
+      router.push("/cart");
     }, 1500);
   };
 
@@ -52,7 +50,7 @@ export default function ProductCard({ product, priority = false }: { product: Pr
 
   return (
     <>
-      {toast && (
+      {added && (
         <div className="fixed top-4 right-4 z-50 px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-base font-medium animate-fade-in-down" style={{ backgroundColor: '#1F2C3E', color: '#DFC4A4' }}>
           <IoCheckmarkCircleOutline size={18} />
           تمت إضافة المنتج للسلة
@@ -161,7 +159,7 @@ export default function ProductCard({ product, priority = false }: { product: Pr
         <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2">
           <button
             onClick={handleAddToCart}
-            className={`w-full flex items-center justify-center gap-2 py-2.5 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold transition-all duration-300 border-2 relative overflow-hidden ${added ? "" : "hover:scale-[1.03] active:scale-95 shimmer-btn"}`}
+            className={`w-full flex items-center justify-center gap-2 py-2.5 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold transition-all duration-300 border-2 relative overflow-hidden ${!added && "hover:scale-[1.03] active:scale-95 shimmer-btn"}`}
             style={{
               backgroundColor: added ? '#059669' : 'transparent',
               borderColor: added ? '#059669' : '#DFC4A4',
@@ -169,15 +167,9 @@ export default function ProductCard({ product, priority = false }: { product: Pr
             }}
           >
             {added ? (
-              <>
-                <IoCheckmarkCircleOutline size={16} />
-                تمت الإضافة
-              </>
+              <><IoCheckmarkCircleOutline size={16} />تمت الإضافة</>
             ) : (
-              <>
-                <IoBagAddOutline size={16} />
-                أضف للسلة
-              </>
+              <><IoBagAddOutline size={16} />أضف للسلة</>
             )}
           </button>
         </div>

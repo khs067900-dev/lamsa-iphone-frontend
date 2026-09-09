@@ -20,14 +20,30 @@ function validateBackendUrl(raw: string): string {
 }
 
 export const BACKEND = validateBackendUrl(process.env.BACKEND_URL || "http://localhost:5000");
+
+function assertSafeUrl(url: URL): void {
+  const { hostname, protocol } = url;
+  if (!ALLOWED_HOSTS.some((h) => hostname === h || hostname.endsWith(`.${h}`)))
+    throw new Error(`Blocked request to untrusted host: ${hostname}`);
+  if (protocol !== "http:" && protocol !== "https:")
+    throw new Error(`Blocked request with untrusted protocol: ${protocol}`);
+}
+
+function safeFetch(url: URL, init?: RequestInit): Promise<Response> {
+  assertSafeUrl(url);
+  const safeHref: string = url.href;
+  return fetch(safeHref, init);
+}
+
 const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,network,price";
 
 export const getAllProducts = unstable_cache(
   async () => {
-    const r = await fetch(
-      `${BACKEND}/api/products?page=1&limit=500&fields=${FIELDS}`,
-      { next: { tags: ["products"] } }
-    );
+    const url = new URL("/api/products", BACKEND);
+    url.searchParams.set("page", "1");
+    url.searchParams.set("limit", "500");
+    url.searchParams.set("fields", FIELDS);
+    const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
     if (!r.ok) return [];
     const data = await r.json();
     return Array.isArray(data) ? data : (data.products ?? []);
@@ -46,10 +62,9 @@ export const getAllProductsWithBanners = unstable_cache(
     let bannerMap: Record<string, string[]> = {};
     if (categories.length) {
       try {
-        const br = await fetch(
-          `${BACKEND}/api/admin/category-banners-bulk?categories=${encodeURIComponent(categories.join(","))}`,
-          { next: { revalidate: 3600, tags: ["banners"] } }
-        );
+        const bannerUrl = new URL("/api/admin/category-banners-bulk", BACKEND);
+        bannerUrl.searchParams.set("categories", categories.join(","));
+        const br = await safeFetch(bannerUrl, { next: { revalidate: 3600, tags: ["banners"] } } as RequestInit);
         if (br.ok) bannerMap = await br.json();
       } catch { /* banners are non-critical */ }
     }
@@ -62,16 +77,18 @@ export const getAllProductsWithBanners = unstable_cache(
 
 const PRODUCT_DETAIL_FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,description,specs,network,price,taxIncluded,deliveryTime,overview,features,detailedSpecs";
 
-export const getProductById = (id: string) =>
-  unstable_cache(
+export const getProductById = (id: string) => {
+  const safeId = encodeURIComponent(id);
+  return unstable_cache(
     async () => {
-      const r = await fetch(
-        `${BACKEND}/api/products/${id}?fields=${PRODUCT_DETAIL_FIELDS}`,
-        { next: { tags: ["products", `product-${id}`] } }
-      );
+      const url = new URL("/api/products", BACKEND);
+      url.searchParams.set("id", safeId);
+      url.searchParams.set("fields", PRODUCT_DETAIL_FIELDS);
+      const r = await safeFetch(url, { next: { tags: ["products", `product-${safeId}`] } } as RequestInit);
       if (!r.ok) return null;
       return (await r.json()) as Product;
     },
-    ["product-by-id", id],
-    { revalidate: 3600, tags: ["products", `product-${id}`] }
+    ["product-by-id", safeId],
+    { revalidate: 3600, tags: ["products", `product-${safeId}`] }
   )();
+};
