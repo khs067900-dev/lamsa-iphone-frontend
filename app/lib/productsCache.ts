@@ -81,9 +81,7 @@ export const getProductById = (id: string) => {
   const safeId = encodeURIComponent(id);
   return unstable_cache(
     async () => {
-      const url = new URL("/api/products", BACKEND);
-      url.searchParams.set("id", safeId);
-      url.searchParams.set("fields", PRODUCT_DETAIL_FIELDS);
+      const url = new URL(`/api/products/${safeId}`, BACKEND);
       const r = await safeFetch(url, { next: { tags: ["products", `product-${safeId}`] } } as RequestInit);
       if (!r.ok) return null;
       return (await r.json()) as Product;
