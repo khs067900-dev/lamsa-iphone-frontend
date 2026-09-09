@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { IoHomeOutline, IoChevronBack, IoArrowForward, IoArrowBack, IoBatteryFullOutline, IoCameraOutline, IoColorPaletteOutline, IoServerOutline, IoSwapVerticalOutline, IoCloseCircle, IoPhonePortraitOutline, IoCalendarOutline, IoCubeOutline, IoNotificationsOutline } from "react-icons/io5";
@@ -132,15 +132,15 @@ function PreOrderSection() {
               { value: timeLeft.minutes, label: "دقيقة" },
               { value: timeLeft.seconds, label: "ثانية" },
             ].map(({ value, label }, i) => (
-              <>
-                <div key={label} className="flex flex-col items-center">
+              <Fragment key={label}>
+                <div className="flex flex-col items-center">
                   <span className="text-4xl font-black tabular-nums" style={{ color: "#1F2C3E" }}>
                     {String(value).padStart(2, "0")}
                   </span>
                   <span className="text-[11px] font-semibold mt-1" style={{ color: "#A77D4B" }}>{label}</span>
                 </div>
                 {i < 3 && <span className="text-2xl font-black pb-4" style={{ color: "#A77D4B" }}>:</span>}
-              </>
+              </Fragment>
             ))}
           </div>
         </div>

@@ -6,6 +6,7 @@ import { getCompany } from "./lib/config";
 import CustomerReviews from "./components/CustomerReviews";
 
 const ShopByCategory = dynamic(() => import("./components/ShopByCategory"));
+const ShopByDevice = dynamic(() => import("./components/ShopByDevice"));
 
 const SITE_URL = "https://lamsasmart.com";
 
@@ -95,6 +96,7 @@ export default async function Home() {
       <main className="min-h-screen bg-gradient-to-b from-white via-gray-50/50 to-[#f5f0e8]/30">
         <Banner />
         <ShopByCategory />
+        <ShopByDevice />
         <div id="products">
           <ProductGrid initialProducts={products} initialHomeConfig={homeConfig} initialBannerMap={bannerMap} />
         </div>
