@@ -5,12 +5,18 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function IPhone18Hero() {
+  // eslint-disable-next-line react-hooks/purity
   const stars = useMemo(() =>
     Array.from({ length: 60 }, () => ({
+      // eslint-disable-next-line react-hooks/purity
       width: Math.random() * 2 + 1,
+      // eslint-disable-next-line react-hooks/purity
       height: Math.random() * 2 + 1,
+      // eslint-disable-next-line react-hooks/purity
       top: `${Math.random() * 100}%`,
+      // eslint-disable-next-line react-hooks/purity
       left: `${Math.random() * 100}%`,
+      // eslint-disable-next-line react-hooks/purity
       opacity: Math.random() * 0.6 + 0.1,
     })), []);
   return (

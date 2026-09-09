@@ -30,6 +30,7 @@ export default function Banner() {
   const next = useCallback(() => setCurrent((c) => (c + 1) % slides.length), []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
