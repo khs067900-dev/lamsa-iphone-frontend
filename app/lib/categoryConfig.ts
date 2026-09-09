@@ -218,12 +218,6 @@ export const slugConfigs: Record<string, SlugConfig> = {
     parentHref: "/playstation",
     filters: { category: "gaming-accessories" },
   },
-  accessories: {
-    label: "ملحقات بلاي ستيشن",
-    parentLabel: "أجهزة بلاي ستيشن",
-    parentHref: "/playstation",
-    filters: { category: "gaming-accessories" },
-  },
 
   // ─── Laptops ───────────────────────────────────────────────
   "macbook-pro": {
@@ -266,6 +260,12 @@ export const slugConfigs: Record<string, SlugConfig> = {
   },
 
   // ─── Accessories ───────────────────────────────────────────
+  accessories: {
+    label: "الاكسسوارات",
+    parentLabel: "الاكسسوارات",
+    parentHref: "/accessories",
+    filters: { category: "اكسسوار" },
+  },
   "anker-batteries": {
     label: "بطاريات متنقلة",
     parentLabel: "بطاريات متنقلة وكيابل",

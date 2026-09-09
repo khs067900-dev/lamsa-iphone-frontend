@@ -1,28 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://eauthenticate.saudibusiness.gov.sa https://maps.googleapis.com",
-              "script-src-elem 'self' 'unsafe-inline' https://eauthenticate.saudibusiness.gov.sa https://maps.googleapis.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://lamsa-iphone-backend.vercel.app https://maps.googleapis.com https://maps.gstatic.com https://nominatim.openstreetmap.org",
-              "frame-src 'self'",
-            ].join("; "),
-          },
-        ],
-      },
-    ];
-  },
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
@@ -45,11 +23,10 @@ const nextConfig: NextConfig = {
     };
   },
   images: {
-    unoptimized: true,
-    qualities: [60, 75, 100],
+    qualities: [75],
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [640, 750, 828, 1080, 1200],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    deviceSizes: [640, 828, 1080, 1200],
+    imageSizes: [64, 128, 256],
     remotePatterns: [
       { hostname: "ibb.co" },
       { hostname: "i.ibb.co" },

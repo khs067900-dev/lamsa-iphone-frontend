@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -32,40 +32,56 @@ const STATUS = {
   cancelled: { label: "ملغي", cls: "bg-red-100 text-red-700" },
 };
 
+const POLL_INTERVAL = 30000;
+const perPage = 10;
+
 export default function OrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
-  const perPage = 10;
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const load = () =>
-      fetch("/api/admin/orders")
-        .then((r) => r.json())
-        .then((d) => setOrders(Array.isArray(d) ? d : []));
-    load();
-    const interval = setInterval(load, 10000);
-    return () => clearInterval(interval);
+  const load = useCallback(async (p: number, s: string) => {
+    try {
+      const res = await fetch(`/api/admin/orders?page=${p}&limit=${perPage}&search=${encodeURIComponent(s)}`);
+      const d = await res.json();
+      setOrders(Array.isArray(d.orders) ? d.orders : []);
+      setTotal(d.total ?? 0);
+      setTotalPages(d.pages ?? 1);
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const filtered = orders.filter(
-    (o) =>
-      o.customer?.includes(search) ||
-      o.whatsapp?.includes(search) ||
-      o.orderId?.includes(search) ||
-      o.nationalId?.includes(search)
-  );
+  // initial load + polling — يوقف لما الـ tab مش active
+  useEffect(() => {
+    load(page, search);
+    const interval = setInterval(() => {
+      if (!document.hidden) load(page, search);
+    }, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [page, search, load]);
 
-  const totalPages = Math.ceil(filtered.length / perPage);
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+  // debounce search
+  function handleSearch(val: string) {
+    setSearch(val);
+    setPage(1);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => load(1, val), 400);
+  }
 
   async function deleteOrder(id: string) {
     const res = await fetch(`/api/admin/orders/${id}`, { method: "DELETE" });
     if (res.ok) {
-      setOrders((prev) => prev.filter((o) => o._id !== id));
       toast.success("تم حذف الطلب ✅");
+      load(page, search);
     }
     setConfirmDelete(null);
   }
@@ -91,13 +107,13 @@ export default function OrdersPage() {
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-b border-gray-100">
           <div className="text-sm text-gray-500">
-            أظهر <span className="font-semibold text-gray-700">{perPage}</span> مدخلات
+            إجمالي <span className="font-semibold text-gray-700">{total}</span> طلب
           </div>
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-500">ابحث:</label>
             <input
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={(e) => handleSearch(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 w-52"
               placeholder="اسم، واتس، هوية، رقم طلب"
             />
@@ -120,7 +136,9 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {paginated.map((o, i) => (
+              {loading ? (
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-gray-400">جاري التحميل...</td></tr>
+              ) : orders.map((o, i) => (
                 <tr key={o._id} className="hover:bg-gray-50 text-base">
                   <td className="px-4 py-3 text-gray-400 font-medium">{(page - 1) * perPage + i + 1}</td>
                   <td className="px-4 py-3 font-medium text-gray-800">{o.customer || "-"}</td>
@@ -182,7 +200,7 @@ export default function OrdersPage() {
                   </td>
                 </tr>
               ))}
-              {paginated.length === 0 && (
+              {!loading && orders.length === 0 && (
                 <tr>
                   <td colSpan={10} className="px-4 py-8 text-center text-gray-400">لا توجد طلبات</td>
                 </tr>
@@ -193,13 +211,11 @@ export default function OrdersPage() {
 
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-3 border-t border-gray-100 text-sm text-gray-500">
-            <span>عرض {(page - 1) * perPage + 1}–{Math.min(page * perPage, filtered.length)} من {filtered.length}</span>
+            <span>عرض {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} من {total}</span>
             <div className="flex items-center gap-1 flex-wrap justify-center">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
                 className="px-3 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40">السابق</button>
-              {/* على الموبايل: رقم الصفحة الحالية فقط */}
               <span className="sm:hidden px-3 py-1 rounded-lg border bg-purple-600 text-white border-purple-600">{page} / {totalPages}</span>
-              {/* على الشاشات الكبيرة: كل الأرقام */}
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                 <button key={n} onClick={() => setPage(n)}
                   className={`hidden sm:inline-flex px-3 py-1 rounded-lg border ${n === page ? "bg-purple-600 text-white border-purple-600" : "border-gray-200 hover:bg-gray-50"}`}>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -9,9 +8,6 @@ import {
   IoCheckmarkCircleOutline,
   IoHeartOutline,
   IoHeart,
-  IoShieldCheckmarkOutline,
-  IoRocketOutline,
-  IoCardOutline,
 } from "react-icons/io5";
 import type { Product } from "./types";
 import { useCartStore } from "../../store/cartStore";
@@ -23,7 +19,7 @@ const resolveImg = (src: string) =>
   src.startsWith("http") ? src : `${API}${src.startsWith("/") ? src : "/" + src}`;
 
 export default function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
-  const { name, discountPercent = 0, color, storage, installment, freeDelivery, warrantyYears } = product;
+  const { name, discountPercent = 0, color, storage } = product;
   const image = product.images?.[0] || product.image;
   const resolvedImage = image ? resolveImg(image) : undefined;
   const originalPrice = product.originalPrice || product.price || 0;
@@ -32,7 +28,6 @@ export default function ProductCard({ product, priority = false }: { product: Pr
   const displayPrice = hasDiscount ? salePrice : originalPrice;
 
   const addItem = useCartStore((s) => s.addItem);
-  const router = useRouter();
   const [added, setAdded] = useState(false);
   const [toast, setToast] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -42,12 +37,11 @@ export default function ProductCard({ product, priority = false }: { product: Pr
     addItem(product);
     setAdded(true);
     setToast(true);
+    // [FIX M1] Remove forced scroll-to-top and auto-navigation — let user decide
     setTimeout(() => {
       setToast(false);
       setAdded(false);
-      window.scrollTo(0, 0);
-      router.push("/cart");
-    }, 1000);
+    }, 1500);
   };
 
   const handleLike = (e: React.MouseEvent) => {
@@ -139,28 +133,6 @@ export default function ProductCard({ product, priority = false }: { product: Pr
             {name}
           </h3>
 
-          {/* Features icons row */}
-          <div className="flex items-center gap-2 sm:gap-3 pt-1 border-t border-[#EBE6E2] mt-1">
-            {freeDelivery && (
-              <div className="flex items-center gap-0.5" title="توصيل مجاني">
-                <IoRocketOutline size={12} style={{ color: '#1F2C3E' }} />
-                <span className="text-[8px] sm:text-[9px] font-medium hidden sm:inline" style={{ color: '#1F2C3E' }}>مجاني</span>
-              </div>
-            )}
-            {warrantyYears && warrantyYears > 0 && (
-              <div className="flex items-center gap-0.5" title={`ضمان ${warrantyYears} سنة`}>
-                <IoShieldCheckmarkOutline size={12} style={{ color: '#1F2C3E' }} />
-                <span className="text-[8px] sm:text-[9px] font-medium hidden sm:inline" style={{ color: '#1F2C3E' }}>{warrantyYears} سنة</span>
-              </div>
-            )}
-            {installment && (
-              <div className="flex items-center gap-0.5" title="تقسيط">
-                <IoCardOutline size={12} style={{ color: '#1F2C3E' }} />
-                <span className="text-[8px] sm:text-[9px] font-medium hidden sm:inline" style={{ color: '#1F2C3E' }}>تقسيط</span>
-              </div>
-            )}
-          </div>
-
           <div className="flex-1" />
 
           {/* Price section */}
@@ -170,12 +142,13 @@ export default function ProductCard({ product, priority = false }: { product: Pr
                 <span className="text-[16px] sm:text-[22px] font-black tracking-tight leading-none" style={{ color: '#121E2E' }}>
                   {fmt(displayPrice)}
                 </span>
-                <Image src="/money-icon.webp" alt="ر.س" width={20} height={15} className="inline-block object-contain" />
+                <Image src="/money-icon.webp" alt="ر.س" width={18} height={18} className="mr-0.5 object-contain" />
               </div>
             </div>
             {hasDiscount && (
               <span className="text-[9px] sm:text-[11px] line-through opacity-50 flex items-center gap-0.5" style={{ color: '#1F2C3E' }}>
-                {fmt(originalPrice)} <Image src="/money-icon.webp" alt="ر.س" width={20} height={15} className="inline-block align-middle object-contain" />
+                {fmt(originalPrice)}
+                <Image src="/money-icon.webp" alt="ر.س" width={12} height={12} className="object-contain" />
               </span>
             )}
           </div>

@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     `👤 اسم العميل: ${customerName ?? "—"}`,
   ].join("\n");
 
-  const chatIds = [process.env.TELEGRAM_CHAT_ID, "967729669"].filter(Boolean);
+  const chatIds = (process.env.TELEGRAM_CHAT_IDS ?? process.env.TELEGRAM_CHAT_ID ?? "")
+    .split(",").map((id: string) => id.trim()).filter(Boolean);
   let sent = false;
   for (const chatId of chatIds) {
     for (let attempt = 0; attempt < 3; attempt++) {

@@ -2,10 +2,10 @@
 
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import Link from "next/link";
 import { IoArrowBack, IoChevronForward, IoChevronBack } from "react-icons/io5";
 import type { Product } from "../../../../components/products/types";
-import { slugConfigs } from "../../../../lib/categoryConfig";
+import { filterBySlug } from "../../../../lib/filterUtils";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) => src.startsWith("http") ? src : `${API}${src.startsWith("/") ? src : "/" + src}`;
@@ -18,23 +18,6 @@ const modelSlugs = [
   { slug: "samsung-s23-ultra", label: "S23 Ultra" },
   { slug: "samsung-s22-ultra", label: "S22 Ultra" },
 ];
-
-function filterBySlug(products: Product[], slug: string): Product[] {
-  const config = slugConfigs[slug];
-  if (!config) return [];
-  const { brand, category, nameIncludes, nameExcludes } = config.filters;
-  return products.filter((p) => {
-    const matchBrand = brand ? p.brand?.toLowerCase() === brand.toLowerCase() : true;
-    const matchCategory = category ? p.category === category : true;
-    const matchName = nameIncludes?.length
-      ? nameIncludes.some((kw) => p.name?.toLowerCase().includes(kw.toLowerCase()))
-      : true;
-    const matchExclude = nameExcludes?.length
-      ? !nameExcludes.some((kw) => p.name?.toLowerCase().includes(kw.toLowerCase()))
-      : true;
-    return matchBrand && matchCategory && matchName && matchExclude;
-  });
-}
 
 export default function LatestPhones({ products }: { products: Product[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -93,12 +76,7 @@ export default function LatestPhones({ products }: { products: Product[] }) {
 
   return (
     <section className="mb-16">
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="flex items-center justify-between mb-8"
-      >
+      <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="w-1 h-8 rounded-full" style={{ backgroundColor: "#BC9255" }} />
           <h2 className="text-lg sm:text-xl font-black text-[#0A1825]">أحدث المنتجات</h2>
@@ -111,24 +89,21 @@ export default function LatestPhones({ products }: { products: Product[] }) {
             <IoChevronBack size={14} />
           </button>
         </div>
-      </motion.div>
+      </div>
 
       <div ref={scrollRef} className="flex gap-3 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}
       >
-        {picks.map((p, i) => {
+        {picks.map((p) => {
           const img = p.images?.[0] || p.image;
           const price = p.salePrice && p.salePrice > 0 ? p.salePrice : p.originalPrice || p.price || 0;
           return (
-            <motion.a
+            <Link
               key={p._id}
               href={`/product/${p._id}`}
               onClick={(e) => { if (dragRef.current.moved) e.preventDefault(); }}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.07, type: "spring", stiffness: 80 }}
-              className="group flex-shrink-0 block w-[155px] sm:w-[215px] rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-400 hover:shadow-xl border border-[#EBE6E2] hover:border-[#BC9255]/40"
+              draggable={false}
+              className="group flex-shrink-0 block w-[155px] sm:w-[215px] rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-xl border border-[#EBE6E2] hover:border-[#BC9255]/40"
               style={{ background: "linear-gradient(180deg, #FFFFFF 60%, #F9F6F2 100%)", userSelect: "none" }}
             >
                 <div className="relative h-[155px] sm:h-[215px] overflow-hidden">
@@ -149,7 +124,7 @@ export default function LatestPhones({ products }: { products: Product[] }) {
                     </div>
                   </div>
                 </div>
-            </motion.a>
+            </Link>
           );
         })}
       </div>

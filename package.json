@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:orders": "jest __tests__/admin-orders.test.ts --verbose --forceExit"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.2.0",
+    "@vercel/analytics": "^2.0.1",
     "card-validator": "^10.0.4",
     "credit-card-type": "^10.1.2",
     "critters": "^0.0.23",

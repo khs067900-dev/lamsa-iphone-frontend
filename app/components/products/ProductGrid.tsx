@@ -96,10 +96,10 @@ function CategoryRow({ category, items, isFirst, accentIdx }: { category: string
       </div>
 
       <div
-        className="rounded-[20px] p-4 sm:p-5"
+        className="rounded-[20px]"
         style={{ background: bgTint, border: `1px solid ${borderColor}`, boxShadow: '0 4px 24px -8px rgba(0,0,0,0.04)' }}
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {visible.map((p, i) => (
             <ProductCard key={p._id} product={p} priority={isFirst && i === 0} />
           ))}
@@ -156,7 +156,7 @@ export default function ProductGrid({ initialProducts, initialHomeConfig, initia
         {orderedCategories.map((category, catIdx) => (
           <div key={category}>
             {bannerMap[category]?.length > 0 && (
-              <div className="-mx-3 sm:-mx-6 mb-4">
+              <div className="mb-4">
                 <CategoryBanner category={category} images={bannerMap[category]} />
               </div>
             )}

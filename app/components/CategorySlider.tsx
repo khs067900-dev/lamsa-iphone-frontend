@@ -184,7 +184,6 @@ export default function CategorySlider({ categories }: { categories: Category[] 
                     src={cat.image}
                     alt={cat.name}
                     fill
-                    unoptimized
                     className="object-contain p-2.5 sm:p-4"
                     sizes="(max-width:640px) 90px, 140px"
                     draggable={false}

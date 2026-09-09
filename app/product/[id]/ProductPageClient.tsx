@@ -15,18 +15,24 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 export default function ProductPageClient({ id, initialProduct }: { id: string; initialProduct?: Product | null }) {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(initialProduct ?? null);
-  const [loading, setLoading] = useState(!initialProduct);
+  // [FIX C3] Only fetch client-side if SSR didn't provide the product (cache miss)
+  const [loading, setLoading] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
-    if (initialProduct) return;
-    fetch(`${API}/api/products/${id}`)
-      .then((r) => r.json())
+    if (initialProduct || product) return;
+    const safeId = /^[a-zA-Z0-9_-]{1,64}$/.test(id) ? id : null;
+    if (!safeId) { setFetchFailed(true); return; }
+    setLoading(true);
+    fetch(`${API}/api/products/${safeId}`)
+      .then((r) => { if (!r.ok) throw new Error("not found"); return r.json(); })
       .then(setProduct)
-      .catch(console.error)
+      .catch(() => setFetchFailed(true))
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, initialProduct]);
 
   useEffect(() => {
@@ -61,10 +67,11 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
       </main>
     );
 
-  if (!product)
+  if (fetchFailed || !product)
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#f5f0e8" }}>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#f5f0e8" }}>
         <p className="text-gray-400 text-base sm:text-lg">المنتج غير موجود</p>
+        <button onClick={() => router.back()} className="text-sm font-bold px-5 py-2.5 rounded-full" style={{ backgroundColor: "#BC9255", color: "#fff" }}>العودة</button>
       </div>
     );
 

@@ -1,21 +1,11 @@
 import type { Metadata } from "next";
 import ProductPageClient from "./ProductPageClient";
-import { getProductById } from "../../lib/productsCache";
-
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
-const SITE_URL = "https://lamsah-aldhaqiah.com";
+import { getProductById, BACKEND } from "../../lib/productsCache";
+import { SITE_URL, getCompany } from "../../lib/config";
 
 async function getProduct(id: string) {
+  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(id)) return null;
   return getProductById(id);
-}
-
-async function getCompany() {
-  try {
-    const r = await fetch(`${BACKEND}/api/admin/company`, { next: { revalidate: 3600 } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {

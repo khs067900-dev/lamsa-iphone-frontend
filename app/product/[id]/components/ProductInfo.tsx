@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   IoCartOutline,
@@ -76,10 +77,10 @@ export default function ProductInfo({ product, addedToCart, onAddToCart }: Produ
               <div className="space-y-2 sm:space-y-2.5">
                 <div className="flex items-baseline gap-1.5 sm:gap-2">
                   <span className="text-[1.6rem] sm:text-[2rem] md:text-[2.5rem] font-black leading-none tracking-tight" style={{ color: "#1F2C3E" }}>{fmt(salePrice)}</span>
-                  <img src="/money-icon.webp" alt="ر.س" className="inline-block w-5 h-5 sm:w-6 sm:h-6" />
+                  <Image src="/money-icon.webp" alt="ر.س" width={24} height={24} className="inline-block w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                  <span className="text-xs sm:text-sm line-through flex items-center gap-0.5" style={{ color: "#A77D4B", opacity: 0.5 }}>{fmt(originalPrice)} <img src="/money-icon.webp" alt="ر.س" className="inline-block w-4 h-4" /></span>
+                  <span className="text-xs sm:text-sm line-through flex items-center gap-0.5" style={{ color: "#A77D4B", opacity: 0.5 }}>{fmt(originalPrice)} <Image src="/money-icon.webp" alt="ر.س" width={16} height={16} className="inline-block w-4 h-4" /></span>
                   <span className="text-[9px] sm:text-[10px] md:text-[11px] font-extrabold text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg" style={{ backgroundColor: "#e74c3c" }}>
                     خصم {savingsPercent}% • وفّر {fmt(originalPrice - salePrice)}
                   </span>
@@ -88,7 +89,7 @@ export default function ProductInfo({ product, addedToCart, onAddToCart }: Produ
             ) : (
               <div className="flex items-baseline gap-1.5 sm:gap-2">
                 <span className="text-[1.6rem] sm:text-[2rem] md:text-[2.5rem] font-black leading-none tracking-tight" style={{ color: "#1F2C3E" }}>{fmt(originalPrice)}</span>
-                <img src="/money-icon.webp" alt="ر.س" className="inline-block w-5 h-5 sm:w-6 sm:h-6" />
+                <Image src="/money-icon.webp" alt="ر.س" width={24} height={24} className="inline-block w-5 h-5 sm:w-6 sm:h-6" />
               </div>
             )}
             {taxIncluded && <p className="text-[9px] sm:text-[10px] mt-2 sm:mt-2.5" style={{ color: "#A77D4B" }}>شامل ضريبة القيمة المضافة</p>}
@@ -104,7 +105,7 @@ export default function ProductInfo({ product, addedToCart, onAddToCart }: Produ
                 </div>
                 <div className="min-w-0">
                   <p className="text-[11px] sm:text-xs md:text-sm font-bold truncate" style={{ color: "#1F2C3E" }}>
-                    تقسيط متاح {installment.downPayment ? <><span>• مقدم {fmt(installment.downPayment)}</span><img src="/money-icon.webp" alt="ر.س" className="inline-block w-4 h-4 mr-0.5" /></> : ""}
+                    تقسيط متاح {installment.downPayment ? <><span>• مقدم {fmt(installment.downPayment)}</span><Image src="/money-icon.webp" alt="ر.س" width={16} height={16} className="inline-block w-4 h-4 mr-0.5" /></> : ""}
                   </p>
                   {installment.note && <p className="text-[9px] sm:text-[10px] mt-0.5 truncate" style={{ color: "#A77D4B" }}>{installment.note}</p>}
                 </div>

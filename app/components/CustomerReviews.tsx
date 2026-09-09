@@ -24,7 +24,7 @@ export default function CustomerReviews() {
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
 
   useEffect(() => {
-    fetch(`/api/reviews`)
+    fetch(`/api/reviews`, { next: { revalidate: 3600 } } as RequestInit)
       .then((r) => r.json())
       .then((data) => Array.isArray(data) && setReviews(data))
       .catch(() => {});

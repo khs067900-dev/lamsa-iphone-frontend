@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { sortProducts } from "../../../lib/sortProducts";
-import { slugConfigs } from "../../../lib/categoryConfig";
+import { buildModelMeta } from "../../../lib/filterUtils";
 import type { Product } from "../../../components/products/types";
 
 import HeroSection from "./components/HeroSection";
@@ -31,23 +31,6 @@ const appleFilters = [
   { slug: "iphone-15", label: "آيفون 15 عادي", desc: "تصميم عصري" },
 ];
 
-function filterBySlug(products: Product[], slug: string): Product[] {
-  const config = slugConfigs[slug];
-  if (!config) return [];
-  const { brand, category, nameIncludes, nameExcludes } = config.filters;
-  return products.filter((p) => {
-    const matchBrand = brand ? p.brand?.toLowerCase() === brand.toLowerCase() : true;
-    const matchCategory = category ? p.category === category : true;
-    const matchName = nameIncludes?.length
-      ? nameIncludes.some((kw) => p.name?.toLowerCase().includes(kw.toLowerCase()))
-      : true;
-    const matchExclude = nameExcludes?.length
-      ? !nameExcludes.some((kw) => p.name?.toLowerCase().includes(kw.toLowerCase()))
-      : true;
-    return matchBrand && matchCategory && matchName && matchExclude;
-  });
-}
-
 export default function AppleOnlyClient({ initialProducts = [] }: { initialProducts?: Product[] }) {
   const applePhones = useMemo(() =>
     sortProducts(
@@ -66,25 +49,10 @@ export default function AppleOnlyClient({ initialProducts = [] }: { initialProdu
   const allProducts = applePhones;
   const loading = false;
 
-  const categoryImages = useMemo(() => {
-    const map: Record<string, string> = {};
-    appleFilters.forEach((cat) => {
-      const filtered = filterBySlug(allProducts, cat.slug);
-      if (filtered.length > 0) {
-        const img = filtered[0].images?.[0] || filtered[0].image;
-        if (img) map[cat.slug] = resolveImg(img);
-      }
-    });
-    return map;
-  }, [allProducts]);
-
-  const categoryCounts = useMemo(() => {
-    const map: Record<string, number> = {};
-    appleFilters.forEach((cat) => {
-      map[cat.slug] = filterBySlug(allProducts, cat.slug).length;
-    });
-    return map;
-  }, [allProducts]);
+  const { categoryImages, categoryCounts } = useMemo(
+    () => buildModelMeta(allProducts, appleFilters, resolveImg),
+    [allProducts]
+  );
 
   return (
     <main className="min-h-screen bg-[#FDFBF8]" dir="rtl">
@@ -94,11 +62,8 @@ export default function AppleOnlyClient({ initialProducts = [] }: { initialProdu
         {!loading && (
           <ShopByModel
             filters={appleFilters}
-            activeFilter={null}
             categoryImages={categoryImages}
             categoryCounts={categoryCounts}
-            onFilterClick={() => {}}
-            displayCount={allProducts.length}
           />
         )}
 

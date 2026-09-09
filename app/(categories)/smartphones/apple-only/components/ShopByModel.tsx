@@ -2,9 +2,9 @@
 
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { FaApple } from "react-icons/fa";
 import { IoChevronForward, IoChevronBack } from "react-icons/io5";
-import { motion } from "framer-motion";
 
 interface FilterItem {
   slug: string;
@@ -14,15 +14,13 @@ interface FilterItem {
 
 interface Props {
   filters: FilterItem[];
-  activeFilter: string | null;
   categoryImages: Record<string, string>;
   categoryCounts: Record<string, number>;
-  onFilterClick: (slug: string) => void;
-  displayCount: number;
 }
 
 export default function ShopByModel({ filters, categoryImages, categoryCounts }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0);
   const [activeIndex, setActiveIndex] = useState(0);
   const totalDots = Math.min(visibleCategories.length, 5);
@@ -52,7 +50,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragRef.current.dragging) return;
-    if (Math.abs(e.clientX - dragRef.current.startX) > 5) dragRef.current.moved = true;
+    if (Math.abs(e.clientX - dragRef.current.startX) > 10) dragRef.current.moved = true;
     if (scrollRef.current) scrollRef.current.scrollLeft = dragRef.current.scrollLeft - (e.clientX - dragRef.current.startX);
   };
   const onPointerUp = () => { dragRef.current.dragging = false; setIsDragging(false); };
@@ -61,7 +59,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
 
   return (
     <section className="mb-14">
-      <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg border border-[#DFC4A4]/20" style={{ background: "linear-gradient(135deg, #1F2C3E, #2a3d55)" }}>
             <FaApple size={18} className="text-[#DFC4A4]" />
@@ -79,22 +77,18 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
             <IoChevronBack size={14} />
           </button>
         </div>
-      </motion.div>
+      </div>
 
       <div ref={scrollRef} className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none", cursor: isDragging ? "grabbing" : "grab" }}
         onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerUp}
       >
-        {visibleCategories.map((cat, i) => {
+        {visibleCategories.map((cat) => {
           const img = categoryImages[cat.slug];
           return (
-            <motion.a
+            <div
               key={cat.slug}
-              href={`/smartphones/${cat.slug}`}
-              onClick={(e) => { if (dragRef.current.moved) e.preventDefault(); }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
-              className="relative flex-shrink-0 w-[130px] sm:w-[175px] rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-400 group block border border-transparent hover:border-[#DFC4A4]/40"
+              draggable={false}
+              className="relative flex-shrink-0 w-[130px] sm:w-[175px] rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 group border border-transparent hover:border-[#DFC4A4]/40"
               style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F8F5F1 100%)", boxShadow: "0 4px 20px rgba(31,44,62,0.06)", userSelect: "none" }}
             >
                 <div className="relative w-full h-[95px] sm:h-[140px] overflow-hidden">
@@ -112,9 +106,17 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
                 <div className="px-2 py-2 sm:px-3 sm:py-3 text-center border-t border-[#EBE6E2]/60">
                   <p className="text-[11px] sm:text-[13px] font-bold truncate" style={{ color: "#1F2C3E" }}>{cat.label}</p>
                   <p className="text-[9px] sm:text-[11px] mt-0.5 sm:mt-1 text-[#1F2C3E]/50 truncate">{cat.desc}</p>
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={() => { if (!dragRef.current.moved) router.push(`/smartphones/${cat.slug}`); }}
+                    className="mt-1.5 sm:mt-2 w-full text-[9px] sm:text-[10px] font-bold py-1 sm:py-1.5 rounded-lg transition-all duration-300"
+                    style={{ backgroundColor: "#1F2C3E", color: "#DFC4A4" }}
+                  >
+                    تسوّق الآن
+                  </button>
                 </div>
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-3xl" style={{ background: "radial-gradient(circle at 50% 30%, rgba(223,196,164,0.08), transparent 70%)" }} />
-            </motion.a>
+            </div>
           );
         })}
       </div>

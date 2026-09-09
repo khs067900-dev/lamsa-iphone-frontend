@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, useRef, useCallback, useEffect } from "react";
 
 const AUTO_PLAY_MS = 4000;
@@ -17,11 +18,10 @@ function CategoryBannerSlider({ images }: { images: string[] }) {
   }, [images.length]);
 
   return (
-    <div className="w-full px-3 sm:px-4 py-2">
-      <div className="relative w-full max-w-5xl mx-auto overflow-hidden rounded-2xl ">
+    <div className="w-full px-3 sm:px-6 py-2">
+      <div className="relative w-full overflow-hidden rounded-2xl">
         <div
-          className="flex transition-transform duration-500 ease-in-out"
-          style={{ transform: `translateX(${current * 100}%)` }}
+          className="relative w-full"
           onTouchStart={(e) => { touchStart.current = e.touches[0].clientX; }}
           onTouchEnd={(e) => {
             const diff = touchStart.current - e.changedTouches[0].clientX;
@@ -29,8 +29,21 @@ function CategoryBannerSlider({ images }: { images: string[] }) {
           }}
         >
           {images.map((src, i) => (
-            <div key={i} className="min-w-full">
-              <img src={src} alt={`banner ${i + 1}`} className="w-full object-cover max-h-64 sm:max-h-110" loading={i === 0 ? "eager" : "lazy"} />
+            <div
+              key={i}
+              className="transition-opacity duration-500 ease-in-out"
+              style={{ opacity: i === current ? 1 : 0, position: i === current ? 'relative' : 'absolute', inset: 0 }}
+            >
+              <Image
+                src={src}
+                alt={`banner ${i + 1}`}
+                width={1200}
+                height={600}
+                className="w-full h-auto"
+                loading={i === 0 ? "eager" : "lazy"}
+                sizes="(max-width: 768px) 100vw, 1024px"
+                quality={75}
+              />
             </div>
           ))}
         </div>

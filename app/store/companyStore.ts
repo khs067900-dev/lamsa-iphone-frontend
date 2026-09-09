@@ -2,6 +2,11 @@ import { create } from "zustand";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
+// In-memory cache: avoid re-fetching on every Navbar mount
+let _cache: CompanyStore | null = null;
+let _cacheTs = 0;
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
 interface CompanyStore {
   logo: string;
   nameAr: string;
@@ -25,13 +30,18 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   website: "",
   details: "",
   fetchCompany: async () => {
+    // Return cached data if still fresh
+    if (_cache && Date.now() - _cacheTs < CACHE_TTL) {
+      set(_cache);
+      return;
+    }
     try {
-      const res = await fetch(`/api/admin/company`, { credentials: "include" });
+      const res = await fetch(`/api/company`, { credentials: "include" });
       const data = await res.json();
       const fullLogo = data.logo
         ? (data.logo.startsWith("http") ? data.logo : `${API}${data.logo}`)
         : "";
-      set({
+      const next = {
         logo: fullLogo,
         nameAr: data.nameAr || "",
         nameEn: data.nameEn || "",
@@ -40,12 +50,13 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
         email: data.email || "",
         website: data.website || "",
         details: data.details || "",
-      });
+      };
+      _cache = { ...next, fetchCompany: async () => {}, setLogo: () => {} };
+      _cacheTs = Date.now();
+      set(next);
     } catch (e) { console.error(e); }
   },
-  // keep fetchLogo as alias for backward compat
   setLogo: (url) => set({ logo: url }),
 }));
 
-// backward compat alias
 export const useCompanyStoreLegacy = useCompanyStore;

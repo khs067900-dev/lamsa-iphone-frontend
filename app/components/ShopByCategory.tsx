@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
@@ -10,7 +10,7 @@ const categories = [
   { name: "iPhone", icon: <FaApple className="w-4 h-4" />, desc: "أكثر من مجرد هاتف", image: "/iphone.webp", href: "/smartphones/apple-only" },
   { name: "Samsung", icon: null, desc: "تقنية بلا حدود", image: "/samsong.webp", href: "/smartphones/samsung-only" },
   { name: "Apple Watch", icon: <FaApple className="w-4 h-4" />, desc: "ساعتك الذكية", image: "/watch.webp", href: "/apple-watches/se" },
-  { name: "AirPods", icon: <FaApple className="w-4 h-4" />, desc: "صوت نقي بلا حدود", image: "/air-pod.webp", href: "/audio" },
+  { name: "AirPods", icon: <FaApple className="w-4 h-4" />, desc: "صوت نقي بلا حدود", image: "/air-pod.webp", href: "/accessories/airpods" },
   { name: "MacBook Air", icon: <FaApple className="w-4 h-4" />, desc: "خفيف. قوي. جاهز لكل شيء.", image: "/mac.webp", href: "/laptops/macbook-air" },
   { name: "الاكسسوارات", icon: null, desc: "كل ما تحتاجه", image: "/acc.webp", href: "/accessories" },
   { name: "الصوتيات", icon: null, desc: "تجربة صوت مذهلة", image: "/audio.webp", href: "/audio" },
@@ -18,51 +18,27 @@ const categories = [
 
 export default function ShopByCategory() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false });
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const animationRef = useRef<number>(0);
-  const speedRef = useRef(0.3);
 
-  // Auto-scroll animation (RTL: scrollLeft goes negative)
-  useEffect(() => {
-    const animate = () => {
-      const el = scrollRef.current;
-      if (el && !isPaused && !isDragging) {
-        el.scrollLeft -= speedRef.current;
-        // Reset for infinite loop: when scrolled halfway, jump back
-        if (Math.abs(el.scrollLeft) >= el.scrollWidth / 2) {
-          el.scrollLeft = 0;
-        }
-      }
-      animationRef.current = requestAnimationFrame(animate);
-    };
-    animationRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationRef.current);
-  }, [isPaused, isDragging]);
-
-  // Drag handlers
   const onPointerDown = (e: React.PointerEvent) => {
-    setIsDragging(true);
-    setStartX(e.clientX);
-    setScrollLeft(scrollRef.current?.scrollLeft || 0);
+    dragRef.current = { active: true, startX: e.clientX, scrollLeft: scrollRef.current?.scrollLeft || 0, moved: false };
     scrollRef.current?.setPointerCapture(e.pointerId);
+    setIsDragging(true);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX;
-    if (scrollRef.current) scrollRef.current.scrollLeft = scrollLeft - dx;
+    if (!dragRef.current.active) return;
+    const dx = e.clientX - dragRef.current.startX;
+    if (Math.abs(dx) > 5) dragRef.current.moved = true;
+    if (scrollRef.current) scrollRef.current.scrollLeft = dragRef.current.scrollLeft - dx;
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
-    setIsDragging(false);
+    dragRef.current.active = false;
     scrollRef.current?.releasePointerCapture(e.pointerId);
+    setIsDragging(false);
   };
-
-  // Duplicate categories for seamless loop
-  const items = [...categories, ...categories];
 
   return (
     <section className="w-full py-10 sm:py-16 overflow-hidden" dir="rtl" style={{ background: "linear-gradient(to bottom, #ffffff, #f5f0e8)" }}>
@@ -93,22 +69,19 @@ export default function ShopByCategory() {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onTouchStart={() => setIsPaused(true)}
-        onTouchEnd={() => setIsPaused(false)}
+
       >
-        {items.map((cat, i) => (
+        {categories.map((cat, i) => (
           <Link
             href={cat.href}
             key={`${cat.name}-${i}`}
             draggable={false}
-            onClick={(e) => { if (isDragging) e.preventDefault(); }}
+            onClick={(e) => { if (dragRef.current.moved) e.preventDefault(); }}
             className="group relative w-40 sm:w-52 md:w-60 flex-shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-[#BC9255]/10 hover:border-[#BC9255]/40 shadow-[0_4px_20px_rgba(188,146,85,0.08)] transition-shadow duration-300"
           >
             <div className="relative w-full h-28 sm:h-36 md:h-44 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#f9f6f1] to-[#efe8dc]" />
-              <Image src={cat.image} alt={cat.name} fill className="relative object-cover pointer-events-none" sizes="(max-width:640px) 160px,(max-width:768px) 208px,240px" loading="lazy" quality={60} draggable={false} />
+              <Image src={cat.image} alt={cat.name} fill className="relative object-cover pointer-events-none" sizes="(max-width:640px) 160px,(max-width:768px) 208px,240px" loading="lazy" quality={75} draggable={false} />
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
             </div>
             <div className="relative px-3 sm:px-4 pb-3 sm:pb-4 -mt-3">

@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
       if (tokenMatch) {
         response.cookies.set("admin_token", tokenMatch[1], {
           httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          maxAge: 8 * 60 * 60,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+          maxAge: 2 * 60 * 60,
           path: "/",
         });
       }

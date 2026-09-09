@@ -67,15 +67,6 @@ export default function CheckoutPage() {
 
   const fullName = `${customer.firstName} ${customer.lastName}`.trim();
 
-  const confirmCustomer = () => {
-    const e = validateCustomer(customer);
-    setErrors(e);
-    if (!Object.keys(e).length) {
-      setCustomerConfirmed(true);
-      localStorage.setItem("checkout_customer", JSON.stringify({ ...customer, address, confirmed: true }));
-    }
-  };
-
   const applyCoupon = () => {
     if (coupon.trim().toUpperCase() === "SAHLNAHA10") {
       const d = Math.round(total * 0.1);
@@ -84,6 +75,15 @@ export default function CheckoutPage() {
     } else {
       setDiscount(0);
       setCouponMsg("✗ الكود غير صحيح");
+    }
+  };
+
+  const confirmCustomer = () => {
+    const e = validateCustomer(customer);
+    setErrors(e);
+    if (!Object.keys(e).length) {
+      setCustomerConfirmed(true);
+      localStorage.setItem("checkout_customer", JSON.stringify({ ...customer, address, confirmed: true }));
     }
   };
 
@@ -122,7 +122,6 @@ export default function CheckoutPage() {
     }
     setLoading(true);
     try {
-      const { getFingerprint } = await import("../lib/useFingerprint");
       const res = await fetch("/api/notify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,7 +133,6 @@ export default function CheckoutPage() {
           installmentType: customer_store?.installmentType ?? "full",
           months: customer_store?.months ?? 0,
           downPayment: customer_store?.downPayment ?? 0,
-          fingerprint: getFingerprint(),
         }),
       });
       const data = await res.json();
@@ -209,6 +207,7 @@ export default function CheckoutPage() {
             </button>
           </div>
         </div>
+
         {couponOpen && (
           <div className="flex gap-2 px-4 sm:px-6 pb-4">
             <input value={coupon} onChange={e => { setCoupon(e.target.value); setCouponMsg(""); }}

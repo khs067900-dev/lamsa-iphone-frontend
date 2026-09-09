@@ -12,7 +12,7 @@ export default async function AccessoriesPage() {
   const products = await getAllProducts();
   return (
     <PhoneHeroPage
-      slug="anker-batteries"
+      slug="accessories"
       heroImage="/ac.webp"
       nameEn="Accessories"
       tagline="بطاريات متنقلة وكيابل واكسسوارات"

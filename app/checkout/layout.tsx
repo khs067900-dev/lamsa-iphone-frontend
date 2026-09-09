@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-
-const SITE_URL = "https://lamsah-aldhaqiah.com";
+import { SITE_URL } from "../lib/config";
 
 export const metadata: Metadata = {
   title: "إتمام الطلب",

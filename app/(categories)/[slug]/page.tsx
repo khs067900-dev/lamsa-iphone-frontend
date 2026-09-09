@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { slugConfigs } from "../../lib/categoryConfig";
 import CategoryPageClient from "./CategoryPageClient";
-import { getAllProducts } from "../../lib/productsCache";
-
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
-const SITE_URL = "https://lamsah-aldhaqiah.com";
-
-async function getCompany() {
-  try {
-    const r = await fetch(`${BACKEND}/api/admin/company`, { next: { revalidate: 3600 } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
+import { getAllProducts, BACKEND } from "../../lib/productsCache";
+import { SITE_URL, getCompany } from "../../lib/config";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -58,6 +48,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CategorySlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  // [FIX M2] Validate slug on server — avoids client-side flash before notFound
+  if (!slugConfigs[slug]) notFound();
   const products = await getAllProducts();
   return <CategoryPageClient slug={slug} initialProducts={products} />;
 }

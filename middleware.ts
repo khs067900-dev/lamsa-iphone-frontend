@@ -25,8 +25,8 @@ export async function middleware(req: NextRequest) {
 
   const csp = [
     `default-src 'self'`,
-    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://eauthenticate.saudibusiness.gov.sa https://maps.googleapis.com`,
-    `script-src-elem 'self' 'unsafe-inline' https://eauthenticate.saudibusiness.gov.sa https://maps.googleapis.com`,
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://eauthenticate.saudibusiness.gov.sa https://maps.googleapis.com https://va.vercel-scripts.com`,
+    `script-src-elem 'self' 'unsafe-inline' https://eauthenticate.saudibusiness.gov.sa https://maps.googleapis.com https://va.vercel-scripts.com`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `img-src 'self' data: blob: https:`,
     `font-src 'self' data: https://fonts.gstatic.com`,
@@ -45,7 +45,7 @@ export async function middleware(req: NextRequest) {
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
+
 
   if (pathname.startsWith("/admin")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
@@ -58,6 +58,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    { source: "/((?!_next/static|_next/image|favicon.ico).*)" },
+    { source: "/((?!_next/static|_next/image|favicon.ico|.*\\.webp|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.avif|.*\\.ico).*)" },
   ],
 };
