@@ -30,7 +30,7 @@ export default function HeroSection({ productCount, loading }: { productCount: n
         .hero-cta:hover{background-position:right center;transform:translateY(-2px);box-shadow:0 8px 30px rgba(223,196,164,.35)}
       `}</style>
 
-      <Image src="/a10f872c-e2e4-4118-b873-2660cf52dc0f.jpg" alt="أجهزة أبل" fill className="object-cover" style={{ objectPosition: "center" }} priority sizes="100vw" />
+      <Image src="/apple-only.webp" alt="أجهزة أبل" fill className="object-cover" style={{ objectPosition: "center" }} priority sizes="100vw" />
 
       <div className="hero-pulse absolute inset-0" style={{ background: "radial-gradient(ellipse at 25% 60%, rgba(223,196,164,0.12) 0%, transparent 55%)" }} />
       <div className="absolute inset-0" style={{ background: "linear-gradient(105deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 50%, rgba(0,0,0,0.3) 100%)" }} />
