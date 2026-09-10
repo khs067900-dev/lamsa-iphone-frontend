@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "lamsa-iphone-backend.vercel.app" },
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "cloudinary.com" },
+      { protocol: "https", hostname: "eauthenticate.saudibusiness.gov.sa" },
     ],
   },
 };
