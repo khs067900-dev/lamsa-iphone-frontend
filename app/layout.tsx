@@ -101,7 +101,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <ClientLayout footer={<Footer />}>{children}</ClientLayout>
-        <div className="sbc-verify-seal" data-token="MStxS0d2Q1pNbVF0ZkhEVitKdkd6UT09" data-position="bottom-left" />
+        <div className="sbc-verify-seal" data-token="SGZSSmZHNllFMUphV1A2OWlkc0hzdz09" data-position="bottom-left" />
         <Script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" strategy="afterInteractive" />
         <Analytics />
       </body>
