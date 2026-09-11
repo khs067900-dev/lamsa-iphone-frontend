@@ -139,13 +139,16 @@ export default function ProductGrid({ initialProducts, initialHomeConfig, initia
     const { settings, max } = homeConfig;
     const visibleSettings = settings.filter((s) => s.showInHome);
     if (visibleSettings.length === 0) return allCats;
+    const settingCats = new Set(visibleSettings.flatMap((s) => [s.category, s.subCategory].filter(Boolean)));
     const orderedCats = visibleSettings
       .sort((a, b) => a.order - b.order)
       .slice(0, max)
-      .map((s) => allCats.find((c) => c === s.category || c === s.subCategory) ?? s.category)
-      .filter((c, idx, arr) => arr.indexOf(c) === idx)
-      .filter((c) => allCats.includes(c));
-    return orderedCats.length > 0 ? orderedCats : allCats;
+      .map((s) => allCats.find((c) => c === s.category || c === s.subCategory))
+      .filter((c): c is string => !!c)
+      .filter((c, idx, arr) => arr.indexOf(c) === idx);
+    const remaining = allCats.filter((c) => !settingCats.has(c));
+    const merged = [...orderedCats, ...remaining];
+    return merged.length > 0 ? merged : allCats;
   }, [grouped, homeConfig]);
 
   if (!products.length) return <p className="text-center text-gray-400 py-10">لا توجد منتجات حالياً</p>;
