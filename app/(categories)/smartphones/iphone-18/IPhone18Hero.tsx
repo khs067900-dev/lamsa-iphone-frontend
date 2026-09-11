@@ -3,6 +3,28 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
+const TARGET = new Date("2026-09-12T20:00:00Z"); // 11:00 PM KSA (UTC+3)
+
+function useCountdown() {
+  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 });
+  useEffect(() => {
+    const calc = () => {
+      const diff = TARGET.getTime() - Date.now();
+      if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+      return {
+        d: Math.floor(diff / 86400000),
+        h: Math.floor((diff % 86400000) / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+      };
+    };
+    setT(calc());
+    const id = setInterval(() => setT(calc()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return t;
+}
+
 const slides = [{
     src: "/i-18-2.webp",
     tag: "iPhone 18 Pro",
@@ -34,6 +56,7 @@ const slides = [{
 ];
 
 export default function IPhone18Hero() {
+  const { d, h, m, s } = useCountdown();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -79,6 +102,15 @@ export default function IPhone18Hero() {
             <p className="text-xs text-white/50">
               <span className="text-white/80 font-semibold">{slides[active].cta}</span> &nbsp;·&nbsp; {slides[active].ctaSub}
             </p>
+            {/* Countdown */}
+            <div className="flex gap-2 mt-4 justify-center" dir="ltr">
+              {[{ v: d, l: "يوم" }, { v: h, l: "ساعة" }, { v: m, l: "دقيقة" }, { v: s, l: "ثانية" }].map(({ v, l }) => (
+                <div key={l} className="flex flex-col items-center px-2 py-1.5 rounded-lg" style={{ backgroundColor: "rgba(255,255,255,0.12)", minWidth: 48 }}>
+                  <span className="text-xl font-black text-white">{String(v).padStart(2, "0")}</span>
+                  <span className="text-[10px] text-white/50">{l}</span>
+                </div>
+              ))}
+            </div>
           </>
         ) : (
           <>

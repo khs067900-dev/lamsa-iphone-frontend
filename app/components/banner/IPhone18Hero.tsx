@@ -1,10 +1,33 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+const TARGET = new Date("2026-09-12T20:00:00Z"); // 11:00 PM KSA (UTC+3)
+
+function useCountdown() {
+  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 });
+  useEffect(() => {
+    const calc = () => {
+      const diff = TARGET.getTime() - Date.now();
+      if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+      return {
+        d: Math.floor(diff / 86400000),
+        h: Math.floor((diff % 86400000) / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+      };
+    };
+    setT(calc());
+    const id = setInterval(() => setT(calc()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return t;
+}
+
 export default function IPhone18Hero() {
+  const { d, h, m, s } = useCountdown();
   const stars = useMemo(() =>
     Array.from({ length: 60 }, () => ({
       // eslint-disable-next-line react-hooks/purity
@@ -121,6 +144,16 @@ export default function IPhone18Hero() {
               >
                 {s.label}
               </span>
+            ))}
+          </div>
+
+          {/* Countdown */}
+          <div className="fade-up-4 flex gap-3 justify-end mb-6" dir="ltr">
+            {[{ v: d, l: "يوم" }, { v: h, l: "ساعة" }, { v: m, l: "دقيقة" }, { v: s, l: "ثانية" }].map(({ v, l }) => (
+              <div key={l} className="flex flex-col items-center px-3 py-2 rounded-xl" style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(200,169,110,0.2)", minWidth: 56 }}>
+                <span className="text-2xl font-black" style={{ color: "#C8A96E" }}>{String(v).padStart(2, "0")}</span>
+                <span className="text-[10px] text-white/50 mt-0.5">{l}</span>
+              </div>
             ))}
           </div>
 

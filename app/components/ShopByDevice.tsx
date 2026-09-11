@@ -6,7 +6,7 @@ export default function ShopByDevice() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const target = new Date("2026-09-12T00:00:00").getTime();
+    const target = new Date("2026-09-12T20:00:00Z").getTime(); // 11:00 PM KSA (UTC+3)
     const calc = () => {
       const diff = Math.max(0, target - Date.now());
       setTimeLeft({
