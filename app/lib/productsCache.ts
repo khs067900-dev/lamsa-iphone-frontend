@@ -52,10 +52,15 @@ export const getAllProducts = unstable_cache(
   { revalidate: 3600, tags: ["products"] }
 );
 
-// reuses getAllProducts cache — no duplicate fetch
 export const getAllProductsWithBanners = unstable_cache(
   async () => {
-    const products: Product[] = await getAllProducts();
+    const url = new URL("/api/products", BACKEND);
+    url.searchParams.set("page", "1");
+    url.searchParams.set("limit", "500");
+    url.searchParams.set("fields", FIELDS);
+    const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
+    const data = r.ok ? await r.json() : {};
+    const products: Product[] = Array.isArray(data) ? data : (data.products ?? []);
 
     const categories = [...new Set(products.map((p) => p.category || p.subCategory).filter(Boolean))] as string[];
 
