@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const TARGET = new Date("2026-09-12T20:00:00Z"); // 11:00 PM KSA (UTC+3)
-
-function useCountdown() {
-  const calc = () => {
-    const diff = TARGET.getTime() - Date.now();
+function useCountdown(target: Date, onExpire: () => void) {
+  const calledRef = useRef(false);
+  const calc = (t: Date) => {
+    const diff = t.getTime() - Date.now();
     if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
     return {
       d: Math.floor(diff / 86400000),
@@ -17,9 +16,17 @@ function useCountdown() {
       s: Math.floor((diff % 60000) / 1000),
     };
   };
-  const [t, setT] = useState(calc);
+  const [t, setT] = useState(() => calc(target));
   useEffect(() => {
-    const id = setInterval(() => setT(calc()), 1000);
+    const id = setInterval(() => {
+      const diff = target.getTime() - Date.now();
+      if (diff <= 0) {
+        setT({ d: 0, h: 0, m: 0, s: 0 });
+        if (!calledRef.current) { calledRef.current = true; onExpire(); }
+        return;
+      }
+      setT(calc(target));
+    }, 1000);
     return () => clearInterval(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -27,7 +34,9 @@ function useCountdown() {
 }
 
 export default function IPhone18Hero() {
-  const { d, h, m, s } = useCountdown();
+  const target = new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00");
+  const [visible, setVisible] = useState(() => target.getTime() > Date.now());
+  const { d, h, m, s } = useCountdown(target, () => setVisible(false));
   const stars = useMemo(() =>
     Array.from({ length: 60 }, () => ({
       // eslint-disable-next-line react-hooks/purity
@@ -41,6 +50,7 @@ export default function IPhone18Hero() {
       // eslint-disable-next-line react-hooks/purity
       opacity: Math.random() * 0.6 + 0.1,
     })), []);
+  if (!visible) return null;
   return (
     <section
       dir="rtl"

@@ -3,12 +3,14 @@
 import { useState, useEffect, Fragment } from "react";
 
 export default function ShopByDevice() {
+  const target = new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00").getTime();
+  const [visible, setVisible] = useState(() => Date.now() < target);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const target = new Date("2026-09-12T20:00:00Z").getTime(); // 11:00 PM KSA (UTC+3)
     const calc = () => {
-      const diff = Math.max(0, target - Date.now());
+      const diff = target - Date.now();
+      if (diff <= 0) { setVisible(false); return; }
       setTimeLeft({
         days: Math.floor(diff / 86400000),
         hours: Math.floor((diff % 86400000) / 3600000),
@@ -18,15 +20,16 @@ export default function ShopByDevice() {
     };
     calc();
     const id = setInterval(calc, 1000);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") calc();
-    };
+    const onVisible = () => { if (document.visibilityState === "visible") calc(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (!visible) return null;
 
   const units = [
     { value: timeLeft.days, label: "يوم" },

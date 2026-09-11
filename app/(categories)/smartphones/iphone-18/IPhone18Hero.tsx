@@ -3,36 +3,13 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-const TARGET = new Date("2026-09-12T20:00:00Z"); // 11:00 PM KSA (UTC+3)
-
-function useCountdown() {
-  const calc = () => {
-    const diff = TARGET.getTime() - Date.now();
-    if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
-    return {
-      d: Math.floor(diff / 86400000),
-      h: Math.floor((diff % 86400000) / 3600000),
-      m: Math.floor((diff % 3600000) / 60000),
-      s: Math.floor((diff % 60000) / 1000),
-    };
-  };
-  const [t, setT] = useState(calc);
-  useEffect(() => {
-    const id = setInterval(() => setT(calc()), 1000);
-    return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return t;
-}
-
-const slides = [{
+const slides = [
+  {
     src: "/i-18-2.webp",
     tag: "iPhone 18 Pro",
     headline: "الأكثر انتظارًا.",
     body: "أداء غير مسبوق مع A20 Pro ونظام تبريد متطور — بطارية تدوم أكثر، كاميرا 48MP، وتصميم Unibody بواجهة Ceramic Shield.",
     badges: ["+6 ساعات بطارية", "A20 Pro", "48MP Fusion", "Ceramic Shield"],
-    cta: "قوة جديدة. تجربة Pro جديدة.",
-    ctaSub: "قريبًا على لمسة",
   },
   {
     src: "/i-18-1.webp",
@@ -40,23 +17,17 @@ const slides = [{
     headline: "أطول عمر للبطارية في iPhone على الإطلاق.",
     body: "قوة استثنائية، أداء Pro، وتصميم متين صُمم ليرافقك أبعد من أي وقت مضى.",
     badges: ["4 ألوان مذهلة", "مقاسان يناسبان أسلوبك"],
-    cta: "الطلب المسبق يبدأ 12 سبتمبر",
-    ctaSub: "متوفر ابتداءً من 18 سبتمبر",
   },
-  
   {
     src: "/i-18-3.webp",
     tag: "48MP Fusion Main Camera",
     headline: "تفاصيل أكثر. إضاءة أفضل.",
     body: "فتحة عدسة متغيرة تمنحك تحكمًا أكبر في الضوء، وعمق مجال مذهل يضيف لمسة احترافية لكل لقطة.",
     badges: ["فتحة عدسة متغيرة", "إضاءة ليلية محسّنة", "عمق مجال مذهل"],
-    cta: "كل لقطة تستحق أن تُرى.",
-    ctaSub: "",
   },
 ];
 
 export default function IPhone18Hero() {
-  const { d, h, m, s } = useCountdown();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
@@ -83,52 +54,24 @@ export default function IPhone18Hero() {
       {/* Overlay */}
       <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)" }} />
 
-      {/* Text — centered bottom */}
-      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center pb-16 px-6" dir="rtl" key={active}>
-        {slides[active].tag ? (
-          <>
-            <span className="i18-a text-[11px] font-semibold tracking-widest uppercase text-white/50 mb-2">iPhone 18 Pro</span>
-            <h1 className="i18-b text-3xl sm:text-5xl font-black text-white leading-snug mb-2">
-              {slides[active].headline}
-            </h1>
-            <p className="i18-c text-sm sm:text-base text-white/75 font-medium max-w-md mb-3">
-              {slides[active].body}
-            </p>
-            <div className="flex gap-2 mb-3 flex-wrap justify-center">
-              {slides[active].badges?.map((b, i) => (
-                <span key={i} className="text-[11px] font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.15)", color: "#fff", backdropFilter: "blur(6px)" }}>{b}</span>
-              ))}
-            </div>
-            <p className="text-xs text-white/50">
-              <span className="text-white/80 font-semibold">{slides[active].cta}</span> &nbsp;·&nbsp; {slides[active].ctaSub}
-            </p>
-            {/* Countdown */}
-            <div className="flex gap-2 mt-4 justify-center" dir="ltr">
-              {[{ v: d, l: "يوم" }, { v: h, l: "ساعة" }, { v: m, l: "دقيقة" }, { v: s, l: "ثانية" }].map(({ v, l }) => (
-                <div key={l} className="flex flex-col items-center px-2 py-1.5 rounded-lg" style={{ backgroundColor: "rgba(255,255,255,0.12)", minWidth: 48 }}>
-                  <span className="text-xl font-black text-white">{String(v).padStart(2, "0")}</span>
-                  <span className="text-[10px] text-white/50">{l}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <span className="i18-a text-[11px] font-semibold tracking-widest uppercase text-white/50 mb-3">
-              {(slides[active] as {label?: string}).label}
-            </span>
-            <h1 className="i18-b text-4xl sm:text-6xl md:text-7xl font-black text-white leading-none mb-3">
-              {slides[active].headline}
-            </h1>
-            <p className="i18-c text-base sm:text-lg text-white/70 font-medium">
-              {(slides[active] as {sub?: string}).sub}
-            </p>
-          </>
-        )}
+      {/* Text */}
+      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center text-center pb-12 px-6" dir="rtl" key={active}>
+        <span className="i18-a text-[11px] font-semibold tracking-widest uppercase text-white/50 mb-2">{slides[active].tag}</span>
+        <h1 className="i18-b text-3xl sm:text-5xl font-black text-white leading-snug mb-2">
+          {slides[active].headline}
+        </h1>
+        <p className="i18-c text-sm sm:text-base text-white/75 font-medium max-w-md mb-3">
+          {slides[active].body}
+        </p>
+        <div className="flex gap-2 flex-wrap justify-center">
+          {slides[active].badges.map((b, i) => (
+            <span key={i} className="text-[11px] font-semibold px-3 py-1 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.15)", color: "#fff", backdropFilter: "blur(6px)" }}>{b}</span>
+          ))}
+        </div>
       </div>
 
       {/* Dots */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
         {slides.map((_, i) => (
           <button
             key={i}

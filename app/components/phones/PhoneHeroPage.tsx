@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { IoHomeOutline, IoChevronBack, IoArrowForward, IoArrowBack, IoBatteryFullOutline, IoCameraOutline, IoColorPaletteOutline, IoServerOutline, IoSwapVerticalOutline, IoCloseCircle, IoPhonePortraitOutline, IoCalendarOutline, IoCubeOutline, IoNotificationsOutline } from "react-icons/io5";
+import { IoHomeOutline, IoChevronBack, IoArrowForward, IoArrowBack, IoBatteryFullOutline, IoCameraOutline, IoColorPaletteOutline, IoServerOutline, IoSwapVerticalOutline, IoCloseCircle, IoPhonePortraitOutline } from "react-icons/io5";
 import { HiOutlineCpuChip } from "react-icons/hi2";
 import ProductCard from "../products/ProductCard";
 import type { Product } from "../products/types";
@@ -68,104 +68,6 @@ const defaultFeatures: { icon: "battery" | "camera" | "chip" | "display" | "desi
   { icon: "camera", label: "نظام كاميرات احترافي" },
   { icon: "chip", label: "معالج فائق السرعة" },
 ];
-
-function PreOrderSection() {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-
-  useEffect(() => {
-    const target = new Date("2026-09-12T20:00:00Z").getTime(); // 11:00 PM KSA (UTC+3)
-    const calc = () => {
-      const diff = Math.max(0, target - Date.now());
-      setTimeLeft({
-        days: Math.floor(diff / 86400000),
-        hours: Math.floor((diff % 86400000) / 3600000),
-        minutes: Math.floor((diff % 3600000) / 60000),
-        seconds: Math.floor((diff % 60000) / 1000),
-      });
-    };
-    calc();
-    const id = setInterval(calc, 1000);
-    // لما الزبون يرجع للتاب، نحدث الوقت فوراً عشان نعوض أي تأخير
-    const onVisible = () => { if (document.visibilityState === "visible") calc(); };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
-  }, []);
-
-  return (
-    <div className="flex flex-col items-center justify-center py-16 gap-8 text-center" dir="rtl">
-      <style>{`
-        @keyframes po-fade{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes po-pulse{0%,100%{opacity:1}50%{opacity:.4}}
-        .po-a{animation:po-fade .6s .05s cubic-bezier(.22,1,.36,1) both}
-        .po-b{animation:po-fade .6s .15s cubic-bezier(.22,1,.36,1) both}
-        .po-c{animation:po-fade .6s .25s cubic-bezier(.22,1,.36,1) both}
-        .po-d{animation:po-fade .6s .35s cubic-bezier(.22,1,.36,1) both}
-        .po-dot{animation:po-pulse 1.8s ease-in-out infinite}
-      `}</style>
-
-      {/* قريبًا على لمسة — كبير */}
-      <div className="po-a flex flex-col items-center gap-3">
-        <div className="flex items-center gap-3">
-          <span className="po-dot inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#A77D4B" }} />
-          <span className="text-2xl sm:text-3xl font-black tracking-wide" style={{ color: "#A77D4B" }}>قريبًا على لمسة</span>
-          <span className="po-dot inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#A77D4B" }} />
-        </div>
-      </div>
-
-      {/* Headline */}
-      <div className="po-b space-y-2">
-        <h2 className="text-3xl sm:text-4xl font-black leading-snug" style={{ color: "#1F2C3E" }}>iPhone 18 في طريقه إليك</h2>
-        <p className="text-sm font-semibold" style={{ color: "#5C3A1E" }}>الجيل القادم من Apple</p>
-        <p className="text-sm font-medium max-w-sm mx-auto leading-relaxed" style={{ color: "#5C3A1E", opacity: 0.7 }}>
-          تصميم جديد، أداء أقوى، وتجربة تتجاوز كل التوقعات.
-        </p>
-      </div>
-
-      {/* Countdown timer */}
-      {(timeLeft.days > 0 || timeLeft.hours > 0 || timeLeft.minutes > 0 || timeLeft.seconds > 0) && (
-        <div className="po-c px-8 py-5 rounded-2xl" style={{ background: "linear-gradient(135deg,#FFF8F0,#FFF3E8)", border: "1.5px solid rgba(167,125,75,0.3)" }}>
-          <p className="text-xs font-semibold mb-4" style={{ color: "#A77D4B" }}>الوقت المتبقي على الطلب المسبق</p>
-          <div className="flex items-center gap-3 justify-center">
-            {[
-              { value: timeLeft.days, label: "يوم" },
-              { value: timeLeft.hours, label: "ساعة" },
-              { value: timeLeft.minutes, label: "دقيقة" },
-              { value: timeLeft.seconds, label: "ثانية" },
-            ].map(({ value, label }, i) => (
-              <Fragment key={label}>
-                <div className="flex flex-col items-center">
-                  <span className="text-4xl font-black tabular-nums" style={{ color: "#1F2C3E" }}>
-                    {String(value).padStart(2, "0")}
-                  </span>
-                  <span className="text-[11px] font-semibold mt-1" style={{ color: "#A77D4B" }}>{label}</span>
-                </div>
-                {i < 3 && <span className="text-2xl font-black pb-4" style={{ color: "#A77D4B" }}>:</span>}
-              </Fragment>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Pre-order info */}
-      <div className="po-d flex flex-col items-center gap-3">
-        <div className="flex items-center gap-2.5 px-6 py-3 rounded-2xl" style={{ backgroundColor: "#1F2C3E" }}>
-          <IoCalendarOutline size={16} color="#A77D4B" />
-          <span className="text-sm font-bold text-white">الطلب المسبق يبدأ 12 سبتمبر 2026</span>
-        </div>
-        <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl" style={{ backgroundColor: "#F5EBE0" }}>
-          <IoCubeOutline size={15} color="#A77D4B" />
-          <span className="text-sm font-semibold" style={{ color: "#5C3A1E" }}>متوفر ابتداءً من 18 سبتمبر</span>
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          <IoNotificationsOutline size={14} color="#A77D4B" />
-          <p className="text-xs font-medium" style={{ color: "#A77D4B" }}>
-            سجّل اهتمامك الآن وكن من أوائل من يقتني iPhone 18
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, tagline, description, features = defaultFeatures, initialProducts = [], hideHero = false }: PhoneHeroPageProps) {
   const config = slugConfigs[slug];
@@ -351,9 +253,7 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
           </div>
         )}
 
-        {!products.length ? (
-          <PreOrderSection />
-        ) : (
+        {products.length > 0 && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {filteredProducts.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((p) => (
