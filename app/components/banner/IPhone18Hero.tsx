@@ -7,21 +7,21 @@ import Link from "next/link";
 const TARGET = new Date("2026-09-12T20:00:00Z"); // 11:00 PM KSA (UTC+3)
 
 function useCountdown() {
-  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 });
-  useEffect(() => {
-    const calc = () => {
-      const diff = TARGET.getTime() - Date.now();
-      if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
-      return {
-        d: Math.floor(diff / 86400000),
-        h: Math.floor((diff % 86400000) / 3600000),
-        m: Math.floor((diff % 3600000) / 60000),
-        s: Math.floor((diff % 60000) / 1000),
-      };
+  const calc = () => {
+    const diff = TARGET.getTime() - Date.now();
+    if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0 };
+    return {
+      d: Math.floor(diff / 86400000),
+      h: Math.floor((diff % 86400000) / 3600000),
+      m: Math.floor((diff % 3600000) / 60000),
+      s: Math.floor((diff % 60000) / 1000),
     };
-    setT(calc());
+  };
+  const [t, setT] = useState(calc);
+  useEffect(() => {
     const id = setInterval(() => setT(calc()), 1000);
     return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return t;
 }
