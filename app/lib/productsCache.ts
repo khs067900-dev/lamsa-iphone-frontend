@@ -52,33 +52,43 @@ export const getAllProducts = unstable_cache(
   { revalidate: 3600, tags: ["products"] }
 );
 
-export const getAllProductsWithBanners = unstable_cache(
-  async () => {
-    const url = new URL("/api/products", BACKEND);
-    url.searchParams.set("page", "1");
-    url.searchParams.set("limit", "500");
-    url.searchParams.set("fields", FIELDS);
-    const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
-    const data = r.ok ? await r.json() : {};
-    const products: Product[] = Array.isArray(data) ? data : (data.products ?? []);
+async function fetchProductsWithBanners() {
+  const url = new URL("/api/products", BACKEND);
+  url.searchParams.set("page", "1");
+  url.searchParams.set("limit", "500");
+  url.searchParams.set("fields", FIELDS);
+  const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
+  const data = r.ok ? await r.json() : {};
+  const products: Product[] = Array.isArray(data) ? data : (data.products ?? []);
 
-    const categories = [...new Set(products.map((p) => p.category || p.subCategory).filter(Boolean))] as string[];
+  const categories = [...new Set(products.map((p) => p.category || p.subCategory).filter(Boolean))] as string[];
 
-    let bannerMap: Record<string, string[]> = {};
-    if (categories.length) {
-      try {
-        const bannerUrl = new URL("/api/admin/category-banners-bulk", BACKEND);
-        bannerUrl.searchParams.set("categories", categories.join(","));
-        const br = await safeFetch(bannerUrl, { next: { revalidate: 3600, tags: ["banners"] } } as RequestInit);
-        if (br.ok) bannerMap = await br.json();
-      } catch { /* banners are non-critical */ }
-    }
+  let bannerMap: Record<string, string[]> = {};
+  if (categories.length) {
+    try {
+      const bannerUrl = new URL("/api/admin/category-banners-bulk", BACKEND);
+      bannerUrl.searchParams.set("categories", categories.join(","));
+      const br = await safeFetch(bannerUrl, { next: { revalidate: 3600, tags: ["banners"] } } as RequestInit);
+      if (br.ok) bannerMap = await br.json();
+    } catch { /* banners are non-critical */ }
+  }
 
-    return { products, bannerMap };
-  },
+  return { products, bannerMap };
+}
+
+const cachedFetch = unstable_cache(
+  fetchProductsWithBanners,
   ["all-products-with-banners"],
   { revalidate: 3600, tags: ["products", "banners"] }
 );
+
+export async function getAllProductsWithBanners() {
+  const result = await cachedFetch();
+  if (!result.products.length) {
+    return fetchProductsWithBanners();
+  }
+  return result;
+}
 
 const PRODUCT_DETAIL_FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,description,specs,network,price,taxIncluded,deliveryTime,overview,features,detailedSpecs";
 
