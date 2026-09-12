@@ -200,10 +200,10 @@ export default function CheckoutPage() {
           <div className="flex flex-col items-end gap-1 shrink-0">
             <p className="text-lg sm:text-3xl font-black text-[#0A1C29] leading-none">
               {fmt(finalTotal)}
-              <span className="text-xs sm:text-sm font-medium text-gray-400 mr-1"><img src="/money-icon.webp" alt="ر.س" className="inline w-6 sm:w-7 h-6 sm:h-7 object-contain align-middle" /></span>
+              <span className="text-xs sm:text-sm font-medium text-gray-400 mr-1"><img src="/money-icon.webp" alt="ر.س" style={{ width: 32, height: 32, display: "inline" }} /></span>
             </p>
             {discount > 0 && (
-              <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold">وفّرت {fmt(discount)} <img src="/money-icon.webp" alt="ر.س" className="inline w-6 h-6 object-contain align-middle" /></p>
+              <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold">وفّرت {fmt(discount)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 26, height: 26, display: "inline" }} /></p>
             )}
             <button onClick={() => setCouponOpen(v => !v)} className="text-[10px] sm:text-[11px] font-bold text-red-500 hover:text-red-600 transition mt-1 sm:mt-2">
               عندك كوبون خصم؟

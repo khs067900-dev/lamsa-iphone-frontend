@@ -13,6 +13,10 @@ const resolveImg = (src: string) => src.startsWith("http") ? src : `${API}${src.
 const fmt = (n: number) => n.toLocaleString("en-US");
 
 const modelSlugs = [
+  { slug: "iphone-18-pro-max", label: "18 Pro Max" },
+  { slug: "iphone-18-pro", label: "18 Pro" },
+  { slug: "iphone-18-duo", label: "18 Duo" },
+  { slug: "iphone-18", label: "18" },
   { slug: "iphone-17-pro-max", label: "17 Pro Max" },
   { slug: "iphone-17-pro", label: "17 Pro" },
   { slug: "iphone-17-air", label: "17 Air" },
@@ -31,9 +35,11 @@ export default function LatestPhones({ products }: { products: Product[] }) {
   const totalDots = 5;
   const dragRef = useRef({ startX: 0, scrollLeft: 0, dragging: false, moved: false });
 
+  const hiddenSlugs = new Set(["iphone-18-pro-max", "iphone-18-pro", "iphone-18-duo", "iphone-18"]);
   const picks: (Product & { modelLabel: string })[] = [];
   const usedIds = new Set<string>();
   for (const model of modelSlugs) {
+    if (hiddenSlugs.has(model.slug)) continue;
     const found = filterBySlug(products, model.slug).find((p) => !usedIds.has(p._id));
     if (found) { usedIds.add(found._id); picks.push({ ...found, modelLabel: model.label }); }
   }
@@ -106,7 +112,7 @@ export default function LatestPhones({ products }: { products: Product[] }) {
               {/* Image */}
               <div className="relative h-[158px] sm:h-[220px] overflow-hidden">
                 {img && (
-                  <Image src={resolveImg(img)} alt={p.name} fill className="object-contain p-4 sm:p-6 transition-all duration-500 group-hover:scale-105" sizes="(max-width: 640px) 158px, 220px" />
+                  <Image src={resolveImg(img)} alt={p.name} fill className="object-contain p-1 sm:p-2 transition-all duration-500 group-hover:scale-105" sizes="(max-width: 640px) 158px, 220px" />
                 )}
                 {/* Model badge */}
                 <div className="absolute top-2.5 right-2.5 px-2 sm:px-2.5 py-1 rounded-lg text-[8px] sm:text-[9px] font-black backdrop-blur-sm" style={{ background: "rgba(31,44,62,0.88)", color: "#DFC4A4" }}>

@@ -36,12 +36,13 @@ export default function IPhone18Hero() {
   }, []);
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: "55vh", minHeight: 320, maxHeight: 550 }}>
+    <section className="i18-hero relative w-full overflow-hidden" style={{ height: "55vh", minHeight: 320, maxHeight: 550 }}>
       <style>{`
         @keyframes i18Up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         .i18-a{animation:i18Up .7s .1s cubic-bezier(.22,1,.36,1) both}
         .i18-b{animation:i18Up .7s .22s cubic-bezier(.22,1,.36,1) both}
         .i18-c{animation:i18Up .7s .34s cubic-bezier(.22,1,.36,1) both}
+        @media(max-width:640px){section.i18-hero{height:38vh!important;min-height:240px!important}}
       `}</style>
 
       {/* Slides */}

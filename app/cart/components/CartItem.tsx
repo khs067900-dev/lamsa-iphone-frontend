@@ -53,7 +53,7 @@ export default function CartItem({ product, qty, onUpdateQty, onRemove }: CartIt
           <div>
             <h3 className="text-xs font-bold line-clamp-1" style={{ color: "#0A1825" }}>{product.name}</h3>
             <p className="text-sm font-black mt-0.5 flex items-center gap-0.5" style={{ color: "#BC9255" }}>
-              {fmt(price)} <img src="/money-icon.webp" alt="ر.س" className="inline-block w-4 h-4" />
+              {fmt(price)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 22, height: 22, display: "inline-block" }} />
             </p>
           </div>
 
@@ -71,7 +71,7 @@ export default function CartItem({ product, qty, onUpdateQty, onRemove }: CartIt
 
             {qty > 1 && (
               <span className="text-[10px] font-bold flex items-center gap-0.5" style={{ color: "#A77D4B" }}>
-                {fmt(price * qty)} <img src="/money-icon.webp" alt="ر.س" className="inline-block w-3 h-3" />
+                {fmt(price * qty)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 18, height: 18, display: "inline-block" }} />
               </span>
             )}
           </div>

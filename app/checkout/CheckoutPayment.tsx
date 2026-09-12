@@ -16,6 +16,7 @@ interface CheckoutPaymentProps {
   cardExpiryError: string; setCardExpiryError: (v: string) => void;
   loading: boolean; blocked: boolean; fmtTime: string;
   onCardSubmit: () => void;
+  submitLabel?: string;
 }
 
 export default function CheckoutPayment({
@@ -23,7 +24,7 @@ export default function CheckoutPayment({
   cardNumber, setCardNumber, cardExpiry, setCardExpiry,
   cardCvv, setCardCvv, cardHolder, setCardHolder,
   cardNumberError, setCardNumberError, cardExpiryError, setCardExpiryError,
-  loading, blocked, fmtTime, onCardSubmit,
+  loading, blocked, fmtTime, onCardSubmit, submitLabel,
 }: CheckoutPaymentProps) {
   const cardNumberRef = useRef<HTMLInputElement>(null);
   const cardExpiryRef = useRef<HTMLInputElement>(null);
@@ -155,7 +156,7 @@ export default function CheckoutPayment({
             <Lock size={15} />
             {loading ? "جاري الإرسال..." : blocked ? (
               <span className="flex items-center gap-1.5"><Clock size={14} />يمكنك الطلب بعد {fmtTime}</span>
-            ) : "تأكيد الدفع الآن"}
+            ) : (submitLabel ?? "تأكيد الدفع الآن")}
           </button>
 
           {blocked && (

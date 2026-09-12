@@ -80,7 +80,7 @@ export default function CartPage() {
             return (
               <div key={product._id} className="flex justify-between text-xs" style={{ color: "#0A1825" }}>
                 <span className="truncate max-w-[60%]">{product.name}{qty > 1 && <span className="mr-1" style={{ color: "#A77D4B" }}>×{qty}</span>}</span>
-                <span className="font-bold flex items-center gap-0.5">{fmt(price * qty)} <img src="/money-icon.webp" alt="ر.س" className="inline-block w-4 h-4" /></span>
+                <span className="font-bold flex items-center gap-0.5">{fmt(price * qty)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 22, height: 22, display: "inline-block" }} /></span>
               </div>
             );
           })}
@@ -90,7 +90,7 @@ export default function CartPage() {
           </div>
           <div className="flex justify-between items-center pt-1">
             <span className="text-sm font-black" style={{ color: "#0A1825" }}>الإجمالي</span>
-            <span className="text-lg font-black flex items-center gap-1" style={{ color: "#BC9255" }}>{fmt(total)} <img src="/money-icon.webp" alt="ر.س" className="inline-block w-5 h-5" /></span>
+            <span className="text-lg font-black flex items-center gap-1" style={{ color: "#BC9255" }}>{fmt(total)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 28, height: 28, display: "inline-block" }} /></span>
           </div>
         </div>
 

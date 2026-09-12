@@ -35,7 +35,7 @@ function safeFetch(url: URL, init?: RequestInit): Promise<Response> {
   return fetch(safeHref, init);
 }
 
-const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,network,price";
+const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,network,price,variants";
 
 export const getAllProducts = unstable_cache(
   async () => {
@@ -49,7 +49,7 @@ export const getAllProducts = unstable_cache(
     return Array.isArray(data) ? data : (data.products ?? []);
   },
   ["all-products"],
-  { revalidate: 3600, tags: ["products"] }
+  { revalidate: 120, tags: ["products"] }
 );
 
 async function fetchProductsWithBanners() {
@@ -68,7 +68,7 @@ async function fetchProductsWithBanners() {
     try {
       const bannerUrl = new URL("/api/admin/category-banners-bulk", BACKEND);
       bannerUrl.searchParams.set("categories", categories.join(","));
-      const br = await safeFetch(bannerUrl, { next: { revalidate: 3600, tags: ["banners"] } } as RequestInit);
+      const br = await safeFetch(bannerUrl, { next: { revalidate: 120, tags: ["banners"] } } as RequestInit);
       if (br.ok) bannerMap = await br.json();
     } catch { /* banners are non-critical */ }
   }
@@ -79,7 +79,7 @@ async function fetchProductsWithBanners() {
 const cachedFetch = unstable_cache(
   fetchProductsWithBanners,
   ["all-products-with-banners"],
-  { revalidate: 3600, tags: ["products", "banners"] }
+  { revalidate: 120, tags: ["products", "banners"] }
 );
 
 export async function getAllProductsWithBanners() {
@@ -103,6 +103,6 @@ export const getProductById = (id: string) => {
       return (await r.json()) as Product;
     },
     ["product-by-id", safeId],
-    { revalidate: 3600, tags: ["products", `product-${safeId}`] }
+    { revalidate: 120, tags: ["products", `product-${safeId}`] }
   )();
 };

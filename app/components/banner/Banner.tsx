@@ -13,7 +13,7 @@ const slides = [
     title: "iPhone 18",
     titleHighlight: "قريبًا على لمسه",
     description: "كن في الصف الأول — أحدث إصدار من Apple في طريقه إليكم حصرياً",
-    buttons: [{ text: "اعرف التفاصيل", href: "/smartphones/iphone-18" }],
+    buttons: [{ text: "بادر بالحجز", href: "/smartphones/apple/iphone-18" }],
   },
 ];
 

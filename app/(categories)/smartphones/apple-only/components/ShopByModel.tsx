@@ -16,7 +16,9 @@ interface Props {
 export default function ShopByModel({ filters, categoryImages, categoryCounts }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0 || cat.slug === "iphone-18");
+  const comingSoonSlugs = new Set<string>([]);
+  const iphone18Slug = "iphone-18";
+  const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0 || cat.slug === iphone18Slug);
   const [activeIndex, setActiveIndex] = useState(0);
   const totalDots = Math.min(visibleCategories.length, 6);
   const dragRef = useRef({ startX: 0, scrollLeft: 0, dragging: false, moved: false });
@@ -128,7 +130,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
                 )}
 
                 {/* Badges */}
-                {cat.slug === "iphone-18" && (
+                {comingSoonSlugs.has(cat.slug) && (
                   <div className="absolute top-2.5 right-2.5">
                     <div
                       className="px-2 py-1 rounded-full text-[8px] font-black backdrop-blur-sm"
@@ -156,7 +158,14 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
 
                 <button
                   onPointerDown={(e) => e.stopPropagation()}
-                  onClick={() => { if (!dragRef.current.moved) router.push(`/smartphones/${cat.slug}`); }}
+                  onClick={() => {
+                    if (!dragRef.current.moved) {
+                      const href = cat.slug === iphone18Slug
+                        ? "/smartphones/apple/iphone-18"
+                        : `/smartphones/${cat.slug}`;
+                      router.push(href);
+                    }
+                  }}
                   className="group/btn w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black transition-all duration-300 hover:gap-3 hover:shadow-md"
                   style={{ background: "linear-gradient(135deg, #1F2C3E, #2a3d55)", color: "#DFC4A4" }}
                 >

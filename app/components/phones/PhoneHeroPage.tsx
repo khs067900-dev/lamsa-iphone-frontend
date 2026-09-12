@@ -257,7 +257,7 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {filteredProducts.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((p) => (
-                <ProductCard key={p._id} product={p} />
+                <ProductCard key={p._id} product={p} imageZoom={slug.includes("iphone-18")} imageScale={slug.includes("iphone-18") ? "scale-[1.45]" : "scale-110"} />
               ))}
             </div>
 

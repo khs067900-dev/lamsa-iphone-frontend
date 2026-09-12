@@ -17,7 +17,7 @@ const resolveImg = (src: string) =>
   src.startsWith("http") ? src : `${API}${src.startsWith("/") ? src : "/" + src}`;
 
 const appleFilters = [
-  { slug: "iphone-18", label: "آيفون 18", desc: "الجيل القادم" },
+  { slug: "iphone-18", label: "آيفون 18", desc: "الجيل الجديد كلياً" },
   { slug: "iphone-17-pro-max", label: "آيفون 17 برو ماكس", desc: "الأقوى والأكبر" },
   { slug: "iphone-17-pro", label: "آيفون 17 برو", desc: "أداء احترافي" },
   { slug: "iphone-17", label: "آيفون 17 عادي", desc: "الجيل الجديد" },
@@ -55,7 +55,7 @@ export default function AppleOnlyClient({ initialProducts = [] }: { initialProdu
 
   const categoryImages = useMemo(() => ({
     ...rawImages,
-    "iphone-18": rawImages["iphone-18"] || "/06550573-067f-4102-8bf9-0e0c02236776.webp",
+    "iphone-18": rawImages["iphone-18"] || "https://res.cloudinary.com/dyqkhcuxe/image/upload/v1789143815/34ab662e-de1b-4359-9d99-43e2ba54678f_1_zd9s2s.webp",
   }), [rawImages]);
 
   return (

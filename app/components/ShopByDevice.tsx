@@ -1,16 +1,19 @@
 "use client";
 
 import { useState, useEffect, Fragment } from "react";
+import dynamic from "next/dynamic";
+
+const IPhone18HomeSection = dynamic(() => import("./IPhone18HomeSection"), { ssr: false });
 
 export default function ShopByDevice() {
   const target = new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00").getTime();
-  const [visible, setVisible] = useState(() => Date.now() < target);
+  const [timerDone, setTimerDone] = useState(() => Date.now() >= target);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const calc = () => {
       const diff = target - Date.now();
-      if (diff <= 0) { setVisible(false); return; }
+      if (diff <= 0) { setTimerDone(true); return; }
       setTimeLeft({
         days: Math.floor(diff / 86400000),
         hours: Math.floor((diff % 86400000) / 3600000),
@@ -29,7 +32,7 @@ export default function ShopByDevice() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!visible) return null;
+  if (timerDone) return <IPhone18HomeSection />;
 
   const units = [
     { value: timeLeft.days, label: "يوم" },

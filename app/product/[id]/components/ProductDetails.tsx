@@ -24,6 +24,7 @@ interface ProductDetailsProps {
   installment?: Product["installment"];
   description?: string;
   specs?: Product["specs"];
+  specGroups?: { group: string; items: { key: string; value: string }[] }[];
 }
 
 type Tab = "specs" | "installment" | "description";
@@ -34,8 +35,9 @@ const tabMeta: Record<Tab, { icon: typeof IoListOutline; label: string }> = {
   installment: { icon: IoCardOutline, label: "التقسيط" },
 };
 
-export default function ProductDetails({ installment, description, specs }: ProductDetailsProps) {
-  const hasSpecs = specs && Object.values(specs).some(Boolean);
+export default function ProductDetails({ installment, description, specs, specGroups }: ProductDetailsProps) {
+  const hasSpecs = (specs && Object.values(specs).some(Boolean)) || (specGroups && specGroups.length > 0);
+  const [activeGroup, setActiveGroup] = useState(0);
   const tabs: { key: Tab; show: boolean }[] = [
     { key: "specs", show: !!hasSpecs },
     { key: "description", show: !!description },
@@ -90,19 +92,50 @@ export default function ProductDetails({ installment, description, specs }: Prod
       <div className="p-3 sm:p-5 md:p-8">
         {/* Specs */}
         {active === "specs" && hasSpecs && (
-          <div className="rounded-xl sm:rounded-2xl overflow-hidden" style={{ border: "1px solid #EBE6E2" }}>
-            {specLabels.map(([key, label, emoji], i) =>
-              specs[key] ? (
-                <div
-                  key={key}
-                  className="flex items-start sm:items-center text-[10px] sm:text-xs md:text-sm px-2.5 sm:px-5 md:px-6 py-2.5 sm:py-4 md:py-[18px] gap-2 sm:gap-4 transition-colors hover:bg-[#BC9255]/[0.03]"
-                  style={{ backgroundColor: i % 2 === 0 ? "#faf7f2" : "#fff" }}
-                >
-                  <span className="text-xs sm:text-base md:text-lg w-4 sm:w-7 text-center shrink-0">{emoji}</span>
-                  <span className="w-16 sm:w-28 md:w-40 shrink-0 font-semibold" style={{ color: "#A77D4B" }}>{label}</span>
-                  <span className="flex-1 min-w-0 break-words font-semibold" style={{ color: "#1F2C3E" }}>{specs[key]}</span>
+          <div>
+            {/* specGroups (new format) */}
+            {specGroups && specGroups.length > 0 && (
+              <div>
+                {/* Group tabs */}
+                <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-0.5">
+                  {specGroups.map((g, gi) => (
+                    <button
+                      key={gi}
+                      onClick={() => setActiveGroup(gi)}
+                      className="px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-black whitespace-nowrap shrink-0 transition-all duration-200 cursor-pointer"
+                      style={{
+                        backgroundColor: activeGroup === gi ? "#BC9255" : "rgba(188,146,85,0.08)",
+                        color: activeGroup === gi ? "#fff" : "#A77D4B",
+                        border: `1px solid ${activeGroup === gi ? "#BC9255" : "rgba(188,146,85,0.2)"}`,
+                      }}
+                    >
+                      {g.group}
+                    </button>
+                  ))}
                 </div>
-              ) : null
+                <div className="rounded-xl sm:rounded-2xl overflow-hidden" style={{ border: "1px solid #EBE6E2" }}>
+                  {specGroups[activeGroup]?.items.map((item, i) => (
+                    <div key={i} className="flex items-start sm:items-center text-[10px] sm:text-xs md:text-sm px-2.5 sm:px-5 md:px-6 py-2.5 sm:py-4 gap-2 sm:gap-4 transition-colors hover:bg-[#BC9255]/[0.03]" style={{ backgroundColor: i % 2 === 0 ? "#faf7f2" : "#fff" }}>
+                      <span className="w-24 sm:w-36 shrink-0 font-semibold" style={{ color: "#A77D4B" }}>{item.key}</span>
+                      <span className="flex-1 min-w-0 break-words font-semibold" style={{ color: "#1F2C3E" }}>{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* specs (old format) */}
+            {!specGroups?.length && specs && (
+              <div className="rounded-xl sm:rounded-2xl overflow-hidden" style={{ border: "1px solid #EBE6E2" }}>
+                {specLabels.map(([key, label, emoji], i) =>
+                  specs[key] ? (
+                    <div key={key} className="flex items-start sm:items-center text-[10px] sm:text-xs md:text-sm px-2.5 sm:px-5 md:px-6 py-2.5 sm:py-4 md:py-[18px] gap-2 sm:gap-4 transition-colors hover:bg-[#BC9255]/[0.03]" style={{ backgroundColor: i % 2 === 0 ? "#faf7f2" : "#fff" }}>
+                      <span className="text-xs sm:text-base md:text-lg w-4 sm:w-7 text-center shrink-0">{emoji}</span>
+                      <span className="w-16 sm:w-28 md:w-40 shrink-0 font-semibold" style={{ color: "#A77D4B" }}>{label}</span>
+                      <span className="flex-1 min-w-0 break-words font-semibold" style={{ color: "#1F2C3E" }}>{specs[key]}</span>
+                    </div>
+                  ) : null
+                )}
+              </div>
             )}
           </div>
         )}
