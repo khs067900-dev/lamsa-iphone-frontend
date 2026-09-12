@@ -157,7 +157,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
                 <p className="text-[9px] sm:text-[11px] mb-3 truncate" style={{ color: "rgba(31,44,62,0.45)" }}>{cat.desc}</p>
 
                 <button
-                  onPointerDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => { e.stopPropagation(); dragRef.current.moved = false; }}
                   onClick={() => {
                     if (!dragRef.current.moved) {
                       const href = cat.slug === iphone18Slug

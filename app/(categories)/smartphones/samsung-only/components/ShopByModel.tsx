@@ -106,7 +106,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
                   <p className="text-[11px] sm:text-[13px] font-bold truncate text-[#0A1825]">{cat.label}</p>
                   <p className="text-[9px] sm:text-[11px] mt-0.5 sm:mt-1 text-[#0A1825]/40 truncate">{cat.desc}</p>
                   <button
-                    onPointerDown={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => { e.stopPropagation(); dragRef.current.moved = false; }}
                     onClick={() => { if (!dragRef.current.moved) router.push(`/smartphones/${cat.slug}`); }}
                     className="mt-1.5 sm:mt-2 w-full text-[9px] sm:text-[10px] font-bold py-1 sm:py-1.5 rounded-lg transition-all duration-300"
                     style={{ backgroundColor: "#BC9255", color: "#fff" }}

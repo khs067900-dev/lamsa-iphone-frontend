@@ -290,17 +290,7 @@ export default function IPhone18HomeSection() {
           </>
         )}
 
-        {/* CTA */}
-        <div className="flex justify-center mt-8">
-          <Link
-            href="/smartphones/apple/iphone-18"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-black transition-all active:scale-95"
-            style={{ background: "linear-gradient(135deg,#1F2C3E,#2a3d55)", color: "#DFC4A4" }}
-          >
-            عرض جميع موديلات iPhone 18
-            <span className="text-base">←</span>
-          </Link>
-        </div>
+
       </div>
     </section>
   );
