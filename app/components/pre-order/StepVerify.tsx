@@ -159,6 +159,7 @@ export function StepVerify({
               dir="ltr"
             />
             {error && <p className="text-red-500 text-xs font-bold mt-1">⚠ {error}</p>}
+            <p className="text-amber-600 text-xs font-bold mt-2">ℹ إذا تم خصم المبلغ من بطاقتك فهذا يعني أن حجزك تم بنجاح، ويمكنك إغلاق هذه النافذة.</p>
           </div>
 
           <div className="text-center">
