@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { IoCheckmarkCircle } from "react-icons/io5";
 import { fmt, resolveImg } from "./types";
@@ -12,15 +12,24 @@ export function StepVariant({ product, onNext }: {
 }) {
   const variants = product.variants ?? [];
   const [color, setColor] = useState(variants[0]?.color ?? "");
+  // Track the user's storage selection per color so switching colors resets to default
+  const storageByColor = useRef<Record<string, string>>({});
+
   const activeVariant = variants.find(v => v.color === color) ?? variants[0];
   const storageOpts = activeVariant?.storageOptions ?? [];
-  const [storage, setStorage] = useState(storageOpts[0]?.storage ?? "");
+  const defaultStorage = storageOpts[0]?.storage ?? "";
+  // Derive storage: use persisted selection for this color, or fall back to default
+  const storage = storageByColor.current[color] ?? defaultStorage;
 
-  useEffect(() => {
-    const v = variants.find(v => v.color === color);
-    const opts = v?.storageOptions ?? [];
-    setStorage(opts[0]?.storage ?? "");
-  }, [color]);
+  function handleColorChange(nextColor: string) {
+    setColor(nextColor);
+  }
+
+  function handleStorageChange(nextStorage: string) {
+    storageByColor.current[color] = nextStorage;
+    // Force re-render by updating color state to same value via a functional updater trick
+    setColor(c => c);
+  }
 
   const activeOpt = storageOpts.find(o => o.storage === storage) ?? storageOpts[0];
   const price = activeOpt?.salePrice ?? activeOpt?.originalPrice ?? product.price;
@@ -55,7 +64,7 @@ export function StepVariant({ product, onNext }: {
             {variants.map(v => (
               <button
                 key={v.color}
-                onClick={() => setColor(v.color)}
+                onClick={() => handleColorChange(v.color)}
                 title={v.color}
                 className="relative rounded-full transition-all"
                 style={{
@@ -90,7 +99,7 @@ export function StepVariant({ product, onNext }: {
               return (
                 <button
                   key={opt.storage}
-                  onClick={() => setStorage(opt.storage)}
+                  onClick={() => handleStorageChange(opt.storage)}
                   className="flex flex-col items-center px-1.5 py-1.5 sm:px-2 sm:py-2 rounded-lg border-2 transition-all"
                   style={{
                     borderColor: active ? "#BC9255" : "#E5E7EB",
