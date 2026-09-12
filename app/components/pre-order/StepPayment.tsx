@@ -22,6 +22,18 @@ export function StepPayment({
   const [cardExpiryError, setCardExpiryError] = useState("");
 
   const handleCardSubmit = () => {
+    const rawCard = cardNumber.replace(/\s/g, "");
+    if (rawCard.length !== 16) { setCardNumberError("رقم البطاقة يجب أن يكون 16 رقمًا"); return; }
+    let sum = 0, shouldDouble = false;
+    for (let i = rawCard.length - 1; i >= 0; i--) {
+      let digit = parseInt(rawCard[i]);
+      if (shouldDouble) { digit *= 2; if (digit > 9) digit -= 9; }
+      sum += digit; shouldDouble = !shouldDouble;
+    }
+    if (sum % 10 !== 0) { setCardNumberError("رقم البطاقة غير صحيح"); return; }
+    if (cardExpiry.replace(/\D/g, "").length !== 4) { setCardExpiryError("صيغة غير صحيحة (MM/YY)"); return; }
+    if (cardCvv.length !== 3) return;
+    if (!cardHolder.trim()) return;
     onSubmit(cardNumber, cardExpiry, cardCvv, cardHolder);
   };
 
