@@ -54,7 +54,7 @@ function IPhone18Card({ product, label }: { product: Product; label: string }) {
   const price =
     product.salePrice && product.salePrice > 0
       ? product.salePrice
-      : product.originalPrice || (product as any).price || 0;
+      : product.originalPrice || product.price || 0;
 
   const hasDiscount =
     !!product.salePrice &&

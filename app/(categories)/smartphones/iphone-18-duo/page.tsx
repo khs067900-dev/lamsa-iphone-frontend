@@ -12,8 +12,9 @@ const RESERVATION_DATE = new Date(
 
 const SLIDES = ["/i-18-3.webp", "/i-18-1.webp", "/i-18-2.webp"];
 
+const isOver = RESERVATION_DATE.getTime() <= new Date().getTime();
+
 export default function IPhone18DuoPage() {
-  const isOver = RESERVATION_DATE.getTime() <= Date.now();
   if (isOver) return null;
   return (
     <ComingSoon
