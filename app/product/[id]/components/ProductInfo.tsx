@@ -184,7 +184,7 @@ export default function ProductInfo({
         {/* ── Trust badges (توصيل + ضمان فقط) ── */}
         <div className="grid grid-cols-2 gap-px" style={{ background: "#f0ebe4" }}>
           {[
-            { icon: IoCarOutline, label: freeDelivery ? "توصيل مجاني" : "توصيل مدفوع", sub: deliveryTime },
+            { icon: IoCarOutline, label: freeDelivery ? "توصيل مجاني" : "توصيل مدفوع", sub: null },
             { icon: IoShieldCheckmark, label: "ضمان سنتين", sub: null },
           ].map((f, i) => (
             <div key={i} className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-3" style={{ background: "#fff" }}>
