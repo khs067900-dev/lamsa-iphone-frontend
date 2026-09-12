@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { IoCheckmarkCircle } from "react-icons/io5";
 import { fmt, resolveImg } from "./types";
@@ -12,23 +12,21 @@ export function StepVariant({ product, onNext }: {
 }) {
   const variants = product.variants ?? [];
   const [color, setColor] = useState(variants[0]?.color ?? "");
-  // Track the user's storage selection per color so switching colors resets to default
-  const storageByColor = useRef<Record<string, string>>({});
+  // Track the user's storage selection per color so switching colors preserves selection
+  const [storageByColor, setStorageByColor] = useState<Record<string, string>>({});
 
   const activeVariant = variants.find(v => v.color === color) ?? variants[0];
   const storageOpts = activeVariant?.storageOptions ?? [];
   const defaultStorage = storageOpts[0]?.storage ?? "";
   // Derive storage: use persisted selection for this color, or fall back to default
-  const storage = storageByColor.current[color] ?? defaultStorage;
+  const storage = storageByColor[color] ?? defaultStorage;
 
   function handleColorChange(nextColor: string) {
     setColor(nextColor);
   }
 
   function handleStorageChange(nextStorage: string) {
-    storageByColor.current[color] = nextStorage;
-    // Force re-render by updating color state to same value via a functional updater trick
-    setColor(c => c);
+    setStorageByColor(prev => ({ ...prev, [color]: nextStorage }));
   }
 
   const activeOpt = storageOpts.find(o => o.storage === storage) ?? storageOpts[0];
