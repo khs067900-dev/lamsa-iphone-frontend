@@ -30,7 +30,7 @@ export function StepDeposit({ productPrice, onNext, onBack }: {
         {[
           ["قيمة الحجز المسبق", `${fmt(PRE_ORDER_DEPOSIT)} ر.س`],
           ["المبلغ المطلوب الآن", `${fmt(PRE_ORDER_DEPOSIT)} ر.س`],
-          ["المتبقي عند الاستلام", `${fmt(productPrice - PRE_ORDER_DEPOSIT)} ر.س`],
+          ["باقي المبلغ", "أقساط حسب خطة التقسيط المختارة"],
         ].map(([k, v], i) => (
           <div
             key={k}
