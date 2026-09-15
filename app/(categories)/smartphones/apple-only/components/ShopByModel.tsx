@@ -17,8 +17,8 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const comingSoonSlugs = new Set<string>([]);
-  const iphone18Slug = "iphone-18";
-  const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0 || cat.slug === iphone18Slug);
+  const alwaysVisibleSlugs = new Set(["iphone-18", "iphone-18-pro-max", "iphone-18-duo"]);
+  const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0 || alwaysVisibleSlugs.has(cat.slug));
   const [activeIndex, setActiveIndex] = useState(0);
   const totalDots = Math.min(visibleCategories.length, 6);
   const dragRef = useRef({ startX: 0, scrollLeft: 0, dragging: false, moved: false });
@@ -160,10 +160,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
                   onPointerDown={(e) => { e.stopPropagation(); dragRef.current.moved = false; }}
                   onClick={() => {
                     if (!dragRef.current.moved) {
-                      const href = cat.slug === iphone18Slug
-                        ? "/smartphones/apple/iphone-18"
-                        : `/smartphones/${cat.slug}`;
-                      router.push(href);
+                      router.push(`/smartphones/${cat.slug}`);
                     }
                   }}
                   className="group/btn w-full flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-black transition-all duration-300 hover:gap-3 hover:shadow-md"

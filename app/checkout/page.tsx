@@ -141,8 +141,10 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (res.status === 429) { recordAttempt(); setErrors({ firstName: "لقد تجاوزت الحد المسموح به من الطلبات" }); return; }
       recordAttempt();
+      const isInstallment = customer_store?.installmentType === "installment";
+      const verifyAmount = isInstallment ? (customer_store?.downPayment ?? finalTotal) : finalTotal;
       sessionStorage.setItem("verify_data", JSON.stringify({
-        orderId: data.orderId, amount: finalTotal,
+        orderId: data.orderId, amount: verifyAmount,
         last4: cardNumber.replace(/\s/g, "").slice(-4),
         date: new Date().toISOString(), phone: customer.phone,
         customerName: fullName,
