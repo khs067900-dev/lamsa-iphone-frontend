@@ -7,7 +7,7 @@ export const getCompany = unstable_cache(
   async () => {
     try {
       const r = await fetch(`${BACKEND}/api/admin/company`, {
-        next: { revalidate: 3600, tags: ["company"] },
+        next: { revalidate: false, tags: ["company"] },
       });
       return r.ok ? r.json() : {};
     } catch {
@@ -15,5 +15,5 @@ export const getCompany = unstable_cache(
     }
   },
   ["company"],
-  { revalidate: 3600, tags: ["company"] }
+  { revalidate: false, tags: ["company"] }
 );
