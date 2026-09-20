@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "./ProductImage";
-import { IoInformationCircleOutline } from "react-icons/io5";
 import type { FeaturedEntry } from "../lib/iphone18Featured";
 import type { Product } from "./products/types";
 

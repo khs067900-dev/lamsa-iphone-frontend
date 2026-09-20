@@ -26,7 +26,7 @@ export default function ProductInfo({
   onColorChange, onStorageChange, onAddToCart,
 }: ProductInfoProps) {
   const router = useRouter();
-  const { name, brand, freeDelivery, deliveryTime, inStock, taxIncluded, installment } = product;
+  const { name, brand, freeDelivery, inStock, taxIncluded, installment } = product;
 
   const hasVariants = product.variants && product.variants.length > 0;
   const activeVariant = product.variants?.find((v) => v.color === selectedColor);

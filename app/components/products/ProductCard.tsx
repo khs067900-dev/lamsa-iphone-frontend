@@ -6,14 +6,10 @@ import Link from "next/link";
 import Image from "../ProductImage";
 import {
   IoArrowForward,
-  IoHeartOutline,
-  IoHeart,
-  IoInformationCircleOutline,
   IoClose,
 } from "react-icons/io5";
 import type { Product } from "./types";
 import { normalizeProductForCard } from "../../lib/normalizeProduct";
-import { useCartStore } from "../../store/cartStore";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -27,7 +23,6 @@ export default function ProductCard({ product, priority = false, imageZoom = fal
   const hasDiscount = salePrice != null;
   const displayPrice = hasDiscount ? salePrice : originalPrice;
 
-  const [liked, setLiked] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const router = useRouter();
 
@@ -35,11 +30,6 @@ export default function ProductCard({ product, priority = false, imageZoom = fal
     e.preventDefault();
     e.stopPropagation();
     router.push(`/product/${product._id}`);
-  };
-
-  const handleLike = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setLiked(!liked);
   };
 
   return (

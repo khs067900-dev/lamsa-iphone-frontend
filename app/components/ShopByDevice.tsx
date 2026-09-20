@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import IPhone18HomeSection from "./IPhone18HomeSection";
 import type { FeaturedEntry } from "../lib/iphone18Featured";
 
@@ -9,7 +10,7 @@ import type { FeaturedEntry } from "../lib/iphone18Featured";
 export default function ShopByDevice({ entries, initiallyOpen }: { entries: FeaturedEntry[]; initiallyOpen: boolean }) {
   const target = new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00").getTime();
   const [timerDone, setTimerDone] = useState(initiallyOpen);
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     if (timerDone) return;
@@ -50,13 +51,13 @@ export default function ShopByDevice({ entries, initiallyOpen }: { entries: Feat
         <span style={{ color: "#A77D4B" }}>متاح الآن حصرياً</span>
       </h2>
 
-      <a
+      <Link
         href="/smartphones"
         className="mt-2 px-8 py-3 rounded-full text-white font-bold text-base transition-opacity hover:opacity-90"
         style={{ background: "linear-gradient(135deg, #A77D4B, #C9973E)" }}
       >
         اطلبه الآن
-      </a>
+      </Link>
 
       <div className="flex items-center gap-6 mt-1">
         {[

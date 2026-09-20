@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { IoInformationCircleOutline } from "react-icons/io5";
 import type { Product } from "../../../../components/products/types";
 import { slugConfigs } from "../../../../lib/categoryConfig";
 import { sortProducts } from "../../../../lib/sortProducts";
