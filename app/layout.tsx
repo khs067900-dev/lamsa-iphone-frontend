@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import ClientLayout from "./components/ClientLayout";
 import Footer from "./components/Footer";
+import { getCompany } from "./lib/config";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -11,17 +12,11 @@ const cairo = Cairo({
   display: "swap",
 });
 
-const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 const SITE_URL = "https://lamsasmart.com";
+const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 
-async function getCompany() {
-  try {
-    const r = await fetch(`${BACKEND}/api/admin/company`, { next: { revalidate: 3600, tags: ["company"] } });
-    return r.ok ? r.json() : {};
-  } catch {
-    return {};
-  }
-}
+export const dynamic = "force-static";
+export const revalidate = 3600; // Revalidate every hour
 
 export async function generateMetadata(): Promise<Metadata> {
   const c = await getCompany();
@@ -71,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: [
-        { url: "/favicon.svg", type: "image/svg+xml" },
+        
         { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
         { url: "/web-app-manifest-192x192.png", sizes: "192x192", type: "image/png" },
         { url: "/web-app-manifest-512x512.png", sizes: "512x512", type: "image/png" },
@@ -90,16 +85,15 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Don't fetch company again - it was already fetched in generateMetadata
+  // Pass empty string initially, Navbar will use initialLogo from page if needed
   return (
     <html lang="ar" dir="rtl" className={cairo.className}>
-      <head>
-        <link rel="preload" href="/hero1.webp" as="image" type="image/webp" fetchPriority="high" />
-      </head>
       <body className="antialiased" suppressHydrationWarning>
-        <ClientLayout footer={<Footer />}>{children}</ClientLayout>
+        <ClientLayout initialLogo="" footer={<Footer />}>{children}</ClientLayout>
 
         <Analytics />
       </body>

@@ -1,20 +1,27 @@
+import { Suspense } from "react";
+import { sortProducts } from "./lib/sortProducts";
 import { Banner } from "./components/banner";
 import { ProductGrid } from "./components/products";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { getAllProductsWithBanners, BACKEND } from "./lib/productsCache";
 import { getCompany } from "./lib/config";
+import { getFeaturedIPhones } from "./lib/iphone18Featured";
 import CustomerReviews from "./components/CustomerReviews";
 
-const ShopByCategory = dynamic(() => import("./components/ShopByCategory"));
-const ShopByDevice = dynamic(() => import("./components/ShopByDevice"));
+const ShopByCategory = nextDynamic(() => import("./components/ShopByCategory"));
+const ShopByDevice = nextDynamic(() => import("./components/ShopByDevice"));
+
+function isReservationOpen() {
+  return Date.now() >= new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00").getTime();
+}
 
 const SITE_URL = "https://lamsasmart.com";
 
 async function getHomeConfig() {
   try {
     const [settingsRes, maxRes] = await Promise.all([
-      fetch(`${BACKEND}/api/admin/sub-categories/home-settings`, { next: { revalidate: 300 } }),
-      fetch(`${BACKEND}/api/admin/sub-categories/max`, { next: { revalidate: 300 } }),
+      fetch(`${BACKEND}/api/admin/sub-categories/home-settings`, { next: { revalidate: 300, tags: ["home-config"] } }),
+      fetch(`${BACKEND}/api/admin/sub-categories/max`, { next: { revalidate: 300, tags: ["home-config"] } }),
     ]);
     const settings = settingsRes.ok ? await settingsRes.json() : [];
     const maxData = maxRes.ok ? await maxRes.json() : { max: 4 };
@@ -24,12 +31,26 @@ async function getHomeConfig() {
   }
 }
 
+// Enable static generation with ISR
+export const revalidate = 120; // Revalidate every 2 minutes
+export const dynamic = 'force-static';
+export const dynamicParams = true;
+
 export default async function Home() {
   const [c, { products, bannerMap }, homeConfig] = await Promise.all([
     getCompany(),
     getAllProductsWithBanners(),
     getHomeConfig(),
   ]);
+
+  const selectedCategories = homeConfig.settings
+    .filter((s: { showInHome: boolean }) => s.showInHome)
+    .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
+    .slice(0, Math.max(0, homeConfig.max));
+  const homeProducts = selectedCategories.flatMap((setting: { category: string; subCategory: string }) =>
+    sortProducts(products.filter((p) => (p.category || p.subCategory) === setting.category || (p.category || p.subCategory) === setting.subCategory)).slice(0, 4)
+  ).filter((p: { _id: string }, i: number, all: { _id: string }[]) => all.findIndex((other) => other._id === p._id) === i);
+  const homeBanners = Object.fromEntries(Object.entries(bannerMap).filter(([category]) => homeProducts.some((p: { category?: string; subCategory?: string }) => (p.category || p.subCategory) === category)));
 
   const siteName = c.nameAr || "لمسه للاجهزه الذكيه";
   const logoUrl = c.logo
@@ -96,11 +117,11 @@ export default async function Home() {
       <main className="min-h-screen bg-gradient-to-b from-white via-gray-50/50 to-[#f5f0e8]/30">
         <Banner />
         <ShopByCategory />
-        <ShopByDevice />
+        <ShopByDevice entries={getFeaturedIPhones(products)} initiallyOpen={isReservationOpen()} />
         <div id="products">
-          <ProductGrid initialProducts={products} initialHomeConfig={homeConfig} initialBannerMap={bannerMap} />
+          <ProductGrid initialProducts={homeProducts} initialHomeConfig={homeConfig} initialBannerMap={homeBanners} companyLogo={logoUrl} />
         </div>
-        <CustomerReviews />
+        <Suspense fallback={<div className="min-h-80" />}><CustomerReviews /></Suspense>
       </main>
     </>
   );

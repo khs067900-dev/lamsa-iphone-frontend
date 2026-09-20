@@ -13,6 +13,7 @@ function CategoryBannerSlider({ images }: { images: string[] }) {
   const goTo = useCallback((i: number) => setCurrent((i + images.length) % images.length), [images.length]);
 
   useEffect(() => {
+    if (images.length < 2) return;
     intervalRef.current = setInterval(() => setCurrent((c) => (c + 1) % images.length), AUTO_PLAY_MS);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [images.length]);
@@ -40,7 +41,7 @@ function CategoryBannerSlider({ images }: { images: string[] }) {
                 width={1200}
                 height={600}
                 className="w-full h-auto"
-                loading={i === 0 ? "eager" : "lazy"}
+                loading="lazy"
                 sizes="(max-width: 768px) 100vw, 1024px"
                 quality={75}
               />

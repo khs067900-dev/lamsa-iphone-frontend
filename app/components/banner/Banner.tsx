@@ -9,11 +9,11 @@ import { TbTruckDelivery } from "react-icons/tb";
 const slides = [
   {
     image: "/i-18.webp",
-    tag: "الأقرب إلى الإطلاق",
+    tag: "متاح الآن حصرياً",
     title: "iPhone 18",
-    titleHighlight: "قريبًا على لمسه",
-    description: "كن في الصف الأول — أحدث إصدار من Apple في طريقه إليكم حصرياً",
-    buttons: [{ text: "بادر بالحجز", href: "/smartphones/apple/iphone-18" }],
+    titleHighlight: "خذه اليوم",
+    description: "كن في الصف الأول — أحدث إصدار من Apple متاح الآن حصرياً على لمسه",
+    buttons: [{ text: "اطلبه الآن", href: "/smartphones/apple/iphone-18" }],
   },
 ];
 
@@ -35,6 +35,7 @@ export default function Banner() {
   }, []);
 
   useEffect(() => {
+    if (slides.length < 2) return;
     const timer = setInterval(next, 6000);
     return () => clearInterval(timer);
   }, [next]);

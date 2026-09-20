@@ -11,8 +11,6 @@ import ProductImages from "./components/ProductImages";
 import ProductInfo from "./components/ProductInfo";
 import ProductDetails from "./components/ProductDetails";
 import ProductSections from "./components/ProductSections";
-import { isIPhone18PreOrder } from "../../lib/usePreOrderAvailability";
-import PreOrderModal from "../../components/pre-order/PreOrderModal";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -36,7 +34,6 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
     return defOpt ? toKey(defOpt) : product?.storage ?? "";
   });
   const [addedToCart, setAddedToCart] = useState(false);
-  const [preOrderOpen, setPreOrderOpen] = useState(false);
 
   useEffect(() => {
     if (initialProduct || product) return;
@@ -109,8 +106,6 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
     addItem(displayProduct);
     setAddedToCart(true);
   };
-
-  const isPreOrder = isIPhone18PreOrder(product.name);
 
   return (
     <>
@@ -199,7 +194,6 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
                 }}
                 onStorageChange={(s) => setSelectedStorage(s)}
                 onAddToCart={handleAddToCart}
-                onPreOrder={isPreOrder ? () => setPreOrderOpen(true) : undefined}
               />
             </motion.div>
           </div>
@@ -224,20 +218,6 @@ export default function ProductPageClient({ id, initialProduct }: { id: string; 
 
         <div className="h-10" />
       </main>
-
-      {isPreOrder && (
-        <PreOrderModal
-          open={preOrderOpen}
-          onClose={() => setPreOrderOpen(false)}
-          product={{
-            _id: product._id,
-            name: displayName,
-            image: product.image,
-            variants: product.variants,
-            price: originalPrice,
-          }}
-        />
-      )}
     </>
   );
 }

@@ -58,6 +58,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    { source: "/((?!_next/static|_next/image|favicon.ico|.*\\.webp|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.avif|.*\\.ico|.*\\.woff2?|.*\\.ttf|.*\\.otf|.*\\.xml|.*\\.txt).*)" },
+    // Only run on actual pages and admin routes, not on API routes or static assets
+    "/((?!api|_next/static|_next/image|_next/data|favicon|.*\\.(?:webp|png|jpg|jpeg|svg|avif|ico|woff2?|ttf|otf|xml|txt|json|js|css|map)).*)",
   ],
 };

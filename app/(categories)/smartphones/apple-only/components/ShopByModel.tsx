@@ -17,7 +17,7 @@ export default function ShopByModel({ filters, categoryImages, categoryCounts }:
   const scrollRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const comingSoonSlugs = new Set<string>([]);
-  const alwaysVisibleSlugs = new Set(["iphone-18", "iphone-18-pro-max", "iphone-18-duo"]);
+  const alwaysVisibleSlugs = new Set(["iphone-18-pro-max", "iphone-18-pro", "iphone-18-duo"]);
   const visibleCategories = filters.filter((cat) => categoryCounts[cat.slug] > 0 || alwaysVisibleSlugs.has(cat.slug));
   const [activeIndex, setActiveIndex] = useState(0);
   const totalDots = Math.min(visibleCategories.length, 6);

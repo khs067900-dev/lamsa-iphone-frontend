@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "./navbar";
 import WhatsappButton from "./WhatsappButton";
-export default function ClientLayout({ children, footer }: { children: React.ReactNode; footer: React.ReactNode }) {
+export default function ClientLayout({ children, footer, initialLogo }: { children: React.ReactNode; footer: React.ReactNode; initialLogo?: string }) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
   const isFilePage = pathname.startsWith("/file");
@@ -11,7 +11,7 @@ export default function ClientLayout({ children, footer }: { children: React.Rea
 
   return (
     <>
-      {!hideLayout && <Navbar />}
+      {!hideLayout && <Navbar companyLogo={initialLogo} />}
       {children}
       {!hideLayout && footer}
       {!hideLayout && <WhatsappButton />}

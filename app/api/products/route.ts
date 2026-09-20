@@ -14,6 +14,6 @@ export async function GET(req: NextRequest) {
     : products;
 
   return NextResponse.json(result, {
-    headers: { "Cache-Control": "public, s-maxage=31536000, immutable" },
+    headers: { "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=120" },
   });
 }

@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
-import dynamic from "next/dynamic";
+import { useState, useEffect } from "react";
+import IPhone18HomeSection from "./IPhone18HomeSection";
+import type { FeaturedEntry } from "../lib/iphone18Featured";
 
-const IPhone18HomeSection = dynamic(() => import("./IPhone18HomeSection"), { ssr: false });
 
-export default function ShopByDevice() {
+
+export default function ShopByDevice({ entries, initiallyOpen }: { entries: FeaturedEntry[]; initiallyOpen: boolean }) {
   const target = new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00").getTime();
-  const [timerDone, setTimerDone] = useState(() => Date.now() >= target);
+  const [timerDone, setTimerDone] = useState(initiallyOpen);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    if (timerDone) return;
     const calc = () => {
       const diff = target - Date.now();
       if (diff <= 0) { setTimerDone(true); return; }
@@ -29,17 +31,9 @@ export default function ShopByDevice() {
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [target, timerDone]);
 
-  if (timerDone) return <IPhone18HomeSection />;
-
-  const units = [
-    { value: timeLeft.days, label: "يوم" },
-    { value: timeLeft.hours, label: "ساعة" },
-    { value: timeLeft.minutes, label: "دقيقة" },
-    { value: timeLeft.seconds, label: "ثانية" },
-  ];
+  if (timerDone) return <IPhone18HomeSection entries={entries} />;
 
   return (
     <section
@@ -47,49 +41,32 @@ export default function ShopByDevice() {
       dir="rtl"
       style={{ background: "linear-gradient(to bottom, #ffffff, #FFF8F0)" }}
     >
-      <h2 className="text-2xl sm:text-4xl font-black" style={{ color: "#1F2C3E" }}>
-        iPhone 18{" "}
-        <span style={{ color: "#A77D4B" }}>في طريقه إليك</span>
+      <p className="text-xs font-bold tracking-widest uppercase" style={{ color: "#A77D4B" }}>
+        كن في الصف الأول
+      </p>
+
+      <h2 className="text-2xl sm:text-4xl font-black leading-snug" style={{ color: "#1F2C3E" }}>
+        أحدث إصدار من Apple{" "}
+        <span style={{ color: "#A77D4B" }}>متاح الآن حصرياً</span>
       </h2>
 
-      <div
-        className="px-8 py-5 rounded-2xl"
-        style={{
-          background: "linear-gradient(135deg, #FFF8F0, #FFF3E8)",
-          border: "1.5px solid rgba(167,125,75,0.3)",
-        }}
+      <a
+        href="/smartphones"
+        className="mt-2 px-8 py-3 rounded-full text-white font-bold text-base transition-opacity hover:opacity-90"
+        style={{ background: "linear-gradient(135deg, #A77D4B, #C9973E)" }}
       >
-        <p className="text-xs font-semibold mb-4" style={{ color: "#A77D4B" }}>
-          الوقت المتبقي على الطلب المسبق
-        </p>
-        <div className="flex items-center gap-3 justify-center">
-          {units.map(({ value, label }, i) => (
-            <Fragment key={label}>
-              <div className="flex flex-col items-center">
-                <span
-                  className="text-4xl font-black tabular-nums"
-                  style={{ color: "#1F2C3E" }}
-                >
-                  {String(value).padStart(2, "0")}
-                </span>
-                <span
-                  className="text-[11px] font-semibold mt-1"
-                  style={{ color: "#A77D4B" }}
-                >
-                  {label}
-                </span>
-              </div>
-              {i < 3 && (
-                <span
-                  className="text-2xl font-black pb-4"
-                  style={{ color: "#A77D4B" }}
-                >
-                  :
-                </span>
-              )}
-            </Fragment>
-          ))}
-        </div>
+        اطلبه الآن
+      </a>
+
+      <div className="flex items-center gap-6 mt-1">
+        {[
+          { icon: "✓", text: "ضمان رسمي" },
+          { icon: "⚡", text: "توصيل سريع" },
+        ].map(({ icon, text }) => (
+          <span key={text} className="text-sm font-semibold" style={{ color: "#1F2C3E" }}>
+            <span style={{ color: "#A77D4B" }}>{icon}</span> {text}
+          </span>
+        ))}
       </div>
     </section>
   );

@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "../ProductImage";
 import {
-  IoBagAddOutline,
-  IoCheckmarkCircleOutline,
+  IoArrowForward,
   IoHeartOutline,
   IoHeart,
   IoInformationCircleOutline,
@@ -15,8 +14,6 @@ import {
 import type { Product } from "./types";
 import { normalizeProductForCard } from "../../lib/normalizeProduct";
 import { useCartStore } from "../../store/cartStore";
-import { isIPhone18PreOrder, usePreOrderAvailability } from "../../lib/usePreOrderAvailability";
-import PreOrderModal from "../pre-order/PreOrderModal";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -30,21 +27,14 @@ export default function ProductCard({ product, priority = false, imageZoom = fal
   const hasDiscount = salePrice != null;
   const displayPrice = hasDiscount ? salePrice : originalPrice;
 
-  const addItem = useCartStore((s) => s.addItem);
-  const [added, setAdded] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [preOrderOpen, setPreOrderOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const router = useRouter();
-  const reservationStatus = usePreOrderAvailability();
-  const isPreOrder = isIPhone18PreOrder(name);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(product);
-    setAdded(true);
-    setTimeout(() => router.push("/cart"), 1200);
+    router.push(`/product/${product._id}`);
   };
 
   const handleLike = (e: React.MouseEvent) => {
@@ -54,21 +44,6 @@ export default function ProductCard({ product, priority = false, imageZoom = fal
 
   return (
     <>
-      {added && (
-        <div
-          className="fixed top-5 left-1/2 z-[9999] flex items-center gap-2 px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold"
-          style={{
-            backgroundColor: "#059669",
-            color: "#fff",
-            transform: "translateX(-50%)",
-            animation: "toastIn 0.35s cubic-bezier(.22,1,.36,1) both",
-          }}
-        >
-          <style>{`@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`}</style>
-          <IoCheckmarkCircleOutline size={20} />
-          تمت الإضافة للسلة ✓
-        </div>
-      )}
 
       <div className="product-card group relative flex flex-col h-full rounded-2xl overflow-hidden" dir="rtl" style={{ backgroundColor: "#FFFFFF" }}>
 
@@ -151,60 +126,19 @@ export default function ProductCard({ product, priority = false, imageZoom = fal
           </div>
         </Link>
 
-        {/* ── Cart / Pre-Order Button ── */}
+        {/* ── Cart Button ── */}
         <div className="px-2.5 sm:px-3.5 pb-2.5 sm:pb-3.5">
-          {isPreOrder ? (
-            <div className="flex gap-1.5 sm:gap-2">
-              {/* Details button */}
-              <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDetailsOpen(true); }}
-                className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[12px] font-bold transition-all duration-300 active:scale-95"
-                style={{ backgroundColor: "rgba(31,44,62,0.07)", color: "#1F2C3E" }}
-              >
-                <IoInformationCircleOutline size={13} />
-                <span>التفاصيل</span>
-              </button>
-              {/* Pre-order button */}
-              <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPreOrderOpen(true); }}
-                disabled={reservationStatus === "not_started"}
-                className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[12px] font-bold transition-all duration-300 active:scale-95"
-                style={{
-                  background: reservationStatus === "open"
-                    ? "linear-gradient(135deg,#BC9255,#A77D4B)"
-                    : "rgba(188,146,85,0.15)",
-                  color: reservationStatus === "open" ? "#fff" : "#A77D4B",
-                  cursor: reservationStatus === "not_started" ? "not-allowed" : "pointer",
-                }}
-              >
-                {reservationStatus === "open" ? "احجز مسبقًا" : "قريبًا"}
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAddToCart}
-              className="w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-xl text-[11px] sm:text-[13px] md:text-[14px] font-bold transition-all duration-300 active:scale-95"
-              style={{
-                backgroundColor: added ? "#059669" : "#1F2C3E",
-                color: added ? "#fff" : "#DFC4A4",
-              }}
-            >
-              {added ? (
-                <><IoCheckmarkCircleOutline size={15} />تمت الإضافة</>
-              ) : (
-                <><IoBagAddOutline size={15} />أضف للسلة</>
-              )}
-            </button>
-          )}
+          <button
+            onClick={handleAddToCart}
+            className="w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-3 rounded-xl text-[11px] sm:text-[13px] md:text-[14px] font-bold transition-all duration-300 active:scale-95"
+            style={{
+              backgroundColor: "#1F2C3E",
+              color: "#DFC4A4",
+            }}
+          >
+            <IoArrowForward size={15} />اطلب الآن
+          </button>
         </div>
-
-        {isPreOrder && (
-          <PreOrderModal
-            open={preOrderOpen}
-            onClose={() => setPreOrderOpen(false)}
-            product={{ _id: product._id, name, image, variants: product.variants, price: displayPrice ?? 0 }}
-          />
-        )}
 
         {/* ── Details Modal ── */}
         {detailsOpen && (
@@ -314,18 +248,14 @@ export default function ProductCard({ product, priority = false, imageZoom = fal
               {/* Footer — CTA */}
               <div className="px-4 py-3 shrink-0" style={{ borderTop: "1px solid #EBE6E2" }}>
                 <button
-                  onClick={(e) => { e.stopPropagation(); setDetailsOpen(false); setPreOrderOpen(true); }}
-                  disabled={reservationStatus === "not_started"}
+                  onClick={(e) => { e.stopPropagation(); setDetailsOpen(false); router.push(`/product/${product._id}`); }}
                   className="w-full py-3 rounded-2xl text-[13px] font-black transition-all active:scale-95"
                   style={{
-                    background: reservationStatus === "open"
-                      ? "linear-gradient(135deg,#BC9255,#A77D4B)"
-                      : "rgba(188,146,85,0.15)",
-                    color: reservationStatus === "open" ? "#fff" : "#A77D4B",
-                    cursor: reservationStatus === "not_started" ? "not-allowed" : "pointer",
+                    background: "linear-gradient(135deg,#BC9255,#A77D4B)",
+                    color: "#fff",
                   }}
                 >
-                  {reservationStatus === "open" ? "احجز مسبقًا الآن" : "الحجز يبدأ قريبًا"}
+                  عرض التفاصيل
                 </button>
               </div>
             </div>

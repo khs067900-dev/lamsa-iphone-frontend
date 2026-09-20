@@ -116,9 +116,10 @@ interface ProductGridProps {
   initialProducts?: Product[];
   initialHomeConfig?: HomeConfig | null;
   initialBannerMap?: Record<string, string[]>;
+  companyLogo?: string;
 }
 
-export default function ProductGrid({ initialProducts, initialHomeConfig, initialBannerMap }: ProductGridProps) {
+export default function ProductGrid({ initialProducts, initialHomeConfig, initialBannerMap, companyLogo }: ProductGridProps) {
   const products = useMemo(() => initialProducts || [], [initialProducts]);
   const homeConfig = initialHomeConfig || null;
   const bannerMap = initialBannerMap || {};
@@ -138,17 +139,11 @@ export default function ProductGrid({ initialProducts, initialHomeConfig, initia
     if (!homeConfig) return allCats;
     const { settings, max } = homeConfig;
     const visibleSettings = settings.filter((s) => s.showInHome);
-    if (visibleSettings.length === 0) return allCats;
-    const settingCats = new Set(visibleSettings.flatMap((s) => [s.category, s.subCategory].filter(Boolean)));
-    const orderedCats = visibleSettings
+    return visibleSettings
       .sort((a, b) => a.order - b.order)
-      .slice(0, max)
-      .map((s) => allCats.find((c) => c === s.category || c === s.subCategory))
-      .filter((c): c is string => !!c)
-      .filter((c, idx, arr) => arr.indexOf(c) === idx);
-    const remaining = allCats.filter((c) => !settingCats.has(c));
-    const merged = [...orderedCats, ...remaining];
-    return merged.length > 0 ? merged : allCats;
+      .flatMap((s) => allCats.filter((c) => c === s.category || c === s.subCategory))
+      .filter((c, idx, arr) => arr.indexOf(c) === idx)
+      .slice(0, Math.max(0, max));
   }, [grouped, homeConfig]);
 
   if (!products.length) return <p className="text-center text-gray-400 py-10">لا توجد منتجات حالياً</p>;

@@ -7,8 +7,6 @@ import { IoInformationCircleOutline } from "react-icons/io5";
 import type { Product } from "../../../../components/products/types";
 import { slugConfigs } from "../../../../lib/categoryConfig";
 import { sortProducts } from "../../../../lib/sortProducts";
-import { isIPhone18PreOrder, usePreOrderAvailability } from "../../../../lib/usePreOrderAvailability";
-import PreOrderModal from "../../../../components/pre-order/PreOrderModal";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) =>
@@ -61,8 +59,6 @@ interface Props {
 
 function ProductCard({ product, slug }: { product: Product; slug: string }) {
   const router = useRouter();
-  const reservationStatus = usePreOrderAvailability();
-  const [preOrderOpen, setPreOrderOpen] = useState(false);
 
   const img = product.images?.[0] || product.image;
   const resolvedImg = img ? resolveImg(img) : undefined;
@@ -75,7 +71,6 @@ function ProductCard({ product, slug }: { product: Product; slug: string }) {
     product.salePrice > 0 &&
     product.originalPrice &&
     product.originalPrice > product.salePrice;
-  const isPreOrder = isIPhone18PreOrder(product.name);
   const label = SLUG_LABELS[slug] ?? "";
 
   return (
@@ -155,41 +150,13 @@ function ProductCard({ product, slug }: { product: Product; slug: string }) {
           </div>
 
           {/* Buttons */}
-          {isPreOrder ? (
-            <div className="flex gap-2">
-              <button
-                onClick={() => router.push(`/product/${product._id}`)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] sm:text-[13px] font-bold transition-all active:scale-95"
-                style={{ backgroundColor: "rgba(31,44,62,0.07)", color: "#1F2C3E" }}
-              >
-                <IoInformationCircleOutline size={14} className="shrink-0" />
-                التفاصيل
-              </button>
-              <button
-                onClick={() => setPreOrderOpen(true)}
-                disabled={reservationStatus === "not_started"}
-                className="flex-1 flex items-center justify-center py-2.5 rounded-xl text-[12px] sm:text-[13px] font-bold transition-all active:scale-95"
-                style={{
-                  background:
-                    reservationStatus === "open"
-                      ? "linear-gradient(135deg,#BC9255,#A77D4B)"
-                      : "rgba(188,146,85,0.15)",
-                  color: reservationStatus === "open" ? "#fff" : "#A77D4B",
-                  cursor: reservationStatus === "not_started" ? "not-allowed" : "pointer",
-                }}
-              >
-                {reservationStatus === "open" ? "احجز" : "قريبًا"}
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => router.push(`/product/${product._id}`)}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-black transition-all active:scale-95"
-              style={{ background: "linear-gradient(135deg,#1F2C3E,#2a3d55)", color: "#DFC4A4" }}
-            >
-              اطلب الآن
-            </button>
-          )}
+          <button
+            onClick={() => router.push(`/product/${product._id}`)}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[13px] font-black transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg,#1F2C3E,#2a3d55)", color: "#DFC4A4" }}
+          >
+            اطلب الآن
+          </button>
         </div>
 
         {/* Border glow */}
@@ -198,20 +165,6 @@ function ProductCard({ product, slug }: { product: Product; slug: string }) {
           style={{ boxShadow: "inset 0 0 0 1.5px rgba(223,196,164,0.3)" }}
         />
       </div>
-
-      {isPreOrder && (
-        <PreOrderModal
-          open={preOrderOpen}
-          onClose={() => setPreOrderOpen(false)}
-          product={{
-            _id: product._id,
-            name: product.name,
-            image: product.image,
-            variants: product.variants,
-            price,
-          }}
-        />
-      )}
     </>
   );
 }

@@ -32,7 +32,7 @@ function assertSafeUrl(url: URL): void {
 function safeFetch(url: URL, init?: RequestInit): Promise<Response> {
   assertSafeUrl(url);
   const safeHref: string = url.href;
-  return fetch(safeHref, init);
+  return fetch(safeHref, { ...init, signal: init?.signal ?? AbortSignal.timeout(10000) });
 }
 
 const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,network,price,variants";
@@ -44,7 +44,7 @@ export const getAllProducts = unstable_cache(
     url.searchParams.set("limit", "500");
     url.searchParams.set("fields", FIELDS);
     const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
-    if (!r.ok) return [];
+    if (!r.ok) throw new Error(`Products request failed: ${r.status}`);
     const data = await r.json();
     return Array.isArray(data) ? data : (data.products ?? []);
   },
@@ -58,7 +58,8 @@ async function fetchProductsWithBanners() {
   url.searchParams.set("limit", "500");
   url.searchParams.set("fields", FIELDS);
   const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
-  const data = r.ok ? await r.json() : {};
+  if (!r.ok) throw new Error(`Products request failed: ${r.status}`);
+  const data = await r.json();
   const products: Product[] = Array.isArray(data) ? data : (data.products ?? []);
 
   const categories = [...new Set(products.map((p) => p.category || p.subCategory).filter(Boolean))] as string[];

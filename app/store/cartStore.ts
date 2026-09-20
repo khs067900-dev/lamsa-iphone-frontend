@@ -5,6 +5,7 @@ import type { Product } from "../components/products/types";
 export interface CartItem {
   product: Product;
   qty: number;
+  cartKey: string; // _id|color|storage
 }
 
 export interface CustomerInfo {
@@ -21,8 +22,8 @@ interface CartState {
   items: CartItem[];
   customer: CustomerInfo | null;
   addItem: (product: Product) => void;
-  removeItem: (id: string) => void;
-  updateQty: (id: string, qty: number) => void;
+  removeItem: (cartKey: string) => void;
+  updateQty: (cartKey: string, qty: number) => void;
   setCustomer: (info: CustomerInfo) => void;
   clear: () => void;
   totalItems: () => number;
@@ -36,24 +37,25 @@ export const useCartStore = create<CartState>()(
       customer: null,
       addItem: (product) =>
         set((s) => {
-          const existing = s.items.find((i) => i.product._id === product._id);
+          const cartKey = `${product._id}|${product.color ?? ""}|${product.storage ?? ""}`;
+          const existing = s.items.find((i) => i.cartKey === cartKey);
           if (existing)
             return {
               items: s.items.map((i) =>
-                i.product._id === product._id ? { ...i, qty: i.qty + 1 } : i
+                i.cartKey === cartKey ? { ...i, qty: i.qty + 1 } : i
               ),
             };
-          return { items: [...s.items, { product, qty: 1 }] };
+          return { items: [...s.items, { product, qty: 1, cartKey }] };
         }),
-      removeItem: (id) =>
-        set((s) => ({ items: s.items.filter((i) => i.product._id !== id) })),
-      updateQty: (id, qty) =>
+      removeItem: (cartKey) =>
+        set((s) => ({ items: s.items.filter((i) => i.cartKey !== cartKey) })),
+      updateQty: (cartKey, qty) =>
         set((s) => ({
           items:
             qty <= 0
-              ? s.items.filter((i) => i.product._id !== id)
+              ? s.items.filter((i) => i.cartKey !== cartKey)
               : s.items.map((i) =>
-                  i.product._id === id ? { ...i, qty } : i
+                  i.cartKey === cartKey ? { ...i, qty } : i
                 ),
         })),
       setCustomer: (info) => set({ customer: info }),

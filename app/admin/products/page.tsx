@@ -44,13 +44,18 @@ function ProductsContent() {
 
   async function fetchProducts() {
     const res = await fetch("/api/admin/products", { credentials: "include" });
-    if (res.ok) setProducts(await res.json());
+    if (res.ok) {
+      const data = await res.json();
+      setProducts(Array.isArray(data) ? data : data.products || []);
+    }
   }
 
   useEffect(() => {
     fetch("/api/admin/products", { credentials: "include" })
       .then((res) => res.ok ? res.json() : null)
-      .then((data) => { if (data) setProducts(data); });
+      .then((data) => { 
+        if (data) setProducts(Array.isArray(data) ? data : data.products || []); 
+      });
     fetch("/api/admin/sub-categories", { credentials: "include" })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => { if (data) setSubCategories(data); });

@@ -121,28 +121,29 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
           priority
           sizes="100vw"
         />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(6,14,24,0.55) 0%, rgba(6,14,24,0.75) 100%)" }} />
 
         <div className="relative z-10 h-full max-w-6xl mx-auto px-4 sm:px-8 flex flex-col justify-between">
-          <nav className="pt-4 sm:pt-5 flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-[#3D2B1A]">
-            <Link href="/" className="hover:text-[#1F2C3E] transition flex items-center gap-0.5 sm:gap-1">
+          <nav className="pt-4 sm:pt-5 flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-white/70">
+            <Link href="/" className="hover:text-white transition flex items-center gap-0.5 sm:gap-1">
               <IoHomeOutline size={12} />
               الرئيسية
             </Link>
             <IoChevronBack size={10} />
-            <span className="text-[#3D2B1A]">{config?.parentLabel || "الهواتف"}</span>
+            <span className="text-white/70">{config?.parentLabel || "الهواتف"}</span>
             <IoChevronBack size={10} />
-            <span className="text-[#1F2C3E] font-semibold truncate max-w-[100px] sm:max-w-none">{config?.label}</span>
+            <span className="text-white font-semibold truncate max-w-[100px] sm:max-w-none">{config?.label}</span>
           </nav>
 
           <div className="ph-hero-in pb-6 sm:pb-10 md:pb-14">
-            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tight text-[#1F2C3E] leading-tight mb-2 sm:mb-3">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tight text-white leading-tight mb-2 sm:mb-3">
               {nameEn}
               {nameEnLine2 && <><br />{nameEnLine2}</>}
             </h1>
-            <p className="text-base sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-[#5C3A1E] mb-2 sm:mb-4">
+            <p className="text-base sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-[#e8c98a] mb-2 sm:mb-4">
               {tagline}
             </p>
-            <p className="text-xs sm:text-sm md:text-base text-[#3D2B1A]/80 max-w-xs sm:max-w-lg leading-relaxed mb-4 sm:mb-6">
+            <p className="text-xs sm:text-sm md:text-base text-white/80 max-w-xs sm:max-w-lg leading-relaxed mb-4 sm:mb-6">
               {description}
             </p>
 
@@ -153,10 +154,10 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
                   <div
                     key={i}
                     className={`ph-feat-${i} flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-full backdrop-blur-sm`}
-                    style={{ backgroundColor: "rgba(255,255,255,0.6)", border: "1px solid rgba(31,44,62,0.15)" }}
+                    style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)" }}
                   >
-                    <Icon className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" color="#5C3A1E" />
-                    <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-[#1F2C3E]">{feat.label}</span>
+                    <Icon className="w-3.5 h-3.5 sm:w-[18px] sm:h-[18px]" color="#e8c98a" />
+                    <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-white">{feat.label}</span>
                   </div>
                 );
               })}

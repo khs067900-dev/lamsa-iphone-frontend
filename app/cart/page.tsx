@@ -67,18 +67,19 @@ export default function CartPage() {
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "rgba(188,146,85,0.1)", color: "#A77D4B" }}>{count}</span>
         </div>
         <div className="space-y-2">
-          {items.map(({ product, qty }) => (
-            <CartItem key={product._id} product={product} qty={qty} onUpdateQty={updateQty} onRemove={removeItem} />
-          ))}
+          {items.map(({ product, qty, cartKey }, i) => {
+            const key = cartKey ?? `${product._id}-${i}`;
+            return <CartItem key={key} product={product} qty={qty} cartKey={key} onUpdateQty={updateQty} onRemove={removeItem} />;
+          })}
         </div>
 
         {/* Order Summary */}
         <div className="rounded-2xl p-4 space-y-2" style={{ backgroundColor: "#faf7f2", border: "1px solid rgba(188,146,85,0.15)" }}>
           <p className="text-xs font-bold" style={{ color: "#A77D4B" }}>ملخص الطلب</p>
-          {items.map(({ product, qty }) => {
+          {items.map(({ product, qty, cartKey }, i) => {
             const price = product.salePrice ?? product.originalPrice ?? product.price;
             return (
-              <div key={product._id} className="flex justify-between text-xs" style={{ color: "#0A1825" }}>
+              <div key={cartKey ?? `${product._id}-${i}`} className="flex justify-between text-xs" style={{ color: "#0A1825" }}>
                 <span className="truncate max-w-[60%]">{product.name}{qty > 1 && <span className="mr-1" style={{ color: "#A77D4B" }}>×{qty}</span>}</span>
                 <span className="font-bold flex items-center gap-0.5">{fmt(price * qty)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 22, height: 22, display: "inline-block" }} /></span>
               </div>

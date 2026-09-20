@@ -8,9 +8,8 @@ import { SearchIcon, CartIcon, MenuIcon, CloseIcon } from "./icons";
 import DesktopNav from "./DesktopNav";
 import MobileMenu from "./MobileMenu";
 import { useCartStore } from "../../store/cartStore";
-import { useCompanyStore } from "../../store/companyStore";
 
-export default function Navbar() {
+export default function Navbar({ companyLogo }: { companyLogo?: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +19,6 @@ export default function Navbar() {
   const searchWrapRef = useRef<HTMLDivElement>(null);
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false);
   const itemCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
-  const { logo, fetchCompany } = useCompanyStore();
 
   const API_IMG = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
   const resolveImg = (src: string) => src.startsWith("http") ? src : `${API_IMG}${src.startsWith("/") ? src : "/" + src}`;
@@ -57,8 +55,6 @@ export default function Navbar() {
     return () => clearTimeout(timer);
   }, [searchQuery, fetchResults]);
 
-  useEffect(() => { fetchCompany(); }, [fetchCompany]);
-
   // Close mobile menu on resize to desktop
   useEffect(() => {
     const onResize = () => { if (window.innerWidth >= 1024) setMobileOpen(false); };
@@ -88,9 +84,9 @@ export default function Navbar() {
               {mobileOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
             <Link href="/" className="shrink-0">
-              {logo && (
+              {companyLogo && (
                 <Image
-                  src={logo}
+                  src={companyLogo}
                   alt="Logo"
                   width={0}
                   height={0}

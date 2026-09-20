@@ -21,7 +21,7 @@ export default async function IPhone18ProMaxPage() {
       features={[
         { icon: "battery", label: "بطارية تدوم طول اليوم" },
         { icon: "camera", label: "نظام كاميرات احترافي" },
-        { icon: "chip", label: "معالج A19 Pro" },
+        { icon: "chip", label: "معالج A20 Pro" },
       ]}
       initialProducts={products}
     />

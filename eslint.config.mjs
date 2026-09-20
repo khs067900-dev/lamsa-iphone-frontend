@@ -9,7 +9,7 @@ const eslintConfig = defineConfig([
   { rules: { "@next/next/no-img-element": "off" } },
   globalIgnores([
     // Default ignores of eslint-config-next:
-    ".next/**",
+    ".next/**", ".next-audit/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
@@ -17,3 +17,4 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
+

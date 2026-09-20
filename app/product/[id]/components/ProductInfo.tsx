@@ -8,7 +8,6 @@ import {
 } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Product } from "../../../components/products/types";
-import { isIPhone18PreOrder, usePreOrderAvailability } from "../../../lib/usePreOrderAvailability";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -20,16 +19,13 @@ interface ProductInfoProps {
   onColorChange: (c: string) => void;
   onStorageChange: (s: string) => void;
   onAddToCart: () => void;
-  onPreOrder?: () => void;
 }
 
 export default function ProductInfo({
   product, selectedColor, selectedStorage, addedToCart,
-  onColorChange, onStorageChange, onAddToCart, onPreOrder,
+  onColorChange, onStorageChange, onAddToCart,
 }: ProductInfoProps) {
   const router = useRouter();
-  const reservationStatus = usePreOrderAvailability();
-  const isPreOrder = isIPhone18PreOrder(product.name);
   const { name, brand, freeDelivery, deliveryTime, inStock, taxIncluded, installment } = product;
 
   const hasVariants = product.variants && product.variants.length > 0;
@@ -199,29 +195,7 @@ export default function ProductInfo({
 
         {/* ── CTA ── */}
         <div className="p-3 sm:p-4">
-          {isPreOrder ? (
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={onPreOrder}
-              disabled={reservationStatus === "not_started"}
-              className="group w-full relative overflow-hidden font-black text-sm sm:text-base py-3.5 sm:py-4 rounded-2xl flex items-center justify-center gap-2.5"
-              style={{
-                background: reservationStatus === "open"
-                  ? "linear-gradient(135deg, #BC9255, #A77D4B)"
-                  : "rgba(188,146,85,0.15)",
-                color: reservationStatus === "open" ? "#fff" : "#A77D4B",
-                boxShadow: reservationStatus === "open" ? "0 6px 24px rgba(188,146,85,0.35)" : "none",
-                cursor: reservationStatus === "not_started" ? "not-allowed" : "pointer",
-              }}
-            >
-              {reservationStatus === "open" && (
-                <span className="absolute inset-0 bg-gradient-to-l from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
-              )}
-              <span className="relative">
-                {reservationStatus === "open" ? "احجز مسبقًا" : "الحجز يبدأ قريبًا"}
-              </span>
-            </motion.button>
-          ) : !addedToCart ? (
+          {!addedToCart ? (
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={onAddToCart}
