@@ -91,7 +91,7 @@ export default async function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={cairo.className}>
       <body className="antialiased" suppressHydrationWarning>
-        <ClientLayout initialLogo="" whatsapp={c.whatsapp} footer={<Footer />}>{children}</ClientLayout>
+        <ClientLayout initialLogo={c.logo || ""} whatsapp={c.whatsapp} footer={<Footer />}>{children}</ClientLayout>
 
         <Analytics />
       </body>
