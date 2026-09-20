@@ -8,40 +8,8 @@ import { HiOutlineCpuChip } from "react-icons/hi2";
 import ProductCard from "../products/ProductCard";
 import type { Product } from "../products/types";
 import { slugConfigs } from "../../lib/categoryConfig";
-import { sortProducts } from "../../lib/sortProducts";
 
 const ITEMS_PER_PAGE = 12;
-
-function normalizeArabic(str: string): string {
-  return str
-    .replace(/[أإآا]/g, "ا")
-    .replace(/[ىي]/g, "ي")
-    .replace(/ة/g, "ه")
-    .replace(/ؤ/g, "و")
-    .replace(/ئ/g, "ي");
-}
-
-function filterProducts(products: Product[], slug: string): Product[] {
-  if (!Array.isArray(products)) return [];
-  const config = slugConfigs[slug];
-  if (!config) return products;
-  const { brand, category, nameIncludes, nameExcludes } = config.filters;
-  return products.filter((p) => {
-    const matchBrand = brand ? p.brand?.toLowerCase() === brand.toLowerCase() : true;
-    const matchCategory = category
-      ? category.includes(",")
-        ? category.split(",").some((c) => normalizeArabic(p.category || "").includes(normalizeArabic(c.trim())))
-        : normalizeArabic(p.category || "").includes(normalizeArabic(category))
-      : true;
-    const matchName = nameIncludes?.length
-      ? nameIncludes.some((kw) => p.name?.toLowerCase().includes(kw.toLowerCase()))
-      : true;
-    const matchExclude = nameExcludes?.length
-      ? !nameExcludes.some((kw) => p.name?.toLowerCase().includes(kw.toLowerCase()))
-      : true;
-    return matchBrand && matchCategory && matchName && matchExclude;
-  });
-}
 
 export interface PhoneHeroPageProps {
   slug: string;
@@ -76,7 +44,8 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
   const [selectedStorage, setSelectedStorage] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
 
-  const products = useMemo(() => sortProducts(filterProducts(initialProducts, slug)), [initialProducts, slug]);
+  // [OPTIMIZED] Products are already filtered and sorted from server
+  const products = initialProducts;
 
   const availableColors = useMemo(() => [...new Set(products.map((p) => p.color).filter(Boolean))], [products]);
   const availableStorages = useMemo(() => [...new Set(products.map((p) => p.storage).filter(Boolean))], [products]);

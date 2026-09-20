@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -18,8 +18,6 @@ import ProductCard from "../../components/products/ProductCard";
 import type { Product } from "../../components/products/types";
 import { slugConfigs } from "../../lib/categoryConfig";
 import { categoryBanners } from "../../lib/categoryBanners";
-import { sortProducts } from "../../lib/sortProducts";
-import { filterBySlug } from "../../lib/filterUtils";
 
 // [FIX H5] Pure CSS animated background — no framer-motion dependency
 function StaticHeroBg() {
@@ -55,7 +53,8 @@ export default function CategoryPageClient({ slug, initialProducts = [] }: { slu
   const bannerImage = categoryBanners[slug] || null;
   const hasBanner = bannerImage && !imgError;
 
-  const products = useMemo(() => sortProducts(filterBySlug(initialProducts, slug)), [initialProducts, slug]);
+  // [OPTIMIZED] Products are already filtered and sorted from server
+  const products = initialProducts;
 
   const label = config?.label ?? slug;
   const parentLabel = config?.parentLabel ?? "";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { IoCheckmarkCircle, IoDocumentTextOutline, IoListOutline, IoCardOutline, IoSparkles, IoDiamondOutline } from "react-icons/io5";
 import type { Product } from "../../../components/products/types";
 
@@ -48,12 +48,17 @@ export default function ProductDetails({ installment, description, specs, specGr
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
 
-  useEffect(() => {
-    const idx = visibleTabs.findIndex((t) => t.key === active);
+  const updateIndicator = (idx: number) => {
     const el = tabsRef.current[idx];
     if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, visibleTabs.length]);
+  };
+
+  // Set indicator on mount via ref callback instead of useEffect
+  const setTabRef = (el: HTMLButtonElement | null, idx: number) => {
+    tabsRef.current[idx] = el;
+    const activeIdx = visibleTabs.findIndex((t) => t.key === active);
+    if (idx === activeIdx && el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+  };
 
   if (!visibleTabs.length) return null;
 
@@ -72,8 +77,8 @@ export default function ProductDetails({ installment, description, specs, specGr
             return (
               <button
                 key={t.key}
-                ref={(el) => { tabsRef.current[idx] = el; }}
-                onClick={() => setActive(t.key)}
+                ref={(el) => setTabRef(el, idx)}
+                onClick={() => { setActive(t.key); updateIndicator(idx); }}
                 className={`flex-1 min-w-[80px] sm:min-w-[110px] flex items-center justify-center gap-1 sm:gap-2.5 py-3 sm:py-5 md:py-6 text-[10px] sm:text-xs md:text-sm font-bold transition-all duration-300 ${
                   isActive ? "bg-white/60" : "hover:bg-white/40"
                 }`}

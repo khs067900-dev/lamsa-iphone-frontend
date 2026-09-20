@@ -35,7 +35,52 @@ function safeFetch(url: URL, init?: RequestInit): Promise<Response> {
   return fetch(safeHref, { ...init, signal: init?.signal ?? AbortSignal.timeout(10000) });
 }
 
-const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,network,price,variants";
+const FIELDS = "name originalPrice salePrice image images color storage category subCategory brand inStock freeDelivery warrantyYears installment discountPercent network price";
+
+// [NEW] Optimized function to get products by category with server-side filtering
+export const getProductsByCategory = (params: {
+  category?: string;
+  subCategory?: string;
+  brand?: string;
+  nameIncludes?: string[];
+  nameExcludes?: string[];
+  page?: number;
+  limit?: number;
+  sort?: string;
+}) => {
+  const { category, subCategory, brand, nameIncludes, nameExcludes, page = 1, limit = 50, sort = "storage-asc" } = params;
+  
+  // Build query string
+  const queryParams = new URLSearchParams();
+  if (category) queryParams.set("category", category);
+  if (subCategory) queryParams.set("subCategory", subCategory);
+  if (brand) queryParams.set("brand", brand);
+  if (nameIncludes && nameIncludes.length > 0) queryParams.set("nameIncludes", nameIncludes.join(","));
+  if (nameExcludes && nameExcludes.length > 0) queryParams.set("nameExcludes", nameExcludes.join(","));
+  queryParams.set("page", page.toString());
+  queryParams.set("limit", limit.toString());
+  queryParams.set("sort", sort);
+  queryParams.set("fields", FIELDS);
+  
+  const cacheKey = `products-by-category:${queryParams.toString()}`;
+  
+  return unstable_cache(
+    async () => {
+      try {
+        const url = new URL("/api/products/by-category", BACKEND);
+        url.search = queryParams.toString();
+        const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
+        if (!r.ok) return { products: [], total: 0, page: 1, pages: 0 };
+        const data = await r.json();
+        return data;
+      } catch {
+        return { products: [], total: 0, page: 1, pages: 0 };
+      }
+    },
+    [cacheKey],
+    { revalidate: 120, tags: ["products"] }
+  )();
+};
 
 export const getAllProducts = unstable_cache(
   async () => {
@@ -99,7 +144,8 @@ export async function getAllProductsWithBanners() {
   return result;
 }
 
-const PRODUCT_DETAIL_FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,description,specs,network,price,taxIncluded,deliveryTime,overview,features,detailedSpecs";
+// All fields needed for product detail page — variants + specGroups + sections included
+const PRODUCT_DETAIL_FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,description,specs,specGroups,variants,sections,network,price,taxIncluded,deliveryTime,brief";
 
 export const getProductById = (id: string) => {
   const safeId = encodeURIComponent(id);

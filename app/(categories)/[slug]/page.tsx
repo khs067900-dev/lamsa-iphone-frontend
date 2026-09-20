@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { slugConfigs } from "../../lib/categoryConfig";
 import CategoryPageClient from "./CategoryPageClient";
-import { getAllProducts, BACKEND } from "../../lib/productsCache";
+import { getProductsByCategory, BACKEND } from "../../lib/productsCache";
 import { SITE_URL, getCompany } from "../../lib/config";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -50,6 +50,19 @@ export default async function CategorySlugPage({ params }: { params: Promise<{ s
   const { slug } = await params;
   // [FIX M2] Validate slug on server — avoids client-side flash before notFound
   if (!slugConfigs[slug]) notFound();
-  const products = await getAllProducts();
-  return <CategoryPageClient slug={slug} initialProducts={products} />;
+  
+  const config = slugConfigs[slug];
+  const filters = config?.filters || {};
+  
+  // [OPTIMIZED] Use new server-side filtered endpoint instead of fetching all products
+  const result = await getProductsByCategory({
+    category: filters.category,
+    brand: filters.brand,
+    nameIncludes: filters.nameIncludes,
+    nameExcludes: filters.nameExcludes,
+    limit: 100,
+    sort: "storage-asc",
+  });
+  
+  return <CategoryPageClient slug={slug} initialProducts={result.products} />;
 }

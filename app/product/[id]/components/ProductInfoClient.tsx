@@ -1,0 +1,266 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import {
+  IoCartOutline, IoShieldCheckmark, IoCarOutline,
+  IoCheckmarkDoneCircle, IoFlash, IoBagCheckOutline, IoCheckmarkCircle,
+} from "react-icons/io5";
+import type { Product } from "../../../components/products/types";
+import { useCartStore } from "../../../store/cartStore";
+
+const fmt = (n: number) => n.toLocaleString("en-US");
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const toKey = (o: { storage: string; ram?: string; size?: string }) =>
+  `${o.storage}|${o.ram ?? ""}|${o.size ?? ""}`;
+
+export default function ProductInfoClient({ product }: { product: Product }) {
+  const router = useRouter();
+  const addItem = useCartStore((s) => s.addItem);
+
+  const firstVariant = product.variants?.[0];
+  const [selectedColor, setSelectedColor] = useState<string>(
+    () => firstVariant?.color ?? product.color ?? ""
+  );
+  const [selectedStorage, setSelectedStorage] = useState<string>(() => {
+    const defOpt =
+      firstVariant?.storageOptions?.find((o) => o.storage === firstVariant.defaultStorage) ??
+      firstVariant?.storageOptions?.[0];
+    return defOpt ? toKey(defOpt) : product.storage ?? "";
+  });
+  const [addedToCart, setAddedToCart] = useState(false);
+
+  const activeVariant = product.variants?.find((v) => v.color === selectedColor);
+  const storageOpts = activeVariant?.storageOptions ?? product.variants?.[0]?.storageOptions ?? [];
+  const activeStorageOpt = storageOpts.find((o) => toKey(o) === selectedStorage) ?? storageOpts[0];
+
+  const originalPrice = activeStorageOpt?.originalPrice ?? product.originalPrice ?? 0;
+  const salePrice = activeStorageOpt?.salePrice ?? product.salePrice;
+  const hasDiscount = salePrice != null && salePrice > 0 && salePrice < originalPrice;
+  const savingsPercent = hasDiscount
+    ? Math.round(((originalPrice - (salePrice ?? 0)) / originalPrice) * 100)
+    : 0;
+
+  const displayName = activeVariant?.name ?? product.name;
+  const resolvedStorage = activeStorageOpt?.storage || selectedStorage.split("|")[0] || product.storage;
+
+  const handleColorChange = useCallback(
+    (c: string) => {
+      setSelectedColor(c);
+      const newVariant = product.variants?.find((v) => v.color === c);
+      const opts = newVariant?.storageOptions ?? [];
+      const defOpt = opts.find((o) => o.storage === newVariant?.defaultStorage) ?? opts[0];
+      if (defOpt) setSelectedStorage(toKey(defOpt));
+    },
+    [product.variants]
+  );
+
+  const handleAddToCart = useCallback(() => {
+    const displayProduct: Product = {
+      ...product,
+      name: displayName,
+      color: selectedColor || product.color,
+      storage: resolvedStorage,
+      originalPrice,
+      salePrice,
+      image: activeVariant?.images?.[0] ?? product.image,
+      images: activeVariant?.images?.length ? activeVariant.images : product.images,
+    };
+    addItem(displayProduct);
+    setAddedToCart(true);
+  }, [product, displayName, selectedColor, resolvedStorage, originalPrice, salePrice, activeVariant, addItem]);
+
+  const { brand, freeDelivery, inStock, taxIncluded, installment } = product;
+  const hasVariants = Boolean(product.variants?.length);
+
+  return (
+    <div className="lg:sticky lg:top-[72px]">
+      <div className="rounded-3xl overflow-hidden" style={{ border: "1px solid #EBE6E2", background: "#fff" }}>
+
+        {/* Name + Brand + Stock */}
+        <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3 sm:pb-4" style={{ borderBottom: "1px solid #f0ebe4" }}>
+          <div className="flex items-center gap-2 mb-2">
+            {brand && (
+              <span className="text-[10px] sm:text-[11px] font-black tracking-widest uppercase px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: "rgba(188,146,85,0.1)", color: "#BC9255" }}>
+                {brand}
+              </span>
+            )}
+            <span className={`inline-flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold px-2.5 py-1 rounded-full ${inStock ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${inStock ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
+              {inStock ? "متوفر" : "غير متوفر"}
+            </span>
+          </div>
+          <h2 className="lg:hidden text-sm sm:text-lg font-black leading-snug" style={{ color: "#1F2C3E" }}>
+            {displayName}
+          </h2>
+        </div>
+
+        {/* Color Selector */}
+        {hasVariants && (
+          <div className="px-4 sm:px-5 py-3 sm:py-4" style={{ borderBottom: "1px solid #f0ebe4" }}>
+            <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest mb-2.5" style={{ color: "#A77D4B" }}>
+              اللون — {selectedColor}
+            </p>
+            <div className="flex gap-2.5 sm:gap-3 flex-wrap">
+              {product.variants!.map((v, i) => (
+                <button
+                  key={`${i}-${v.color}`}
+                  title={v.color}
+                  onClick={() => handleColorChange(v.color)}
+                  className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer transition-transform active:scale-90"
+                  style={{
+                    backgroundColor: v.colorCode,
+                    boxShadow: selectedColor === v.color
+                      ? "0 0 0 2px #fff, 0 0 0 4px #BC9255"
+                      : "0 2px 8px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  {selectedColor === v.color && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <IoCheckmarkCircle size={13} className="text-white drop-shadow" />
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Storage Selector */}
+        {storageOpts.length > 1 && (
+          <div className="px-4 sm:px-5 py-3 sm:py-4" style={{ borderBottom: "1px solid #f0ebe4" }}>
+            <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest mb-2.5" style={{ color: "#A77D4B" }}>
+              السعة
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {storageOpts.map((opt) => {
+                const key = toKey(opt);
+                const isActive = selectedStorage === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedStorage(key)}
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black border cursor-pointer transition-all duration-200 active:scale-95"
+                    style={{
+                      backgroundColor: isActive ? "#BC9255" : "#faf7f2",
+                      color: isActive ? "#fff" : "#1F2C3E",
+                      borderColor: isActive ? "#BC9255" : "#EBE6E2",
+                      boxShadow: isActive ? "0 4px 14px rgba(188,146,85,0.3)" : "none",
+                    }}
+                  >
+                    {opt.storage}
+                    {opt.ram && <span className="block text-[9px] mt-0.5 opacity-70">{opt.ram}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Price — CSS transition only, no framer-motion */}
+        <div
+          className="px-4 sm:px-5 py-4 sm:py-5 transition-opacity duration-150"
+          style={{ borderBottom: "1px solid #f0ebe4", background: "linear-gradient(135deg, rgba(188,146,85,0.04), rgba(255,255,255,0))" }}
+        >
+          {hasDiscount ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-3xl sm:text-4xl font-black" style={{ color: "#BC9255" }}>{fmt(salePrice!)}</span>
+                  <Image src="/money-icon.webp" alt="ر.س" width={28} height={28} style={{ width: 28, height: 28 }} className="inline-block mb-1" />
+                </div>
+                {taxIncluded && <p className="text-[10px] mt-1" style={{ color: "#A77D4B" }}>شامل ضريبة القيمة المضافة</p>}
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="text-[11px] sm:text-xs font-black px-2.5 py-1 rounded-lg text-white"
+                  style={{ background: "linear-gradient(135deg, #e74c3c, #c0392b)" }}>
+                  وفّر {savingsPercent}%
+                </span>
+                <span className="text-xs sm:text-sm line-through opacity-40 flex items-center gap-1" style={{ color: "#1F2C3E" }}>
+                  {fmt(originalPrice)}{" "}
+                  <Image src="/money-icon.webp" alt="ر.س" width={16} height={16} style={{ width: 16, height: 16 }} className="opacity-50" />
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-3xl sm:text-4xl font-black" style={{ color: "#BC9255" }}>{fmt(originalPrice)}</span>
+                <Image src="/money-icon.webp" alt="ر.س" width={28} height={28} style={{ width: 28, height: 28 }} className="inline-block mb-1" />
+              </div>
+              {taxIncluded && <p className="text-[10px] mt-1" style={{ color: "#A77D4B" }}>شامل ضريبة القيمة المضافة</p>}
+            </div>
+          )}
+        </div>
+
+        {/* Installment */}
+        {installment?.available && (
+          <div className="px-4 sm:px-5 py-3 flex items-center gap-3"
+            style={{ borderBottom: "1px solid #f0ebe4", background: "rgba(188,146,85,0.04)" }}>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: "rgba(188,146,85,0.12)" }}>
+              <IoFlash size={14} style={{ color: "#BC9255" }} />
+            </div>
+            <div>
+              <p className="text-[11px] sm:text-xs font-bold" style={{ color: "#1F2C3E" }}>
+                تقسيط متاح {installment.downPayment ? `• مقدم ${fmt(installment.downPayment)} ر.س` : ""}
+              </p>
+              {installment.note && <p className="text-[10px] mt-0.5" style={{ color: "#A77D4B" }}>{installment.note}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* Trust badges */}
+        <div className="grid grid-cols-2 gap-px" style={{ background: "#f0ebe4" }}>
+          {[
+            { icon: IoCarOutline, label: freeDelivery ? "توصيل مجاني" : "توصيل مدفوع" },
+            { icon: IoShieldCheckmark, label: "ضمان سنتين" },
+          ].map((f, i) => (
+            <div key={i} className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-3" style={{ background: "#fff" }}>
+              <f.icon size={15} style={{ color: "#BC9255", flexShrink: 0 }} />
+              <p className="text-[10px] sm:text-[11px] font-bold truncate" style={{ color: "#1F2C3E" }}>{f.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="p-3 sm:p-4">
+          {!addedToCart ? (
+            <button
+              onClick={handleAddToCart}
+              className="w-full relative overflow-hidden font-black text-sm sm:text-base py-3.5 sm:py-4 rounded-2xl flex items-center justify-center gap-2.5 text-white transition-transform active:scale-[0.98]"
+              style={{ background: "linear-gradient(135deg, #BC9255, #A77D4B)", boxShadow: "0 6px 24px rgba(188,146,85,0.35)" }}
+            >
+              <IoCartOutline size={18} />
+              <span>أضف للسلة</span>
+            </button>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-center gap-2 py-2.5 rounded-2xl"
+                style={{ backgroundColor: "rgba(16,185,129,0.08)", color: "#059669" }}>
+                <IoCheckmarkDoneCircle size={17} />
+                <span className="text-xs sm:text-sm font-bold">تمت الإضافة للسلة</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => router.back()}
+                  className="font-bold text-xs sm:text-sm py-2.5 sm:py-3 rounded-xl transition-transform active:scale-95"
+                  style={{ backgroundColor: "#faf7f2", color: "#1F2C3E", border: "1px solid #EBE6E2" }}>
+                  متابعة التسوق
+                </button>
+                <button onClick={() => router.push("/cart")}
+                  className="text-white font-bold text-xs sm:text-sm py-2.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95"
+                  style={{ background: "linear-gradient(135deg, #BC9255, #A77D4B)" }}>
+                  <IoBagCheckOutline size={14} />
+                  عرض السلة
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

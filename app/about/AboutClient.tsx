@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import ContactSection from "../components/ContactSection";
-import { useCompanyStore } from "../store/companyStore";
 
 function useInView(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
@@ -114,12 +113,10 @@ const sections = [
   },
 ];
 
-export default function AboutClient() {
+export default function AboutClient({ whatsapp, email }: { whatsapp: string; email: string }) {
   const [heroVisible, setHeroVisible] = useState(false);
-  const { whatsapp, email, fetchCompany } = useCompanyStore();
 
   useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 60); return () => clearTimeout(t); }, []);
-  useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
   const anim = (delay: number, extra = "") =>
     ({
@@ -221,7 +218,6 @@ export default function AboutClient() {
       </section>
 
       <div className="h-16" />
-      <div className="sbc-verify-seal" data-token="MStxS0d2Q1pNbVF0ZkhEVitKdkd6UT09" data-position="bottom-left" />
       <Script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" strategy="afterInteractive" />
     </main>
   );

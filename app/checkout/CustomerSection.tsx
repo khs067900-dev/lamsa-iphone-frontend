@@ -50,18 +50,18 @@ function Field({ label, value, error, placeholder, dir, inputMode, onChange }: {
 
 const PRIORITY: Country[] = ["SA","AE","KW","BH","IQ","QA","OM","YE","EG"];
 
-function getSortedCountries(): Country[] {
+// Computed once at module load — not on every render
+const SORTED_COUNTRIES: Country[] = (() => {
   const all = getCountries();
   const rest = all.filter(c => !PRIORITY.includes(c));
   return [...PRIORITY.filter(c => all.includes(c)), ...rest];
-}
+})();
 
 function CustomCountrySelect({ value, onChange }: { value: Country; onChange: (c: Country) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selected = value ?? "SA" as Country;
   const Flag = flags[selected];
-  const sorted = getSortedCountries();
 
   useEffect(() => {
     const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
@@ -79,7 +79,7 @@ function CustomCountrySelect({ value, onChange }: { value: Country; onChange: (c
       </button>
       {open && (
         <div className="country-dropdown absolute z-50 top-full mt-1 left-0 w-72 bg-white border border-gray-200 shadow-lg max-h-60 overflow-y-auto" dir="rtl">
-          {sorted.map((c, i) => {
+          {SORTED_COUNTRIES.map((c, i) => {
             const FlagIcon = flags[c];
             const isPriority = PRIORITY.includes(c);
             const isLastPriority = i === PRIORITY.length - 1;

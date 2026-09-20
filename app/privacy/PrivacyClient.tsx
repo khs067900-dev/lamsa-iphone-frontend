@@ -32,69 +32,81 @@ function FadeUp({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 /* Icons */
-const IconBox = () => (
+const IconShield = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth={1.8}>
-    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" strokeLinecap="round" strokeLinejoin="round"/>
-    <polyline points="3.27 6.96 12 12.01 20.73 6.96" strokeLinecap="round" strokeLinejoin="round"/>
-    <line x1="12" y1="22.08" x2="12" y2="12" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
-const IconClock = () => (
+const IconLock = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth={1.8}>
-    <circle cx="12" cy="12" r="10"/>
-    <polyline points="12 6 12 12 16 14" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect x="3" y="11" width="18" height="11" rx="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M7 11V7a5 5 0 0110 0v4" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
-const IconBan = () => (
+const IconInfo = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth={1.8}>
     <circle cx="12" cy="12" r="10"/>
-    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" strokeLinecap="round"/>
+    <line x1="12" y1="8" x2="12" y2="8.01" strokeLinecap="round"/>
+    <line x1="12" y1="12" x2="12" y2="16" strokeLinecap="round"/>
   </svg>
 );
-const IconXCircle = () => (
+const IconChat = () => (
   <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth={1.8}>
-    <circle cx="12" cy="12" r="10"/>
-    <line x1="15" y1="9" x2="9" y2="15" strokeLinecap="round"/>
-    <line x1="9" y1="9" x2="15" y2="15" strokeLinecap="round"/>
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+const IconDoc = () => (
+  <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6" stroke="currentColor" strokeWidth={1.8}>
+    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/>
+    <polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/>
+    <line x1="16" y1="13" x2="8" y2="13" strokeLinecap="round"/>
+    <line x1="16" y1="17" x2="8" y2="17" strokeLinecap="round"/>
   </svg>
 );
 
 const sections = [
   {
-    Icon: IconBox,
-    title: "حالة المنتج",
+    Icon: IconDoc,
+    title: "استخدام الموقع",
     content: [
-      "يشترط أن يكون المنتج في حالته الأصلية وغير مستخدم، مع الحفاظ على التغليف والملحقات والفاتورة إن وجدت.",
+      "باستخدامك لهذا الموقع فإنك توافق على الالتزام بالشروط والأحكام والسياسات المعمول بها داخل لمسه للاجهزه الذكيه.",
     ],
   },
   {
-    Icon: IconClock,
-    title: "مدة طلب الاسترجاع",
+    Icon: IconShield,
+    title: "الخصوصية وحماية البيانات",
     content: [
-      "يتم تقديم طلبات الاستبدال أو الاسترجاع خلال 14 يومًا من تاريخ استلام الطلب حسب سياسة المتجر، وبعد مراجعة حالة الطلب والمنتج.",
+      "نلتزم بالحفاظ على خصوصية بيانات العملاء وعدم استخدامها إلا في حدود معالجة الطلبات وتحسين الخدمة والتواصل عند الحاجة.",
     ],
   },
   {
-    Icon: IconBan,
-    title: "المنتجات غير القابلة للاسترجاع",
+    Icon: IconInfo,
+    title: "دقة المعلومات",
     content: [
-      "بعض المنتجات قد لا تكون قابلة للاسترجاع أو الاستبدال بعد فتحها أو استخدامها، وخاصة المنتجات الشخصية أو الرقمية أو التي تم تجهيزها بطلب خاص.",
+      "نحرص على عرض المعلومات والمنتجات والأسعار بأكبر قدر ممكن من الدقة، ومع ذلك قد تحدث تحديثات أو تعديلات دون إشعار مسبق.",
     ],
   },
   {
-    Icon: IconXCircle,
-    title: "إلغاء الطلبات",
+    Icon: IconChat,
+    title: "الطلبات والتواصل",
     content: [
-      "يمكن إلغاء الطلب قبل التجهيز أو الشحن، أما إذا تم شحن الطلب فيتم التعامل معه وفق سياسة الاسترجاع المعتمدة.",
+      "يحق للمتجر مراجعة أو تأكيد الطلبات والتواصل مع العميل عند الحاجة لإتمام البيانات أو تأكيد تفاصيل الشحن والدفع.",
     ],
   },
 ];
 
-type Company = { whatsapp?: string; email?: string; phone?: string };
+interface Props {
+  nameAr: string;
+  addressAr: string;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  taxNumber: string;
+}
 
-export default function ReturnPolicyClient({ whatsapp, email, phone }: Company) {
+export default function PrivacyClient({ nameAr, addressAr, phone, whatsapp, email, taxNumber }: Props) {
   const [heroVisible, setHeroVisible] = useState(false);
-
   useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 60); return () => clearTimeout(t); }, []);
 
   const anim = (delay: number) => ({
@@ -104,6 +116,8 @@ export default function ReturnPolicyClient({ whatsapp, email, phone }: Company) 
       transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
     },
   } as React.HTMLAttributes<HTMLElement>);
+
+  const hasCompanyInfo = nameAr || addressAr || phone || email || taxNumber;
 
   return (
     <main className="min-h-screen bg-[#faf7f2] overflow-x-hidden" dir="rtl">
@@ -125,12 +139,12 @@ export default function ReturnPolicyClient({ whatsapp, email, phone }: Company) 
 
           <h1 {...anim(200)} className="text-3xl sm:text-5xl lg:text-6xl font-extrabold mb-5 leading-tight text-white">
             سياسة{" "}
-            <span className="text-[#BC9255]">الاستبدال</span>
-            <span className="block text-white/90 text-2xl sm:text-4xl lg:text-5xl mt-2">والاسترجاع</span>
+            <span className="text-[#BC9255]">الخصوصية</span>
+            <span className="block text-white/90 text-2xl sm:text-4xl lg:text-5xl mt-2">واتفاقية الاستخدام</span>
           </h1>
 
           <p {...anim(350)} className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            الشروط المنظمة لطلبات الإلغاء والاستبدال والاسترجاع داخل لمسه للاجهزه الذكيه
+            الشروط العامة المنظمة لاستخدام موقع لمسه للاجهزه الذكيه
           </p>
         </div>
 
@@ -165,12 +179,41 @@ export default function ReturnPolicyClient({ whatsapp, email, phone }: Company) 
           </FadeUp>
         ))}
 
+        {/* ════════ STORE INFO ════════ */}
+        {hasCompanyInfo && (
+          <FadeUp delay={sections.length * 100}>
+            <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-md transition-all duration-300" style={{ border: "1px solid rgba(188,146,85,0.2)" }}>
+              <div className="flex flex-col sm:flex-row">
+                <div className="w-full h-1 sm:w-1 sm:h-auto shrink-0" style={{ background: "linear-gradient(to bottom, #0A1825, #1a3a5c)" }} />
+                <div className="flex-1 p-4 sm:p-7">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 text-[#0A1825] group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: "rgba(10,24,37,0.08)" }}>
+                      <IconLock />
+                    </div>
+                    <div>
+                      <h2 className="text-base sm:text-xl font-extrabold text-[#0A1825]">معلومات المتجر</h2>
+                      <div className="h-0.5 w-8 mt-1 rounded-full" style={{ background: "linear-gradient(to left, #0A1825, #1a3a5c)" }} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                    {nameAr    && <p className="text-gray-600 text-sm sm:text-base"><span className="font-semibold text-[#0A1825]">اسم الجهة:</span> {nameAr}</p>}
+                    {addressAr && <p className="text-gray-600 text-sm sm:text-base"><span className="font-semibold text-[#0A1825]">العنوان:</span> {addressAr}</p>}
+                    {phone     && <p className="text-gray-600 text-sm sm:text-base"><span className="font-semibold text-[#0A1825]">الهاتف:</span> {phone}</p>}
+                    {email     && <p className="text-gray-600 text-sm sm:text-base break-all"><span className="font-semibold text-[#0A1825]">البريد الإلكتروني:</span> {email}</p>}
+                    {taxNumber && <p className="text-gray-600 text-sm sm:text-base"><span className="font-semibold text-[#0A1825]">الرقم الضريبي:</span> {taxNumber}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </FadeUp>
+        )}
+
         <ContactSection
-          title="التواصل بخصوص الطلبات"
-          phone={phone}
+          title="وسائل التواصل"
+          phone={whatsapp}
           whatsapp={whatsapp}
           email={email}
-          fadeDelay={400}
+          fadeDelay={300}
         />
       </section>
 

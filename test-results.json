@@ -1,0 +1,1612 @@
+{
+  "status": "FAIL",
+  "build": {},
+  "network": {
+    "totalRequests": 68.33333333333333,
+    "uniqueUrls": 69,
+    "breakdown": {
+      "api": 0,
+      "js": 29,
+      "css": 3,
+      "images": 14,
+      "fonts": 2
+    },
+    "apiEndpoints": [],
+    "clientSideCompanyFetch": false,
+    "duplicates": []
+  },
+  "console": {
+    "errors": [
+      "[Run 1] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 1] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 1] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 1] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 1] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 1] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 1] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 1] Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "[Run 2] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 2] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 2] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 2] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 2] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 2] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 2] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 2] Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "[Run 3] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 3] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 3] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 3] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 3] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 3] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 3] Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "[Run 3] Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "warnings": [],
+    "hydration": []
+  },
+  "functional": {
+    "navbar": "PASS",
+    "whatsappButton": "FAIL",
+    "banner": "PASS",
+    "searchInput": "FAIL",
+    "searchWorks": "FAIL",
+    "productsDisplayed": 12
+  },
+  "performance": {
+    "ttfb": {
+      "min": 20,
+      "max": 642,
+      "avg": 258
+    },
+    "fcp": {
+      "min": 520,
+      "max": 1504,
+      "avg": 865
+    },
+    "lcp": {
+      "min": null,
+      "max": null,
+      "avg": 0
+    },
+    "navigation": {
+      "min": 1339,
+      "max": 3864,
+      "avg": 2218
+    }
+  },
+  "productFetch": {},
+  "runs": [
+    {
+      "runNumber": 1,
+      "requests": [
+        {
+          "url": "http://localhost:3000/",
+          "method": "GET",
+          "resourceType": "document",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1783903517%2Fcompany%2Fszftt28znhlbkpkykxtg.webp&w=128&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "2588"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fi-18.webp&w=1200&q=80",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "10343"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778772103%2Fproducts%2Fss3_xj8gqb.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "8231"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/f821f9f6075a1de8.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/1bedd118184f32e6.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/167329165ec884aa.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack-b39d93dcde907314.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/4bd1b696-f785427dddbba9fb.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1255-baf71f1f3b977753.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app-14fddd524e76b361.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "560"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/5239-1c35c11be4721d59.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/2619-38012e79151e370a.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1366-98b6a6d0ca33009e.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout-372084ac486f6825.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/9228-9c3218fcd26f3fe3.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/not-found-2f9e2fb11f748e54.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/9c4e2130-6db428f2ba011157.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/f8025e75-f5fe770659ebdd35.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/8e1d74a4-5d939f765b9ad6bf.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "680"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1138-c839f72cd5ebf943.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1602-2f9159eac0ec216c.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/page-782fbd30417f682f.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/350b852752f8489d-s.p.woff2",
+          "method": "GET",
+          "resourceType": "font",
+          "status": 200,
+          "size": "30712"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/01f0c602c274ea55-s.p.woff2",
+          "method": "GET",
+          "resourceType": "font",
+          "status": 200,
+          "size": "33644"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fiphone.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fsamsong.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fwatch.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fair-pod.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fmac.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Facc.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Faudio.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1789143815%2F34ab662e-de1b-4359-9d99-43e2ba54678f_1_zd9s2s.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "3114"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1789185735%2Ff2f7701d-2e46-442e-a831-b96e2dead50f_b4wmc3.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "5137"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1783973487%2Fcategory-banners%2Fifem8luqwsmxq1ymw86v.webp&w=1080&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "32690"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fmoney-icon.webp&w=64&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "1006"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778772104%2Fproducts%2Fss2_nvfppu.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "8394"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778771858%2Fproducts%2Fa4glz7zaobxe7cihqsyv.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "9270"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778109289%2FApple-IPhone-16-Pro-With-FaceTime-1TB-8GB-RAM-_6402_1_zl2nuc_ntbg9y.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "7378"
+        },
+        {
+          "url": "http://localhost:3000/cart?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-pro?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-air?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_vercel/insights/script.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 404,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/7125-2c6f3877fe9f5cf8.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/cart/page-a1cf2e03a9ca5d88.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/f7333993-c28627520b9ad5d3.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1941-93e8470c25f41a73.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-pro-max/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16-pro?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-pro/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-air/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-15-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-15-plus?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-16-pro-max/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-14-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/apple-watches/se?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/playstation?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/tablets/ipad?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/accessories?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/accessories/anker-batteries?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/6872-c76e0735aaa39a5c.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/%5Bslug%5D/page-412061837b1e43f4.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "148"
+        },
+        {
+          "url": "http://localhost:3000/accessories/airpods?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        }
+      ],
+      "timing": {
+        "navigation": 3864,
+        "ttfb": 642,
+        "domContentLoaded": 1619,
+        "loadComplete": 2423,
+        "fcp": 1504,
+        "transferSize": 39800,
+        "lcp": null
+      },
+      "errors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "warnings": [],
+      "functional": {
+        "navbar": true,
+        "whatsappButton": false,
+        "products": 12,
+        "banner": true,
+        "searchInput": false
+      }
+    },
+    {
+      "runNumber": 2,
+      "requests": [
+        {
+          "url": "http://localhost:3000/",
+          "method": "GET",
+          "resourceType": "document",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1783903517%2Fcompany%2Fszftt28znhlbkpkykxtg.webp&w=128&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "2588"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fi-18.webp&w=1200&q=80",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "10343"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778772103%2Fproducts%2Fss3_xj8gqb.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "8231"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/f821f9f6075a1de8.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/1bedd118184f32e6.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/167329165ec884aa.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack-b39d93dcde907314.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/4bd1b696-f785427dddbba9fb.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1255-baf71f1f3b977753.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app-14fddd524e76b361.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "560"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/5239-1c35c11be4721d59.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/2619-38012e79151e370a.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1366-98b6a6d0ca33009e.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout-372084ac486f6825.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/9228-9c3218fcd26f3fe3.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/not-found-2f9e2fb11f748e54.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/9c4e2130-6db428f2ba011157.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/f8025e75-f5fe770659ebdd35.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/8e1d74a4-5d939f765b9ad6bf.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "680"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1138-c839f72cd5ebf943.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1602-2f9159eac0ec216c.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/page-782fbd30417f682f.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/350b852752f8489d-s.p.woff2",
+          "method": "GET",
+          "resourceType": "font",
+          "status": 200,
+          "size": "30712"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/01f0c602c274ea55-s.p.woff2",
+          "method": "GET",
+          "resourceType": "font",
+          "status": 200,
+          "size": "33644"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fiphone.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fsamsong.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fwatch.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fair-pod.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fmac.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Facc.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Faudio.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1789143815%2F34ab662e-de1b-4359-9d99-43e2ba54678f_1_zd9s2s.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "3114"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1789185735%2Ff2f7701d-2e46-442e-a831-b96e2dead50f_b4wmc3.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "5137"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1783973487%2Fcategory-banners%2Fifem8luqwsmxq1ymw86v.webp&w=1080&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "32690"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fmoney-icon.webp&w=64&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "1006"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778772104%2Fproducts%2Fss2_nvfppu.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "8394"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778771858%2Fproducts%2Fa4glz7zaobxe7cihqsyv.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "9270"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778109289%2FApple-IPhone-16-Pro-With-FaceTime-1TB-8GB-RAM-_6402_1_zl2nuc_ntbg9y.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "7378"
+        },
+        {
+          "url": "http://localhost:3000/cart?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-pro?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-air?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_vercel/insights/script.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 404,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/7125-2c6f3877fe9f5cf8.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/cart/page-a1cf2e03a9ca5d88.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/f7333993-c28627520b9ad5d3.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1941-93e8470c25f41a73.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-pro-max/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16-pro?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-pro/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-air/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-15-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-15-plus?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-16-pro-max/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-14-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-16-pro/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/apple-watches/se?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/playstation?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/tablets/ipad?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/accessories?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/6872-c76e0735aaa39a5c.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/%5Bslug%5D/page-412061837b1e43f4.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "148"
+        },
+        {
+          "url": "http://localhost:3000/accessories/anker-batteries?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/accessories/airpods?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        }
+      ],
+      "timing": {
+        "navigation": 1451,
+        "ttfb": 113,
+        "domContentLoaded": 533,
+        "loadComplete": 654,
+        "fcp": 572,
+        "transferSize": 39800,
+        "lcp": null
+      },
+      "errors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "warnings": [],
+      "functional": {
+        "navbar": true,
+        "whatsappButton": false,
+        "products": 12,
+        "banner": true,
+        "searchInput": false
+      }
+    },
+    {
+      "runNumber": 3,
+      "requests": [
+        {
+          "url": "http://localhost:3000/",
+          "method": "GET",
+          "resourceType": "document",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1783903517%2Fcompany%2Fszftt28znhlbkpkykxtg.webp&w=128&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "2588"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fi-18.webp&w=1200&q=80",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "10343"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778772103%2Fproducts%2Fss3_xj8gqb.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "8231"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/f821f9f6075a1de8.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/1bedd118184f32e6.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/css/167329165ec884aa.css",
+          "method": "GET",
+          "resourceType": "stylesheet",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/webpack-b39d93dcde907314.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/4bd1b696-f785427dddbba9fb.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1255-baf71f1f3b977753.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/main-app-14fddd524e76b361.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "560"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/5239-1c35c11be4721d59.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/2619-38012e79151e370a.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1366-98b6a6d0ca33009e.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/layout-372084ac486f6825.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/9228-9c3218fcd26f3fe3.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/not-found-2f9e2fb11f748e54.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/9c4e2130-6db428f2ba011157.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/f8025e75-f5fe770659ebdd35.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/8e1d74a4-5d939f765b9ad6bf.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "680"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1138-c839f72cd5ebf943.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1602-2f9159eac0ec216c.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/page-782fbd30417f682f.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/350b852752f8489d-s.p.woff2",
+          "method": "GET",
+          "resourceType": "font",
+          "status": 200,
+          "size": "30712"
+        },
+        {
+          "url": "http://localhost:3000/_next/static/media/01f0c602c274ea55-s.p.woff2",
+          "method": "GET",
+          "resourceType": "font",
+          "status": 200,
+          "size": "33644"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fiphone.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fsamsong.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fwatch.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fair-pod.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fmac.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Facc.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Faudio.webp&w=256&q=70",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 400,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1789143815%2F34ab662e-de1b-4359-9d99-43e2ba54678f_1_zd9s2s.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "3114"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1789185735%2Ff2f7701d-2e46-442e-a831-b96e2dead50f_b4wmc3.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "5137"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdyqkhcuxe%2Fimage%2Fupload%2Fv1783973487%2Fcategory-banners%2Fifem8luqwsmxq1ymw86v.webp&w=1080&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "32690"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=%2Fmoney-icon.webp&w=64&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "1006"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778772104%2Fproducts%2Fss2_nvfppu.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "8394"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778771858%2Fproducts%2Fa4glz7zaobxe7cihqsyv.avif&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "9270"
+        },
+        {
+          "url": "http://localhost:3000/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdv6fig2ci%2Fimage%2Fupload%2Fv1778109289%2FApple-IPhone-16-Pro-With-FaceTime-1TB-8GB-RAM-_6402_1_zl2nuc_ntbg9y.webp&w=640&q=75",
+          "method": "GET",
+          "resourceType": "image",
+          "status": 200,
+          "size": "7378"
+        },
+        {
+          "url": "http://localhost:3000/cart?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-pro?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17-air?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-17?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_vercel/insights/script.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 404,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/7125-2c6f3877fe9f5cf8.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/cart/page-a1cf2e03a9ca5d88.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/f7333993-c28627520b9ad5d3.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/1941-93e8470c25f41a73.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-pro-max/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16-pro?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-air/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-16?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17-pro/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-15-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-17/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-15-plus?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/iphone-16-pro-max/page-279283a697bad735.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/smartphones/iphone-14-pro-max?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/apple-watches/se?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/playstation?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/tablets/ipad?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/accessories?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/6872-c76e0735aaa39a5c.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/_next/static/chunks/app/(categories)/smartphones/%5Bslug%5D/page-412061837b1e43f4.js",
+          "method": "GET",
+          "resourceType": "script",
+          "status": 200,
+          "size": "148"
+        },
+        {
+          "url": "http://localhost:3000/accessories/anker-batteries?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        },
+        {
+          "url": "http://localhost:3000/accessories/airpods?_rsc=3lb4g",
+          "method": "GET",
+          "resourceType": "fetch",
+          "status": 200,
+          "size": 0
+        }
+      ],
+      "timing": {
+        "navigation": 1339,
+        "ttfb": 20,
+        "domContentLoaded": 64,
+        "loadComplete": 625,
+        "fcp": 520,
+        "transferSize": 39800,
+        "lcp": null
+      },
+      "errors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "warnings": [],
+      "functional": {
+        "navbar": true,
+        "whatsappButton": false,
+        "products": 12,
+        "banner": true,
+        "searchInput": false
+      }
+    }
+  ]
+}

