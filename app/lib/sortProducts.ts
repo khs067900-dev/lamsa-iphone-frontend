@@ -19,6 +19,9 @@ const COLOR_ORDER: string[] = [
   "صحراوي",
 ];
 
+// Pre-compute color priority map for O(1) lookups instead of O(n)
+const COLOR_PRIORITY_MAP = new Map(COLOR_ORDER.map((color, idx) => [color.toLowerCase().trim(), idx]));
+
 function colorPriority(color?: string, name?: string): number {
   const src = (color && color.trim()) ? color.trim() : "";
   if (!src) {
@@ -26,28 +29,53 @@ function colorPriority(color?: string, name?: string): number {
     if (n.includes("برتقال") || n.includes("orange")) return 0;
     return 999;
   }
-  const idx = COLOR_ORDER.findIndex(c => c === src || c.trim() === src.trim());
-  return idx !== -1 ? idx : COLOR_ORDER.length;
+  const key = src.toLowerCase().trim();
+  return COLOR_PRIORITY_MAP.get(key) ?? COLOR_ORDER.length;
 }
+
+// Regex pattern compiled once for performance
+const STORAGE_PATTERN = /(\d+)\s*(tb|gb)/i;
 
 function parseStorage(s?: string, name?: string): number {
   const sources = [s, name].filter(Boolean) as string[];
   for (const raw of sources) {
-    const clean = raw.replace(/\s+/g, "");
-    const en = clean.match(/(\d+)(tb|gb)/i) || clean.match(/(gb|tb)(\d+)/i);
-    if (en) {
-      const num = parseInt(en[1]) || parseInt(en[2]);
-      const unit = (en[1].match(/\d/) ? en[2] : en[1]).toLowerCase();
+    const clean = raw.replace(/\s+/g, "").toLowerCase();
+    const match = clean.match(STORAGE_PATTERN);
+    if (match) {
+      const num = parseInt(match[1]);
+      const unit = match[2].toLowerCase();
       return unit === "tb" ? num * 1024 : num;
     }
   }
   return Infinity;
 }
 
+// Memoization cache for sorted results
+const sortCache = new Map<string, Product[]>();
+const MAX_CACHE_SIZE = 50;
+
 export function sortProducts(products: Product[]): Product[] {
-  return [...products].sort((a, b) => {
+  // Create cache key from product IDs
+  const cacheKey = products.map(p => p._id).join(',');
+  
+  // Return cached result if available
+  if (sortCache.has(cacheKey)) {
+    return sortCache.get(cacheKey)!;
+  }
+  
+  // Sort products
+  const sorted = [...products].sort((a, b) => {
     const storageDiff = parseStorage(a.storage, a.name) - parseStorage(b.storage, b.name);
     if (storageDiff !== 0) return storageDiff;
     return colorPriority(a.color, a.name) - colorPriority(b.color, b.name);
   });
+  
+  // Cache result with LRU eviction
+  if (sortCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = sortCache.keys().next().value;
+    sortCache.delete(firstKey!);
+  }
+  sortCache.set(cacheKey, sorted);
+  
+  return sorted;
 }

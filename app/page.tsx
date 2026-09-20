@@ -2,14 +2,12 @@ import { Suspense } from "react";
 import { sortProducts } from "./lib/sortProducts";
 import { Banner } from "./components/banner";
 import { ProductGrid } from "./components/products";
-import nextDynamic from "next/dynamic";
 import { getAllProductsWithBanners, BACKEND } from "./lib/productsCache";
 import { getCompany } from "./lib/config";
 import { getFeaturedIPhones } from "./lib/iphone18Featured";
 import CustomerReviews from "./components/CustomerReviews";
-
-const ShopByCategory = nextDynamic(() => import("./components/ShopByCategory"));
-const ShopByDevice = nextDynamic(() => import("./components/ShopByDevice"));
+import ShopByCategory from "./components/ShopByCategory";
+import ShopByDevice from "./components/ShopByDevice";
 
 function isReservationOpen() {
   return Date.now() >= new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00").getTime();

@@ -119,7 +119,7 @@ interface ProductGridProps {
   companyLogo?: string;
 }
 
-export default function ProductGrid({ initialProducts, initialHomeConfig, initialBannerMap }: Omit<ProductGridProps, 'companyLogo'>) {
+export default function ProductGrid({ initialProducts, initialHomeConfig, initialBannerMap }: ProductGridProps) {
   const products = useMemo(() => initialProducts || [], [initialProducts]);
   const homeConfig = initialHomeConfig || null;
   const bannerMap = initialBannerMap || {};

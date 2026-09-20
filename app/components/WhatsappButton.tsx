@@ -1,12 +1,10 @@
 "use client";
-import { useEffect } from "react";
-import { useCompanyStore } from "../store/companyStore";
 
-export default function WhatsappButton() {
-  const { whatsapp, fetchCompany } = useCompanyStore();
+interface WhatsappButtonProps {
+  whatsapp?: string;
+}
 
-  useEffect(() => { fetchCompany(); }, [fetchCompany]);
-
+export default function WhatsappButton({ whatsapp }: WhatsappButtonProps) {
   if (!whatsapp) return null;
 
   return (

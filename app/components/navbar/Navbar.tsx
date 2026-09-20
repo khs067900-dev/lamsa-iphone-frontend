@@ -38,21 +38,30 @@ export default function Navbar({ companyLogo }: { companyLogo?: string }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const fetchResults = useCallback(async (q: string) => {
+  const fetchResults = useCallback(async (q: string, signal?: AbortSignal) => {
     if (!q.trim()) { setResults([]); return; }
     setSearching(true);
     try {
-      const res = await fetch(`/api/products?q=${encodeURIComponent(q.trim())}`);
+      const res = await fetch(`/api/products?q=${encodeURIComponent(q.trim())}`, { signal });
+      if (!res.ok) throw new Error('Search failed');
       const data = await res.json();
       setResults(Array.isArray(data) ? data : []);
+    } catch (err) {
+      // Ignore abort errors
+      if (err instanceof Error && err.name === 'AbortError') return;
+      setResults([]);
     } finally {
       setSearching(false);
     }
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchResults(searchQuery), 300);
-    return () => clearTimeout(timer);
+    const controller = new AbortController();
+    const timer = setTimeout(() => fetchResults(searchQuery, controller.signal), 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [searchQuery, fetchResults]);
 
   // Close mobile menu on resize to desktop

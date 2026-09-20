@@ -86,12 +86,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Don't fetch company again - it was already fetched in generateMetadata
-  // Pass empty string initially, Navbar will use initialLogo from page if needed
+  const c = await getCompany();
+  
   return (
     <html lang="ar" dir="rtl" className={cairo.className}>
       <body className="antialiased" suppressHydrationWarning>
-        <ClientLayout initialLogo="" footer={<Footer />}>{children}</ClientLayout>
+        <ClientLayout initialLogo="" whatsapp={c.whatsapp} footer={<Footer />}>{children}</ClientLayout>
 
         <Analytics />
       </body>

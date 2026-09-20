@@ -39,28 +39,36 @@ const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category
 
 export const getAllProducts = unstable_cache(
   async () => {
-    const url = new URL("/api/products", BACKEND);
-    url.searchParams.set("page", "1");
-    url.searchParams.set("limit", "500");
-    url.searchParams.set("fields", FIELDS);
-    const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
-    if (!r.ok) throw new Error(`Products request failed: ${r.status}`);
-    const data = await r.json();
-    return Array.isArray(data) ? data : (data.products ?? []);
+    try {
+      const url = new URL("/api/products", BACKEND);
+      url.searchParams.set("page", "1");
+      url.searchParams.set("limit", "100");
+      url.searchParams.set("fields", FIELDS);
+      const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
+      if (!r.ok) return [];
+      const data = await r.json();
+      return Array.isArray(data) ? data : (data.products ?? []);
+    } catch {
+      return [];
+    }
   },
   ["all-products"],
   { revalidate: 120, tags: ["products"] }
 );
 
 async function fetchProductsWithBanners() {
-  const url = new URL("/api/products", BACKEND);
-  url.searchParams.set("page", "1");
-  url.searchParams.set("limit", "500");
-  url.searchParams.set("fields", FIELDS);
-  const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
-  if (!r.ok) throw new Error(`Products request failed: ${r.status}`);
-  const data = await r.json();
-  const products: Product[] = Array.isArray(data) ? data : (data.products ?? []);
+  let products: Product[] = [];
+  try {
+    const url = new URL("/api/products", BACKEND);
+    url.searchParams.set("page", "1");
+    url.searchParams.set("limit", "100");
+    url.searchParams.set("fields", FIELDS);
+    const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
+    if (r.ok) {
+      const data = await r.json();
+      products = Array.isArray(data) ? data : (data.products ?? []);
+    }
+  } catch { /* backend unavailable at build time */ }
 
   const categories = [...new Set(products.map((p) => p.category || p.subCategory).filter(Boolean))] as string[];
 
@@ -97,11 +105,15 @@ export const getProductById = (id: string) => {
   const safeId = encodeURIComponent(id);
   return unstable_cache(
     async () => {
-      const url = new URL(`/api/products/${safeId}`, BACKEND);
-      url.searchParams.set("fields", PRODUCT_DETAIL_FIELDS);
-      const r = await safeFetch(url, { next: { tags: ["products", `product-${safeId}`] } } as RequestInit);
-      if (!r.ok) return null;
-      return (await r.json()) as Product;
+      try {
+        const url = new URL(`/api/products/${safeId}`, BACKEND);
+        url.searchParams.set("fields", PRODUCT_DETAIL_FIELDS);
+        const r = await safeFetch(url, { next: { tags: ["products", `product-${safeId}`] } } as RequestInit);
+        if (!r.ok) return null;
+        return (await r.json()) as Product;
+      } catch {
+        return null;
+      }
     },
     ["product-by-id", safeId],
     { revalidate: 120, tags: ["products", `product-${safeId}`] }
