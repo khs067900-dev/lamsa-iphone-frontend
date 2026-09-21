@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import IPhone18StandardHero from "./IPhone18StandardHero";
 import IPhone18StandardProducts from "./IPhone18StandardProducts";
 import ComingSoon from "../../iphone-18/ComingSoon";
-import { getAllProducts } from "../../../../lib/productsCache";
+import { getProductsByCategory } from "../../../../lib/productsCache";
 
 export const revalidate = 60;
 
@@ -34,12 +34,18 @@ export default async function IPhone18StandardPage() {
     );
   }
 
-  const products = await getAllProducts();
+  // Fetch all iPhone 18 products (pro max, pro, duo) — IPhone18StandardProducts
+  // filters client-side per slug so we fetch the parent category broadly
+  const result = await getProductsByCategory({
+    category: "ابل ايفون 18",
+    limit: 100,
+    sort: "storage-asc",
+  });
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#FDFBF7" }} dir="rtl">
       <IPhone18StandardHero />
       <IPhone18StandardProducts
-        allProducts={products}
+        allProducts={result.products}
         featuredSlugs={FEATURED_SLUGS}
       />
     </main>
