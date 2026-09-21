@@ -44,8 +44,41 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
   const [selectedStorage, setSelectedStorage] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
 
-  // [OPTIMIZED] Products are already filtered and sorted from server
-  const products = initialProducts;
+  // Apply slug-based filters client-side as a safety net in case initialProducts
+  // was not pre-filtered server-side (e.g. legacy callers using getAllProducts)
+  const products = useMemo(() => {
+    const filters = config?.filters;
+    if (!filters) return initialProducts;
+
+    return initialProducts.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      const cat = (p.category || "").toLowerCase();
+      const brand = (p.brand || "").toLowerCase();
+
+      // brand filter
+      if (filters.brand && brand !== filters.brand.toLowerCase()) return false;
+
+      // category filter (matches name or category field)
+      if (filters.category) {
+        const fc = filters.category.toLowerCase();
+        if (!name.includes(fc) && !cat.includes(fc)) return false;
+      }
+
+      // nameIncludes: at least one keyword must match
+      if (filters.nameIncludes && filters.nameIncludes.length > 0) {
+        const matches = filters.nameIncludes.some((kw) => name.includes(kw.toLowerCase()));
+        if (!matches) return false;
+      }
+
+      // nameExcludes: none of the keywords may match
+      if (filters.nameExcludes && filters.nameExcludes.length > 0) {
+        const excluded = filters.nameExcludes.some((kw) => name.includes(kw.toLowerCase()));
+        if (excluded) return false;
+      }
+
+      return true;
+    });
+  }, [initialProducts, config]);
 
   const availableColors = useMemo(() => [...new Set(products.map((p) => p.color).filter(Boolean))], [products]);
   const availableStorages = useMemo(() => [...new Set(products.map((p) => p.storage).filter(Boolean))], [products]);
