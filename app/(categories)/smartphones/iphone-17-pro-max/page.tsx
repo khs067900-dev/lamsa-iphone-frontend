@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "iPhone 17 Pro Max | لمسه للاجهزه الذكيه",
@@ -9,9 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function IPhone17ProMaxPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="iphone-17-pro-max"
       heroImage="/i17-pro.webp"
       nameEn="iPhone 17"
@@ -23,7 +21,6 @@ export default async function IPhone17ProMaxPage() {
         { icon: "camera", label: "نظام كاميرات احترافي" },
         { icon: "chip", label: "معالج A19 Pro" },
       ]}
-      initialProducts={products}
     />
   );
 }

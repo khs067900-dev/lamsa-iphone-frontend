@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "iPhone 18 Pro | لمسه للاجهزه الذكيه",
@@ -8,9 +7,8 @@ export const metadata: Metadata = {
 };
 
 export default async function IPhone18ProPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="iphone-18-pro"
       heroImage="/i-18-1.webp"
       nameEn="iPhone 18"
@@ -22,7 +20,6 @@ export default async function IPhone18ProPage() {
         { icon: "camera", label: "نظام كاميرات احترافي" },
         { icon: "chip", label: "معالج A20 Pro" },
       ]}
-      initialProducts={products}
     />
   );
 }

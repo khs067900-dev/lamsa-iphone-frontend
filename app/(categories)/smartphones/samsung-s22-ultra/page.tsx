@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "Samsung Galaxy S22 Ultra | لمسه للاجهزه الذكيه",
@@ -8,9 +7,8 @@ export const metadata: Metadata = {
 };
 
 export default async function SamsungS22UltraPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="samsung-s22-ultra"
       heroImage="/s25.webp"
       nameEn="Galaxy S22"
@@ -22,7 +20,6 @@ export default async function SamsungS22UltraPage() {
         { icon: "chip", label: "معالج Snapdragon 8 Gen 1" },
         { icon: "display", label: "شاشة 6.8 بوصة 120Hz" },
       ]}
-      initialProducts={products}
     />
   );
 }

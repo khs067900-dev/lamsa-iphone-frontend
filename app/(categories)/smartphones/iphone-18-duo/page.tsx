@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "iPhone 18 Duo | لمسه للاجهزه الذكيه",
@@ -8,9 +7,8 @@ export const metadata: Metadata = {
 };
 
 export default async function IPhone18DuoPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="iphone-18-duo"
       heroImage="https://res.cloudinary.com/bzwltpqf/image/upload/v1789129092/472da8f7-71d6-4978-ad76-27cbfa1b0103.webp"
       nameEn="iPhone 18"
@@ -22,7 +20,6 @@ export default async function IPhone18DuoPage() {
         { icon: "camera", label: "نظام كاميرات مزدوج" },
         { icon: "chip", label: "معالج A20" },
       ]}
-      initialProducts={products}
     />
   );
 }
