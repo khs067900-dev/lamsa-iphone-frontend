@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "بطاريات متنقلة | لمسه للاجهزه الذكيه",
@@ -9,9 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AnkerBatteriesPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="anker-batteries"
       heroImage="/as.webp"
       nameEn="Power Banks"
@@ -23,7 +21,6 @@ export default async function AnkerBatteriesPage() {
         { icon: "chip", label: "سعات متعددة" },
         { icon: "design", label: "تصميم محمول" },
       ]}
-      initialProducts={products}
     />
   );
 }

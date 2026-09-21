@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../components/phones/PhoneHeroPageWrapper";
 import { SITE_URL, getCompany } from "../../lib/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,9 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PlaystationPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="ps5"
       heroImage="/pl.webp"
       nameEn="PlayStation"
@@ -28,7 +26,6 @@ export default async function PlaystationPage() {
         { icon: "design", label: "تصميم عصري" },
         { icon: "battery", label: "ترفيه بلا حدود" },
       ]}
-      initialProducts={products}
     />
   );
 }

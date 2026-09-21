@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "اكسسوارات | لمسه للاجهزه الذكيه",
@@ -9,9 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AccessoriesPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="accessories"
       heroImage="/ac.webp"
       nameEn="Accessories"
@@ -22,7 +20,6 @@ export default async function AccessoriesPage() {
         { icon: "chip", label: "شحن سريع" },
         { icon: "design", label: "جودة عالية" },
       ]}
-      initialProducts={products}
     />
   );
 }

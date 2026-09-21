@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../components/phones/PhoneHeroPageWrapper";
 import { SITE_URL, getCompany } from "../../lib/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,9 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AudioPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="audio"
       heroImage="/hed.webp"
       nameEn="Audio"
@@ -28,7 +26,6 @@ export default async function AudioPage() {
         { icon: "chip", label: "صوت نقي" },
         { icon: "battery", label: "بطارية طويلة" },
       ]}
-      initialProducts={products}
     />
   );
 }

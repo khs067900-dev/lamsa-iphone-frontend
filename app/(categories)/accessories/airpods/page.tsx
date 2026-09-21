@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "AirPods | لمسه للاجهزه الذكيه",
@@ -9,9 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AirPodsPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="airpods"
       heroImage="/ar.webp"
       nameEn="AirPods"
@@ -22,7 +20,6 @@ export default async function AirPodsPage() {
         { icon: "chip", label: "شريحة Apple H2" },
         { icon: "battery", label: "بطارية تدوم حتى 6 ساعات" },
       ]}
-      initialProducts={products}
     />
   );
 }

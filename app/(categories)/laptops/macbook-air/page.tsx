@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "MacBook Air | لمسه للاجهزه الذكيه",
@@ -9,9 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function MacBookAirPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="macbook-air"
       heroImage="/ma.webp"
       nameEn="MacBook"
@@ -23,7 +21,6 @@ export default async function MacBookAirPage() {
         { icon: "chip", label: "شريحة Apple Silicon" },
         { icon: "design", label: "تصميم خفيف ونحيف" },
       ]}
-      initialProducts={products}
     />
   );
 }
