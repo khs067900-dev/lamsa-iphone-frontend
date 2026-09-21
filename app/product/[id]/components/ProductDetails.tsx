@@ -45,19 +45,23 @@ export default function ProductDetails({ installment, description, specs, specGr
   ];
   const visibleTabs = tabs.filter((t) => t.show);
   const [active, setActive] = useState<Tab>(visibleTabs[0]?.key || "specs");
-  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const indicatorRef = useRef<HTMLDivElement>(null);
 
-  const updateIndicator = (idx: number) => {
-    const el = tabsRef.current[idx];
-    if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+  const moveIndicator = (el: HTMLButtonElement) => {
+    if (indicatorRef.current) {
+      indicatorRef.current.style.left = `${el.offsetLeft}px`;
+      indicatorRef.current.style.width = `${el.offsetWidth}px`;
+    }
   };
 
-  // Set indicator on mount via ref callback instead of useEffect
   const setTabRef = (el: HTMLButtonElement | null, idx: number) => {
     tabsRef.current[idx] = el;
-    const activeIdx = visibleTabs.findIndex((t) => t.key === active);
-    if (idx === activeIdx && el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+    // On mount, position indicator under the initially-active tab (no setState)
+    if (el) {
+      const activeIdx = visibleTabs.findIndex((t) => t.key === active);
+      if (idx === activeIdx) moveIndicator(el);
+    }
   };
 
   if (!visibleTabs.length) return null;
@@ -68,8 +72,9 @@ export default function ProductDetails({ installment, description, specs, specGr
       <div className="relative border-b overflow-x-auto scrollbar-hide" style={{ borderColor: "#EBE6E2", backgroundColor: "#faf7f2" }}>
         <div className="flex relative">
           <div
+            ref={indicatorRef}
             className="absolute bottom-0 h-[2.5px] sm:h-[3px] rounded-t-full transition-all duration-400 ease-out"
-            style={{ left: indicator.left, width: indicator.width, background: "linear-gradient(90deg, #BC9255, #DFC4A4)" }}
+            style={{ left: 0, width: 0, background: "linear-gradient(90deg, #BC9255, #DFC4A4)" }}
           />
           {visibleTabs.map((t, idx) => {
             const m = tabMeta[t.key];
@@ -78,7 +83,7 @@ export default function ProductDetails({ installment, description, specs, specGr
               <button
                 key={t.key}
                 ref={(el) => setTabRef(el, idx)}
-                onClick={() => { setActive(t.key); updateIndicator(idx); }}
+                onClick={() => { setActive(t.key); const el = tabsRef.current[idx]; if (el) moveIndicator(el); }}
                 className={`flex-1 min-w-[80px] sm:min-w-[110px] flex items-center justify-center gap-1 sm:gap-2.5 py-3 sm:py-5 md:py-6 text-[10px] sm:text-xs md:text-sm font-bold transition-all duration-300 ${
                   isActive ? "bg-white/60" : "hover:bg-white/40"
                 }`}

@@ -16,6 +16,11 @@ export const fields = [
   { key: "paymentMethod", label: "طريقة الدفع" },
 ];
 
+// [PERF] O(1) label lookup — replaces fields.find() O(n) called per-field per-render.
+export const fieldLabelMap: Record<string, string> = Object.fromEntries(
+  fields.map((f) => [f.key, f.label])
+);
+
 export const imageFields = [
   { key: "logo", label: "الشعار" },
   { key: "header", label: "الترويسة" },

@@ -1,5 +1,6 @@
 "use client";
-import { fields } from "../constants";
+import { memo } from "react";
+import { fieldLabelMap } from "../constants";
 import type { CompanyData } from "../types";
 
 interface CompanyFieldsProps {
@@ -9,19 +10,29 @@ interface CompanyFieldsProps {
 
 const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500";
 
-const ltrFields = ["phone", "whatsapp", "website", "email", "taxNumber"];
+const ltrFields = new Set(["phone", "whatsapp", "website", "email", "taxNumber"]);
 
+// [PERF] Module-scope component — never redefined on parent re-render.
+// Uses fieldLabelMap (O(1) lookup) instead of fields.find() O(n) per render.
 function FieldInput({ fieldKey, data, onChange }: { fieldKey: string; data: CompanyData; onChange: (k: string, v: string) => void }) {
-  const label = fields.find((f) => f.key === fieldKey)?.label;
   return (
     <div>
-      <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-1">{label}</label>
-      <input value={data[fieldKey] || ""} onChange={(e) => onChange(fieldKey, e.target.value)} className={inputClass} dir={ltrFields.includes(fieldKey) ? "ltr" : undefined} />
+      <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-1">
+        {fieldLabelMap[fieldKey]}
+      </label>
+      <input
+        value={data[fieldKey] || ""}
+        onChange={(e) => onChange(fieldKey, e.target.value)}
+        className={inputClass}
+        dir={ltrFields.has(fieldKey) ? "ltr" : undefined}
+      />
     </div>
   );
 }
 
-export default function CompanyFields({ data, onChange }: CompanyFieldsProps) {
+// [PERF] React.memo — skips re-render when saving/loading state changes in parent
+// don't affect data or onChange (onChange is stable via useCallback in hook).
+export default memo(function CompanyFields({ data, onChange }: CompanyFieldsProps) {
   return (
     <div className="space-y-4 sm:space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
@@ -43,7 +54,11 @@ export default function CompanyFields({ data, onChange }: CompanyFieldsProps) {
         {["taxNumber", "shippingCompany"].map((k) => <FieldInput key={k} fieldKey={k} data={data} onChange={onChange} />)}
         <div>
           <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-1">طريقة الدفع</label>
-          <select value={data.paymentMethod || ""} onChange={(e) => onChange("paymentMethod", e.target.value)} className={inputClass}>
+          <select
+            value={data.paymentMethod || ""}
+            onChange={(e) => onChange("paymentMethod", e.target.value)}
+            className={inputClass}
+          >
             <option value="حوالات بنكية فقط">حوالات بنكية فقط</option>
             <option value="بطاقة بنكية فقط">بطاقة بنكية فقط</option>
           </select>
@@ -51,9 +66,13 @@ export default function CompanyFields({ data, onChange }: CompanyFieldsProps) {
       </div>
       <div>
         <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-1">التفاصيل</label>
-        <textarea value={data.details || ""} onChange={(e) => onChange("details", e.target.value)}
-          rows={3} className={inputClass} />
+        <textarea
+          value={data.details || ""}
+          onChange={(e) => onChange("details", e.target.value)}
+          rows={3}
+          className={inputClass}
+        />
       </div>
     </div>
   );
-}
+});

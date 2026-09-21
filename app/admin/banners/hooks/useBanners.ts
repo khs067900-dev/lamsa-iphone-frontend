@@ -5,6 +5,50 @@ import type { BannerItem } from "../types";
 
 const BASE = "/api/admin/banners";
 
+/**
+ * Compress an image before uploading — resize to max 1600×900, convert to WebP.
+ * Runs in the browser via Canvas with no extra dependencies.
+ */
+async function compressImage(file: File, maxWidth = 1600, maxHeight = 900, quality = 0.8): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      let { width, height } = img;
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return resolve(file);
+          const name = file.name.replace(/\.[^.]+$/, "") + ".webp";
+          resolve(new File([blob], name, { type: "image/webp" }));
+        },
+        "image/webp",
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file); // fallback: send original
+    };
+
+    img.src = url;
+  });
+}
+
 export function useBanners() {
   const [banners, setBanners] = useState<BannerItem[]>([]);
   const [loading, setLoading] = useState<number | null>(null);
@@ -14,13 +58,15 @@ export function useBanners() {
   useEffect(() => {
     fetch(BASE, { credentials: "include" })
       .then((r) => r.json())
-      .then((data) => Array.isArray(data) && setBanners(data));
+      .then((data) => Array.isArray(data) && setBanners(data))
+      .catch(() => {});
   }, []);
 
   const handleUpload = async (index: number, file: File) => {
     setLoading(index);
+    const compressed = await compressImage(file);
     const form = new FormData();
-    form.append("image", file);
+    form.append("image", compressed);
     try {
       const res = await fetch(`${BASE}/upload/${index}`, {
         method: "POST", credentials: "include", body: form,

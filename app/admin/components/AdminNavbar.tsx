@@ -13,9 +13,11 @@ export default function AdminNavbar({ onMenuClick }: { onMenuClick: () => void }
   useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
   useEffect(() => {
-    fetch("/api/admin/orders")
+    // Fetch only the total count — limit=1 so the DB returns minimal data.
+    // The response is { orders: [...], total: N, pages: P } — not an array.
+    fetch("/api/admin/orders?page=1&limit=1")
       .then((r) => r.json())
-      .then((d) => setOrdersCount(Array.isArray(d) ? d.length : 0))
+      .then((d) => setOrdersCount(typeof d.total === "number" ? d.total : 0))
       .catch(() => {});
   }, []);
 

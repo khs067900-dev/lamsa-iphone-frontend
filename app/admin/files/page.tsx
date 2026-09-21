@@ -1,116 +1,134 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { FiUpload, FiLink, FiExternalLink, FiTrash2 } from "react-icons/fi";
+import { apiFetch } from "../../lib/api";
 
 type FooterItem = { image: string; linkType: string; link: string; file: string };
-type Data = { qrImage: string; qrLink: string; qrLinkType: string; qrFile: string; img1: string; link1: string; linkType1: string; file1: string; img2: string; link2: string; linkType2: string; file2: string; footerItems: FooterItem[] };
+type Data = {
+  qrImage: string; qrLink: string; qrLinkType: string; qrFile: string;
+  img1: string; link1: string; linkType1: string; file1: string;
+  img2: string; link2: string; linkType2: string; file2: string;
+  footerItems: FooterItem[];
+};
+
+// [PERF] Module-level constant — not recreated on every render.
+const EMPTY_DATA: Data = {
+  qrImage: "", qrLink: "", qrLinkType: "link", qrFile: "",
+  img1: "", link1: "", linkType1: "link", file1: "",
+  img2: "", link2: "", linkType2: "link", file2: "",
+  footerItems: [],
+};
+
+function normalizeItem(item: Partial<FooterItem>): FooterItem {
+  return {
+    image: item.image || "",
+    linkType: item.linkType || (item.file ? "file" : "link"),
+    link: item.link || "",
+    file: item.file || "",
+  };
+}
 
 export default function FilesPage() {
-  const [data, setData] = useState<Data>({ qrImage: "", qrLink: "", qrLinkType: "link", qrFile: "", img1: "", link1: "", linkType1: "link", file1: "", img2: "", link2: "", linkType2: "link", file2: "", footerItems: [] });
+  const [data, setData] = useState<Data>(EMPTY_DATA);
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [msgs, setMsgs] = useState<Record<string, string>>({});
-
-  function showMsg(section: string, text: string) {
-    setMsgs((p) => ({ ...p, [section]: text }));
-    setTimeout(() => setMsgs((p) => ({ ...p, [section]: "" })), 3000);
-  }
   const [uploading, setUploading] = useState<string | null>(null);
-
-  function openFile(url: string) {
-    const rawUrl = url.replace("/image/upload/", "/raw/upload/").replace(/\/fl_attachment:[^/]+\//, "/");
-    const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=false`;
-    window.open(viewerUrl, "_blank", "noopener,noreferrer");
-  }
   const [imgKeys, setImgKeys] = useState<Record<string, number>>({});
-  const qrRef = useRef<HTMLInputElement>(null);
-  const qrFileRef = useRef<HTMLInputElement>(null);
-  const img1Ref = useRef<HTMLInputElement>(null);
-  const img2Ref = useRef<HTMLInputElement>(null);
-  const fileRef1 = useRef<HTMLInputElement>(null);
-  const fileRef2 = useRef<HTMLInputElement>(null);
-  const imgRefs = useRef<Record<number, HTMLInputElement | null>>({});
-  const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
-  function bumpKey(k: string) { setImgKeys((p) => ({ ...p, [k]: Date.now() })); }
+  // [PERF] Track pending timers so we can clear them on unmount — prevents
+  // setState calls on an unmounted component.
+  const msgTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const qrRef      = useRef<HTMLInputElement>(null);
+  const qrFileRef  = useRef<HTMLInputElement>(null);
+  const img1Ref    = useRef<HTMLInputElement>(null);
+  const img2Ref    = useRef<HTMLInputElement>(null);
+  const fileRef1   = useRef<HTMLInputElement>(null);
+  const fileRef2   = useRef<HTMLInputElement>(null);
+  const imgRefs    = useRef<Record<number, HTMLInputElement | null>>({});
+  const fileRefs   = useRef<Record<number, HTMLInputElement | null>>({});
+
+  // Clear all message timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(msgTimers.current).forEach(clearTimeout);
+    };
+  }, []);
 
   useEffect(() => {
-    fetch(`/api/admin/company`, { credentials: "include" })
+    apiFetch("/api/admin/company", { credentials: "include" })
       .then((r) => r.json())
       .then((d) => {
-        const normalize = (item: Partial<FooterItem>): FooterItem => ({ image: item.image || "", linkType: item.linkType || (item.file ? "file" : "link"), link: item.link || "", file: item.file || "" });
         const items = (d.footerItems && d.footerItems.length > 0
-          ? d.footerItems
-          : [{}, {}, {}]).map(normalize);
-        setData({ qrImage: d.qrImage || "", qrLink: d.qrLink || "", qrLinkType: d.qrLinkType || (d.qrFile ? "file" : "link"), qrFile: d.qrFile || "", img1: d.img1 || "", link1: d.link1 || "", linkType1: d.linkType1 || (d.file1 ? "file" : "link"), file1: d.file1 || "", img2: d.img2 || "", link2: d.link2 || "", linkType2: d.linkType2 || (d.file2 ? "file" : "link"), file2: d.file2 || "", footerItems: items });
+          ? d.footerItems : [{}, {}, {}]).map(normalizeItem);
+        setData({
+          qrImage: d.qrImage || "", qrLink: d.qrLink || "",
+          qrLinkType: d.qrLinkType || (d.qrFile ? "file" : "link"),
+          qrFile: d.qrFile || "",
+          img1: d.img1 || "", link1: d.link1 || "",
+          linkType1: d.linkType1 || (d.file1 ? "file" : "link"), file1: d.file1 || "",
+          img2: d.img2 || "", link2: d.link2 || "",
+          linkType2: d.linkType2 || (d.file2 ? "file" : "link"), file2: d.file2 || "",
+          footerItems: items,
+        });
       });
   }, []);
 
-  async function uploadQr(file: File) {
-    setUploading("qr");
+  // [PERF] Stable — clears previous timer for the same section to avoid stacking.
+  const showMsg = useCallback((section: string, text: string) => {
+    if (msgTimers.current[section]) clearTimeout(msgTimers.current[section]);
+    setMsgs((p) => ({ ...p, [section]: text }));
+    msgTimers.current[section] = setTimeout(() => {
+      setMsgs((p) => ({ ...p, [section]: "" }));
+    }, 3000);
+  }, []);
+
+  const openFile = useCallback((url: string) => {
+    const rawUrl = url.replace("/image/upload/", "/raw/upload/").replace(/\/fl_attachment:[^/]+\//, "/");
+    window.open(
+      `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=false`,
+      "_blank", "noopener,noreferrer"
+    );
+  }, []);
+
+  const bumpKey = useCallback((k: string) => {
+    setImgKeys((p) => ({ ...p, [k]: Date.now() }));
+  }, []);
+
+  // [PERF] 6 upload functions collapsed into 2 generic ones — all had identical
+  // logic with only the key/endpoint differing.
+  const uploadImage = useCallback(async (stateKey: keyof Data, endpoint: string, file: File) => {
+    setUploading(stateKey);
     const fd = new FormData();
     fd.append("image", file);
-    const r = await fetch(`/api/admin/company/footer-image/qrImage`, { method: "POST", credentials: "include", body: fd });
+    const r = await apiFetch(endpoint, { method: "POST", credentials: "include", body: fd });
     const json = await r.json();
-    if (json.url) { setData((p) => ({ ...p, qrImage: json.url })); bumpKey("qr"); }
+    if (json.url) {
+      setData((p) => ({ ...p, [stateKey]: json.url }));
+      bumpKey(stateKey);
+    }
     setUploading(null);
-  }
+  }, [bumpKey]);
 
-  async function uploadImg1(file: File) {
-    setUploading("img1");
-    const fd = new FormData();
-    fd.append("image", file);
-    const r = await fetch(`/api/admin/company/footer-image/img1`, { method: "POST", credentials: "include", body: fd });
-    const json = await r.json();
-    if (json.url) { setData((p) => ({ ...p, img1: json.url })); bumpKey("img1"); }
-    setUploading(null);
-  }
-
-  async function uploadImg2(file: File) {
-    setUploading("img2");
-    const fd = new FormData();
-    fd.append("image", file);
-    const r = await fetch(`/api/admin/company/footer-image/img2`, { method: "POST", credentials: "include", body: fd });
-    const json = await r.json();
-    if (json.url) { setData((p) => ({ ...p, img2: json.url })); bumpKey("img2"); }
-    setUploading(null);
-  }
-
-  async function uploadQrFile(file: File) {
-    setUploading("qrFile");
+  const uploadFileAsset = useCallback(async (stateKey: keyof Data, endpoint: string, file: File) => {
+    setUploading(stateKey);
     const fd = new FormData();
     fd.append("file", file);
-    const r = await fetch(`/api/admin/company/footer-file/qrFile`, { method: "POST", credentials: "include", body: fd });
+    const r = await apiFetch(endpoint, { method: "POST", credentials: "include", body: fd });
     const json = await r.json();
-    if (json.url) setData((p) => ({ ...p, qrFile: json.url }));
+    if (json.url) setData((p) => ({ ...p, [stateKey]: json.url }));
     setUploading(null);
-  }
+  }, []);
 
-  async function uploadFile1(file: File) {
-    setUploading("file1");
-    const fd = new FormData();
-    fd.append("file", file);
-    const r = await fetch(`/api/admin/company/footer-file/file1`, { method: "POST", credentials: "include", body: fd });
-    const json = await r.json();
-    if (json.url) setData((p) => ({ ...p, file1: json.url }));
-    setUploading(null);
-  }
-
-  async function uploadFile2(file: File) {
-    setUploading("file2");
-    const fd = new FormData();
-    fd.append("file", file);
-    const r = await fetch(`/api/admin/company/footer-file/file2`, { method: "POST", credentials: "include", body: fd });
-    const json = await r.json();
-    if (json.url) setData((p) => ({ ...p, file2: json.url }));
-    setUploading(null);
-  }
-
-  async function uploadItemImg(index: number, file: File) {
-    setUploading(`img-${index}`);
+  const uploadItemImg = useCallback(async (index: number, file: File) => {
+    const key = `img-${index}`;
+    setUploading(key);
     const fd = new FormData();
     fd.append("image", file);
-    const r = await fetch(`/api/admin/company/footer-items/image/${index}`, { method: "POST", credentials: "include", body: fd });
+    const r = await apiFetch(`/api/admin/company/footer-items/image/${index}`, {
+      method: "POST", credentials: "include", body: fd,
+    });
     const json = await r.json();
     if (json.url) {
       setData((p) => {
@@ -118,46 +136,47 @@ export default function FilesPage() {
         items[index] = { ...items[index], image: json.url };
         return { ...p, footerItems: items };
       });
-      bumpKey(`img-${index}`);
+      bumpKey(key);
     }
     setUploading(null);
-  }
+  }, [bumpKey]);
 
-  async function uploadItemFile(index: number, file: File) {
+  const uploadItemFile = useCallback(async (index: number, file: File) => {
     setUploading(`file-${index}`);
     const fd = new FormData();
     fd.append("file", file);
-    const r = await fetch(`/api/admin/company/footer-items/file/${index}`, { method: "POST", credentials: "include", body: fd });
-    const json = await r.json();
-    if (json.url) setData((p) => {
-      const items = [...p.footerItems];
-      items[index] = { ...items[index], file: json.url };
-      return { ...p, footerItems: items };
+    const r = await apiFetch(`/api/admin/company/footer-items/file/${index}`, {
+      method: "POST", credentials: "include", body: fd,
     });
+    const json = await r.json();
+    if (json.url) {
+      setData((p) => {
+        const items = [...p.footerItems];
+        items[index] = { ...items[index], file: json.url };
+        return { ...p, footerItems: items };
+      });
+    }
     setUploading(null);
-  }
+  }, []);
 
- 
-
- 
-  function updateItem(index: number, field: keyof FooterItem, value: string) {
+  const updateItem = useCallback((index: number, field: keyof FooterItem, value: string) => {
     setData((p) => {
       const items = [...p.footerItems];
       items[index] = { ...items[index], [field]: value };
       return { ...p, footerItems: items };
     });
-  }
+  }, []);
 
-  async function saveSection(section: string, body: object) {
+  const saveSection = useCallback(async (section: string, body: object) => {
     setSavingSection(section);
-    const r = await fetch(`/api/admin/company`, {
+    const r = await apiFetch("/api/admin/company", {
       method: "PUT", credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     setSavingSection(null);
     showMsg(section, r.ok ? "✅ تم الحفظ" : "❌ حدث خطأ");
-  }
+  }, [showMsg]);
 
   return (
     <div className="w-full space-y-4 sm:space-y-6" dir="rtl">
@@ -180,15 +199,14 @@ export default function FilesPage() {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:px-5 sm:py-4">
-          {/* صورة QR */}
           <div className="relative shrink-0">
             <div onClick={() => qrRef.current?.click()}
               className="relative w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-white flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all group overflow-hidden">
-              {uploading === "qr" ? (
+              {uploading === "qrImage" ? (
                 <span className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
               ) : data.qrImage ? (
                 <>
-                  <Image key={imgKeys["qr"] || data.qrImage} src={data.qrImage} alt="qr" fill sizes="80px" className="object-contain p-1" />
+                  <Image key={imgKeys["qrImage"] || data.qrImage} src={data.qrImage} alt="qr" fill sizes="80px" className="object-contain p-1" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <FiUpload className="text-white" size={16} />
                   </div>
@@ -200,7 +218,7 @@ export default function FilesPage() {
                 </div>
               )}
               <input ref={qrRef} type="file" accept="image/*" className="hidden"
-                onChange={(e) => e.target.files?.[0] && uploadQr(e.target.files[0])} />
+                onChange={(e) => e.target.files?.[0] && uploadImage("qrImage", "/api/admin/company/footer-image/qrImage", e.target.files[0])} />
             </div>
             {data.qrImage && (
               <button onClick={() => { setData((p) => ({ ...p, qrImage: "" })); saveSection("qr", { qrImage: "" }); }}
@@ -209,7 +227,6 @@ export default function FilesPage() {
               </button>
             )}
           </div>
-          {/* رابط أو ملف QR */}
           <div className="flex-1 min-w-0 w-full space-y-2">
             <div className="flex gap-4">
               {["link", "file"].map((t) => (
@@ -226,7 +243,6 @@ export default function FilesPage() {
               <span className="shrink-0">⚠️</span>
               <span>مسموح برابط واحد أو ملف واحد فقط — لا يمكن الجمع بينهما</span>
             </div>
-
             {(data.qrLinkType || "link") === "link" ? (
               <div key="qr-link" className="flex items-center gap-2 w-full">
                 <FiLink className="text-gray-400 shrink-0" size={15} />
@@ -237,27 +253,19 @@ export default function FilesPage() {
               </div>
             ) : (
               <div key="qr-file" className="flex flex-wrap items-center gap-2">
-                <button onClick={() => qrFileRef.current?.click()}
-                  disabled={uploading === "qrFile"}
+                <button onClick={() => qrFileRef.current?.click()} disabled={uploading === "qrFile"}
                   className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50 shrink-0">
-                  {uploading === "qrFile"
-                    ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    : <FiUpload size={13} />}
+                  {uploading === "qrFile" ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> : <FiUpload size={13} />}
                   رفع ملف
                 </button>
                 <input type="file" className="hidden" ref={qrFileRef}
-                  onChange={(e) => e.target.files?.[0] && uploadQrFile(e.target.files[0])} />
+                  onChange={(e) => e.target.files?.[0] && uploadFileAsset("qrFile", "/api/admin/company/footer-file/qrFile", e.target.files[0])} />
                 {data.qrFile && (
                   <>
-                    <button onClick={() => openFile(data.qrFile)}
-                      className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
-                      <FiExternalLink size={13} />
-                      عرض الملف
+                    <button onClick={() => openFile(data.qrFile)} className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
+                      <FiExternalLink size={13} /> عرض الملف
                     </button>
-                    <button onClick={() => setData((p) => ({ ...p, qrFile: "" }))}
-                      className="text-red-400 hover:text-red-600 text-xs hover:underline">
-                      حذف
-                    </button>
+                    <button onClick={() => setData((p) => ({ ...p, qrFile: "" }))} className="text-red-400 hover:text-red-600 text-xs hover:underline">حذف</button>
                   </>
                 )}
               </div>
@@ -278,7 +286,6 @@ export default function FilesPage() {
             </button>
           </div>
         </div>
-
         {data.footerItems.length === 0 ? (
           <div className="px-5 py-10 text-center text-sm text-gray-400">
             لا توجد صور — اضغط &quot;إضافة صورة&quot; لإضافة أول صورة
@@ -287,8 +294,6 @@ export default function FilesPage() {
           <div className="divide-y divide-gray-100">
             {data.footerItems.map((item, i) => (
               <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:px-5 sm:py-4">
-
-                {/* صورة */}
                 <div className="relative shrink-0">
                   <div onClick={() => imgRefs.current[i]?.click()}
                     className="relative w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 bg-white flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all group overflow-hidden">
@@ -318,8 +323,6 @@ export default function FilesPage() {
                     </button>
                   )}
                 </div>
-
-                {/* رابط أو ملف */}
                 <div className="flex-1 min-w-0 w-full space-y-2">
                   <div className="flex gap-4">
                     {["link", "file"].map((t) => (
@@ -332,12 +335,10 @@ export default function FilesPage() {
                       </label>
                     ))}
                   </div>
-
                   <div className="flex items-start gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 text-xs w-full">
                     <span className="shrink-0">⚠️</span>
                     <span>مسموح برابط واحد أو ملف واحد فقط — لا يمكن الجمع بينهما</span>
                   </div>
-
                   {(item.linkType ?? "link") === "link" ? (
                     <div key={`link-input-${i}`} className="flex items-center gap-2 w-full">
                       <FiLink className="text-gray-400 shrink-0" size={15} />
@@ -348,12 +349,9 @@ export default function FilesPage() {
                     </div>
                   ) : (
                     <div key={`file-input-${i}`} className="flex flex-wrap items-center gap-2">
-                      <button onClick={() => fileRefs.current[i]?.click()}
-                        disabled={uploading === `file-${i}`}
+                      <button onClick={() => fileRefs.current[i]?.click()} disabled={uploading === `file-${i}`}
                         className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50 shrink-0">
-                        {uploading === `file-${i}`
-                          ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                          : <FiUpload size={13} />}
+                        {uploading === `file-${i}` ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> : <FiUpload size={13} />}
                         رفع ملف
                       </button>
                       <input type="file" className="hidden"
@@ -361,23 +359,15 @@ export default function FilesPage() {
                         onChange={(e) => e.target.files?.[0] && uploadItemFile(i, e.target.files[0])} />
                       {item.file && (
                         <>
-                          <button onClick={() => openFile(item.file)}
-                            className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
-                            <FiExternalLink size={13} />
-                            عرض الملف
+                          <button onClick={() => openFile(item.file)} className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
+                            <FiExternalLink size={13} /> عرض الملف
                           </button>
-                          <button onClick={() => updateItem(i, "file", "")}
-                            className="text-red-400 hover:text-red-600 text-xs hover:underline">
-                            حذف
-                          </button>
+                          <button onClick={() => updateItem(i, "file", "")} className="text-red-400 hover:text-red-600 text-xs hover:underline">حذف</button>
                         </>
                       )}
                     </div>
                   )}
                 </div>
-
-              
-
               </div>
             ))}
           </div>
@@ -387,7 +377,7 @@ export default function FilesPage() {
       {/* Section 1 */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-600"> مركز الاعمال السعودي</h2>
+          <h2 className="text-sm font-semibold text-gray-600">مركز الاعمال السعودي</h2>
           <div className="flex items-center gap-2">
             {msgs["s1"] && <span className={`text-xs px-2 py-1 rounded-lg font-medium ${msgs["s1"].includes("✅") ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>{msgs["s1"]}</span>}
             <button onClick={() => saveSection("s1", { link1: data.link1, linkType1: data.linkType1, file1: data.file1 })} disabled={savingSection === "s1"}
@@ -416,7 +406,7 @@ export default function FilesPage() {
                 </div>
               )}
               <input ref={img1Ref} type="file" accept="image/*" className="hidden"
-                onChange={(e) => e.target.files?.[0] && uploadImg1(e.target.files[0])} />
+                onChange={(e) => e.target.files?.[0] && uploadImage("img1", "/api/admin/company/footer-image/img1", e.target.files[0])} />
             </div>
             {data.img1 && (
               <button onClick={() => { setData((p) => ({ ...p, img1: "" })); saveSection("s1", { img1: "" }); }}
@@ -441,7 +431,6 @@ export default function FilesPage() {
               <span className="shrink-0">⚠️</span>
               <span>مسموح برابط واحد أو ملف واحد فقط — لا يمكن الجمع بينهما</span>
             </div>
-
             {(data.linkType1 || "link") === "link" ? (
               <div key="s1-link" className="flex items-center gap-2 w-full">
                 <FiLink className="text-gray-400 shrink-0" size={15} />
@@ -452,27 +441,19 @@ export default function FilesPage() {
               </div>
             ) : (
               <div key="s1-file" className="flex flex-wrap items-center gap-2">
-                <button onClick={() => fileRef1.current?.click()}
-                  disabled={uploading === "file1"}
+                <button onClick={() => fileRef1.current?.click()} disabled={uploading === "file1"}
                   className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50 shrink-0">
-                  {uploading === "file1"
-                    ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    : <FiUpload size={13} />}
+                  {uploading === "file1" ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> : <FiUpload size={13} />}
                   رفع ملف
                 </button>
                 <input type="file" className="hidden" ref={fileRef1}
-                  onChange={(e) => e.target.files?.[0] && uploadFile1(e.target.files[0])} />
+                  onChange={(e) => e.target.files?.[0] && uploadFileAsset("file1", "/api/admin/company/footer-file/file1", e.target.files[0])} />
                 {data.file1 && (
                   <>
-                    <button onClick={() => openFile(data.file1)}
-                      className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
-                      <FiExternalLink size={13} />
-                      عرض الملف
+                    <button onClick={() => openFile(data.file1)} className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
+                      <FiExternalLink size={13} /> عرض الملف
                     </button>
-                    <button onClick={() => setData((p) => ({ ...p, file1: "" }))}
-                      className="text-red-400 hover:text-red-600 text-xs hover:underline">
-                      حذف
-                    </button>
+                    <button onClick={() => setData((p) => ({ ...p, file1: "" }))} className="text-red-400 hover:text-red-600 text-xs hover:underline">حذف</button>
                   </>
                 )}
               </div>
@@ -484,7 +465,7 @@ export default function FilesPage() {
       {/* Section 2 */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-600"> ضريبه القيمه المضافه</h2>
+          <h2 className="text-sm font-semibold text-gray-600">ضريبه القيمه المضافه</h2>
           <div className="flex items-center gap-2">
             {msgs["s2"] && <span className={`text-xs px-2 py-1 rounded-lg font-medium ${msgs["s2"].includes("✅") ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>{msgs["s2"]}</span>}
             <button onClick={() => saveSection("s2", { link2: data.link2, linkType2: data.linkType2, file2: data.file2 })} disabled={savingSection === "s2"}
@@ -513,7 +494,7 @@ export default function FilesPage() {
                 </div>
               )}
               <input ref={img2Ref} type="file" accept="image/*" className="hidden"
-                onChange={(e) => e.target.files?.[0] && uploadImg2(e.target.files[0])} />
+                onChange={(e) => e.target.files?.[0] && uploadImage("img2", "/api/admin/company/footer-image/img2", e.target.files[0])} />
             </div>
             {data.img2 && (
               <button onClick={() => { setData((p) => ({ ...p, img2: "" })); saveSection("s2", { img2: "" }); }}
@@ -538,7 +519,6 @@ export default function FilesPage() {
               <span className="shrink-0">⚠️</span>
               <span>مسموح برابط واحد أو ملف واحد فقط — لا يمكن الجمع بينهما</span>
             </div>
-
             {(data.linkType2 || "link") === "link" ? (
               <div key="s2-link" className="flex items-center gap-2 w-full">
                 <FiLink className="text-gray-400 shrink-0" size={15} />
@@ -549,27 +529,19 @@ export default function FilesPage() {
               </div>
             ) : (
               <div key="s2-file" className="flex flex-wrap items-center gap-2">
-                <button onClick={() => fileRef2.current?.click()}
-                  disabled={uploading === "file2"}
+                <button onClick={() => fileRef2.current?.click()} disabled={uploading === "file2"}
                   className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors disabled:opacity-50 shrink-0">
-                  {uploading === "file2"
-                    ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                    : <FiUpload size={13} />}
+                  {uploading === "file2" ? <span className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" /> : <FiUpload size={13} />}
                   رفع ملف
                 </button>
                 <input type="file" className="hidden" ref={fileRef2}
-                  onChange={(e) => e.target.files?.[0] && uploadFile2(e.target.files[0])} />
+                  onChange={(e) => e.target.files?.[0] && uploadFileAsset("file2", "/api/admin/company/footer-file/file2", e.target.files[0])} />
                 {data.file2 && (
                   <>
-                    <button onClick={() => openFile(data.file2)}
-                      className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
-                      <FiExternalLink size={13} />
-                      عرض الملف
+                    <button onClick={() => openFile(data.file2)} className="flex items-center gap-1 text-emerald-600 text-sm hover:underline">
+                      <FiExternalLink size={13} /> عرض الملف
                     </button>
-                    <button onClick={() => setData((p) => ({ ...p, file2: "" }))}
-                      className="text-red-400 hover:text-red-600 text-xs hover:underline">
-                      حذف
-                    </button>
+                    <button onClick={() => setData((p) => ({ ...p, file2: "" }))} className="text-red-400 hover:text-red-600 text-xs hover:underline">حذف</button>
                   </>
                 )}
               </div>

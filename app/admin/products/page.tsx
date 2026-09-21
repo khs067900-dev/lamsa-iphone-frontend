@@ -1,19 +1,28 @@
 "use client";
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 type Product = {
   _id: string;
   name: string;
   category: string;
-  price: number;
   originalPrice: number;
   salePrice?: number;
+  inStock?: boolean;
 };
 
 type SubCat = { name: string; category: string; count: number };
 
+type ProductsResponse = {
+  products: Product[];
+  total: number;
+  page: number;
+  pages: number;
+};
+
+// ─── Icons ─────────────────────────────────────────────────────────────────────
 const TrashIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
@@ -27,62 +36,165 @@ const EditIcon = () => (
   </svg>
 );
 
-function ProductsContent() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCat[]>([]);
-  const [selectedCat, setSelectedCat] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get("page")) || 1);
-  const PAGE_SIZE = 10;
+// ─── Constants ─────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 400;
 
-  function goToPage(page: number) {
-    setCurrentPage(page);
+// ─── Main Component ────────────────────────────────────────────────────────────
+function ProductsContent() {
+  const router = useRouter();
+
+  // Server-driven state
+  const [products, setProducts]         = useState<Product[]>([]);
+  const [total, setTotal]               = useState(0);
+  const [totalPages, setTotalPages]     = useState(0);
+  const [currentPage, setCurrentPage]   = useState(1);
+  const [loading, setLoading]           = useState(true);
+
+  // Filter state
+  const [selectedCat, setSelectedCat]   = useState<string>("");
+  const [search, setSearch]             = useState("");
+  // Separate "committed" search that triggers fetch (debounced)
+  const [committedSearch, setCommittedSearch] = useState("");
+
+  // Categories (fetched once, stable)
+  const [subCategories, setSubCategories] = useState<SubCat[]>([]);
+
+  // Delete state
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deletingId, setDeletingId]       = useState<string | null>(null);
+
+  // AbortController ref — cancel in-flight fetch on new request
+  const abortRef = useRef<AbortController | null>(null);
+  // Debounce timer ref
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Fetch products from server (with real pagination + search + filter) ──────
+  const fetchProducts = useCallback(
+    async (page: number, q: string, cat: string, signal?: AbortSignal) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(PAGE_SIZE),
+        });
+        if (q)   params.set("q",        q);
+        if (cat) params.set("category", cat);
+
+        const res = await fetch(`/api/admin/products?${params.toString()}`, {
+          credentials: "include",
+          signal,
+        });
+
+        if (!res.ok) throw new Error("فشل تحميل المنتجات");
+        const data: ProductsResponse = await res.json();
+
+        setProducts(data.products ?? []);
+        setTotal(data.total ?? 0);
+        setTotalPages(data.pages ?? 0);
+      } catch (err: unknown) {
+        // AbortError is expected — not a real error
+        if (err instanceof Error && err.name === "AbortError") return;
+        toast.error("فشل تحميل المنتجات");
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  // ── Fetch categories once on mount ──────────────────────────────────────────
+  useEffect(() => {
+    fetch("/api/admin/sub-categories", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: SubCat[]) => setSubCategories(Array.isArray(data) ? data : []));
+  }, []);
+
+  // ── Trigger fetch whenever page / committedSearch / selectedCat changes ─────
+  useEffect(() => {
+    // Cancel any in-flight request
+    if (abortRef.current) abortRef.current.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
+    fetchProducts(currentPage, committedSearch, selectedCat, ac.signal);
+
+    return () => ac.abort();
+  }, [currentPage, committedSearch, selectedCat, fetchProducts]);
+
+  // ── Debounce search input → only commit after 400 ms of silence ─────────────
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearch(val);
+    setCurrentPage(1);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setCommittedSearch(val);
+    }, SEARCH_DEBOUNCE_MS);
+  };
+
+  // Cleanup debounce on unmount
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }, []);
+
+  // ── Category selection ───────────────────────────────────────────────────────
+  function selectCategory(cat: string) {
+    setSelectedCat(cat);
+    setCurrentPage(1);
   }
 
-  async function fetchProducts() {
-    const res = await fetch("/api/admin/products", { credentials: "include" });
-    if (res.ok) {
-      const data = await res.json();
-      setProducts(Array.isArray(data) ? data : data.products || []);
+  // ── Delete ───────────────────────────────────────────────────────────────────
+  async function confirmDeleteAction() {
+    if (!confirmDelete || deletingId) return;
+    const { id, name } = confirmDelete;
+    setConfirmDelete(null);
+    setDeletingId(id);
+
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (!res.ok) {
+        toast.error(data.message || "فشل الحذف");
+        return;
+      }
+
+      toast.success(`تم حذف "${name}" بنجاح ✅`);
+
+      // Targeted update: remove from local state — no full refetch
+      setProducts((prev) => {
+        const next = prev.filter((p) => p._id !== id);
+        // If current page became empty and it's not page 1, go back
+        if (next.length === 0 && currentPage > 1) {
+          setCurrentPage((p) => p - 1);
+        }
+        return next;
+      });
+      setTotal((t) => Math.max(0, t - 1));
+    } catch {
+      toast.error("فشل الحذف");
+    } finally {
+      setDeletingId(null);
     }
   }
 
-  useEffect(() => {
-    fetch("/api/admin/products", { credentials: "include" })
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => { 
-        if (data) setProducts(Array.isArray(data) ? data : data.products || []); 
-      });
-    fetch("/api/admin/sub-categories", { credentials: "include" })
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => { if (data) setSubCategories(data); });
-  }, []);
-
-  async function confirmDeleteAction() {
-    if (!confirmDelete) return;
-    const { id, name } = confirmDelete;
-    setConfirmDelete(null);
-    const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE", credentials: "include" });
-    const text = await res.text();
-    const data = text ? JSON.parse(text) : {};
-    if (!res.ok) return toast.error(data.message || "فشل الحذف");
-    toast.success(`تم حذف "${name}" بنجاح ✅`);
-    fetchProducts();
+  // ── Pagination helper ────────────────────────────────────────────────────────
+  function goToPage(page: number) {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const filtered = products.filter(
-    (p) =>
-      (!selectedCat || p.category === selectedCat) &&
-      (p.name?.includes(search) || p.category?.includes(search))
-  );
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
+  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div dir="rtl">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">الأصناف</h1>
         <button
@@ -94,12 +206,13 @@ function ProductsContent() {
         </button>
       </div>
 
+      {/* Category filter chips */}
       {subCategories.length > 0 && (
         <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
           <button
-            onClick={() => { setSelectedCat(null); setCurrentPage(1); }}
+            onClick={() => selectCategory("")}
             className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-colors ${
-              selectedCat === null
+              selectedCat === ""
                 ? "bg-blue-600 text-white border-blue-600"
                 : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
             }`}
@@ -109,7 +222,7 @@ function ProductsContent() {
           {subCategories.map((cat) => (
             <button
               key={`${cat.category}-${cat.name}`}
-              onClick={() => { setSelectedCat(cat.name); setCurrentPage(1); }}
+              onClick={() => selectCategory(cat.name)}
               className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-colors ${
                 selectedCat === cat.name
                   ? "bg-blue-600 text-white border-blue-600"
@@ -123,20 +236,26 @@ function ProductsContent() {
         </div>
       )}
 
+      {/* Table card */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
+        {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 border-b border-gray-100">
           <span className="text-sm text-gray-500">
-            إجمالي المنتجات: <span className="font-bold text-gray-700">{products.length}</span>
+            إجمالي المنتجات:{" "}
+            <span className="font-bold text-gray-700">
+              {loading ? "..." : total}
+            </span>
           </span>
           <input
             type="text"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            onChange={handleSearchChange}
             placeholder="ابحث عن منتج..."
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-72"
           />
         </div>
 
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full min-w-max text-sm text-right">
             <thead className="bg-gray-50 text-gray-600 font-semibold text-base">
@@ -149,51 +268,86 @@ function ProductsContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {paginated.map((p, i) => (
-                <tr key={p._id} className="hover:bg-gray-50 text-base">
-                  <td className="px-5 py-3 text-gray-400 font-medium">{(currentPage - 1) * PAGE_SIZE + i + 1}</td>
-                  <td className="px-5 py-3 font-medium text-gray-800">{p.name}</td>
-                  <td className="px-5 py-3 text-gray-600">{p.category || "—"}</td>
-                  <td className="px-5 py-3 text-gray-700">
-                    {(() => {
-                      const mainPrice = p.originalPrice || p.price || 0;
-                      const sale = p.salePrice && p.salePrice > 0 && p.salePrice < mainPrice ? p.salePrice : null;
-                      return sale ? (
-                        <span>
-                          <span className="text-green-600 font-semibold">{sale} ر.س</span>
-                          <span className="text-gray-400 line-through text-xs mr-1">{mainPrice}</span>
-                        </span>
-                      ) : (
-                        <span>{mainPrice} ر.س</span>
-                      );
-                    })()}
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => router.push(`/admin/products/${p._id}/edit`)} className="text-blue-500 hover:text-blue-700" title="تعديل">
-                        <EditIcon />
-                      </button>
-                      <button onClick={() => setConfirmDelete({ id: p._id, name: p.name })} className="text-red-500 hover:text-red-700" title="حذف">
-                        <TrashIcon />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {paginated.length === 0 && (
+              {loading ? (
+                // Skeleton rows while loading
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-6" /></td>
+                    <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-48" /></td>
+                    <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-24" /></td>
+                    <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-20" /></td>
+                    <td className="px-5 py-3"><div className="h-4 bg-gray-100 rounded w-16" /></td>
+                  </tr>
+                ))
+              ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">لا توجد منتجات</td>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                    لا توجد منتجات
+                  </td>
                 </tr>
+              ) : (
+                products.map((p, i) => {
+                  const rowNum = (currentPage - 1) * PAGE_SIZE + i + 1;
+                  const mainPrice = p.originalPrice ?? 0;
+                  const sale =
+                    p.salePrice && p.salePrice > 0 && p.salePrice < mainPrice
+                      ? p.salePrice
+                      : null;
+                  const isDeleting = deletingId === p._id;
+
+                  return (
+                    <tr
+                      key={p._id}
+                      className={`text-base transition-opacity ${isDeleting ? "opacity-40 pointer-events-none" : "hover:bg-gray-50"}`}
+                    >
+                      <td className="px-5 py-3 text-gray-400 font-medium">{rowNum}</td>
+                      <td className="px-5 py-3 font-medium text-gray-800">{p.name}</td>
+                      <td className="px-5 py-3 text-gray-600">{p.category || "—"}</td>
+                      <td className="px-5 py-3 text-gray-700">
+                        {sale ? (
+                          <span>
+                            <span className="text-green-600 font-semibold">{sale} ر.س</span>
+                            <span className="text-gray-400 line-through text-xs mr-1">{mainPrice}</span>
+                          </span>
+                        ) : (
+                          <span>{mainPrice} ر.س</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => router.push(`/admin/products/${p._id}/edit`)}
+                            className="text-blue-500 hover:text-blue-700"
+                            title="تعديل"
+                            aria-label="تعديل المنتج"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            onClick={() => !isDeleting && setConfirmDelete({ id: p._id, name: p.name })}
+                            className="text-red-500 hover:text-red-700 disabled:opacity-40"
+                            title="حذف"
+                            aria-label="حذف المنتج"
+                            disabled={isDeleting}
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {totalPages > 1 && (
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
         <div className="flex items-center justify-center gap-1 mt-4 flex-wrap">
           <button
-            onClick={() => goToPage(Math.max(1, currentPage - 1))}
+            onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
             className="px-3 py-1 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -229,7 +383,7 @@ function ProductsContent() {
             );
           })()}
           <button
-            onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+            onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
             className="px-3 py-1 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -238,7 +392,7 @@ function ProductsContent() {
         </div>
       )}
 
-      {/* Confirm Delete */}
+      {/* Delete confirmation modal */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" dir="rtl">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm text-center">
@@ -247,10 +401,17 @@ function ProductsContent() {
             <p className="text-sm text-gray-500 mb-1">هتحذف المنتج</p>
             <p className="text-base font-bold text-red-600 mb-4">« {confirmDelete.name} »</p>
             <div className="flex gap-3 justify-center">
-              <button onClick={confirmDeleteAction} className="bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-6 py-2 rounded-lg transition-colors">
-                نعم، احذف
+              <button
+                onClick={confirmDeleteAction}
+                disabled={!!deletingId}
+                className="bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deletingId ? "جاري الحذف..." : "نعم، احذف"}
               </button>
-              <button onClick={() => setConfirmDelete(null)} className="border border-gray-300 text-gray-700 text-sm font-bold px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="border border-gray-300 text-gray-700 text-sm font-bold px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 إلغاء
               </button>
             </div>

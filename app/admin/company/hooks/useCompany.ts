@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useCompanyStore } from "../../../store/companyStore";
 import { API, defaultData, toFullUrl, withCacheBust } from "../constants";
 import type { CompanyData } from "../types";
+import { apiFetch } from "../../../lib/api";
 
 export function useCompany() {
   const { setLogo } = useCompanyStore();
@@ -12,7 +13,7 @@ export function useCompany() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/admin/company`)
+    apiFetch("/api/admin/company")
       .then((r) => r.json())
       .then((res) => {
         const imageKeys = ["logo", "header", "footer", "stamp"];
@@ -28,14 +29,17 @@ export function useCompany() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleChange = (key: string, value: string) =>
+  // [PERF] Stable reference — not recreated on every render.
+  const handleChange = useCallback((key: string, value: string) => {
     setData((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
-  const handleImageChange = async (key: string, file: File) => {
+  // [PERF] Stable reference — deps are only setLogo which is stable from Zustand.
+  const handleImageChange = useCallback(async (key: string, file: File) => {
     const formData = new FormData();
     formData.append("image", file);
     try {
-      const res = await fetch(`/api/admin/company/upload/${key}`, {
+      const res = await apiFetch(`/api/admin/company/upload/${key}`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -43,47 +47,50 @@ export function useCompany() {
       const json = await res.json();
       if (!res.ok) { toast.error(json.error || "فشل رفع الصورة"); return; }
       const fullUrl = json.url.startsWith("http") ? json.url : `${API}${json.url}`;
-      handleChange(key, fullUrl);
-      if (key === "logo") { setLogo(withCacheBust(fullUrl)); }
+      setData((prev) => ({ ...prev, [key]: fullUrl }));
+      if (key === "logo") setLogo(withCacheBust(fullUrl));
       toast.success("تم رفع الصورة");
     } catch (e) {
       console.error(e);
       toast.error("فشل رفع الصورة");
     }
-  };
+  }, [setLogo]);
 
-  const handleImageDelete = async (key: string) => {
+  const handleImageDelete = useCallback(async (key: string) => {
     try {
-      const res = await fetch(`/api/admin/company/image/${key}`, {
+      const res = await apiFetch(`/api/admin/company/image/${key}`, {
         method: "DELETE",
         credentials: "include",
       });
       if (!res.ok) { toast.error("فشل حذف الصورة"); return; }
-      handleChange(key, "");
+      setData((prev) => ({ ...prev, [key]: "" }));
       if (key === "logo") setLogo("");
       toast.success("تم حذف الصورة");
     } catch {
       toast.error("فشل حذف الصورة");
     }
-  };
+  }, [setLogo]);
 
-  const handleSave = async () => {
+  // [PERF] Removed redundant /api/revalidate fetch — the Next.js proxy PUT route
+  // already calls revalidateTag("company") server-side, so a second client-side
+  // revalidation request was a wasted round-trip.
+  const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/company`, {
+      const res = await apiFetch("/api/admin/company", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error();
-      await fetch("/api/revalidate?tag=company", { method: "POST" });
       toast.success("تم حفظ بيانات الشركة");
     } catch {
       toast.error("فشل الحفظ");
     } finally {
       setSaving(false);
     }
-  };
+  }, [data]);
 
   return { data, loading, saving, handleChange, handleImageChange, handleImageDelete, handleSave };
 }

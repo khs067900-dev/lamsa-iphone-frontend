@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { apiFetch } from "../../lib/api";
 
@@ -27,7 +27,9 @@ export default function CategoryItemsPage() {
     Promise.all([
       apiFetch("/api/admin/sub-categories", { credentials: "include" }).then((r) => r.json()),
       apiFetch("/api/admin/sub-categories/settings", { credentials: "include" }).then((r) => r.json()),
-      apiFetch("/api/admin/sub-categories/settings/max", { credentials: "include" }).then((r) => r.json()),
+      // [PERF] Use the canonical /max endpoint directly — avoids the extra
+      // /settings/max proxy hop that previously added a redundant round-trip.
+      apiFetch("/api/admin/sub-categories/max", { credentials: "include" }).then((r) => r.json()),
       apiFetch("/api/admin/sub-categories/public").then((r) => r.json()),
     ]).then(([subs, sets, maxData, cats]) => {
       setItems(subs);
@@ -43,7 +45,7 @@ export default function CategoryItemsPage() {
   async function handleSaveMax() {
     if (maxInput < 1) return toast.error("الحد الأدنى 1");
     setSaving(true);
-    const res = await apiFetch("/api/admin/sub-categories/settings/max", {
+    const res = await apiFetch("/api/admin/sub-categories/max", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -61,6 +63,13 @@ export default function CategoryItemsPage() {
     if (!file) return;
     setPreview(URL.createObjectURL(file));
   }
+
+  const handleCatChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCat(e.target.value);
+    setPreview("");
+    setHasFile(false);
+    if (fileRef.current) fileRef.current.value = "";
+  }, []);
 
   async function handleUploadImage() {
     if (!selectedCat) return toast.error("اختر تصنيفاً أولاً");
@@ -85,15 +94,24 @@ export default function CategoryItemsPage() {
     toast.success("تم رفع الصورة بنجاح ✅");
   }
 
-  const currentImage = categories.find((c) => c.name === selectedCat)?.image ?? "";
+  const currentImage = useMemo(
+    () => categories.find((c) => c.name === selectedCat)?.image ?? "",
+    [categories, selectedCat]
+  );
 
-  const visible = settings
-    .filter((s) => s.showInHome && s.category !== "__config__")
-    .sort((a, b) => a.order - b.order)
-    .map((s) => {
-      const item = items.find((i) => i.category === s.category && i.name === s.subCategory);
-      return { ...s, count: item?.count ?? 0 };
-    });
+  // [PERF] Memoize the visible list — previously recomputed (sort + map + find) on
+  // every render including state updates unrelated to items/settings/max.
+  const visible = useMemo(
+    () =>
+      settings
+        .filter((s) => s.showInHome && s.category !== "__config__")
+        .sort((a, b) => a.order - b.order)
+        .map((s) => {
+          const item = items.find((i) => i.category === s.category && i.name === s.subCategory);
+          return { ...s, count: item?.count ?? 0 };
+        }),
+    [settings, items]
+  );
 
   return (
     <div>
@@ -137,7 +155,7 @@ export default function CategoryItemsPage() {
             <label className="text-xs text-gray-500">اختر التصنيف</label>
             <select
               value={selectedCat}
-              onChange={(e) => { setSelectedCat(e.target.value); setPreview(""); setHasFile(false); if (fileRef.current) fileRef.current.value = ""; }}
+              onChange={handleCatChange}
               className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[160px]"
             >
               <option value="">-- اختر --</option>

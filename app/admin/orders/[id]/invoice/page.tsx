@@ -61,16 +61,32 @@ export default function InvoicePrintPage() {
       fetch("/api/admin/company").then((r) => r.json()).catch(() => ({})),
     ]).then(async ([o, c]) => {
       if (!o || !o.items) { setOrder(null); setCompany(c); return; }
-      // جيب صور المنتجات
-      const itemsWithImages = await Promise.all(
-        o.items.map(async (item: OrderItem) => {
-          if (!item.productId) return item;
+
+      // De-duplicate productIds so the same product is never fetched twice
+      // (e.g. 2 of the same item in one order).
+      const uniqueIds = [...new Set(
+        (o.items as OrderItem[]).filter((i) => i.productId).map((i) => i.productId)
+      )];
+
+      // Fetch all unique products in parallel — one request per unique product,
+      // not one per item. For most orders this is 1–2 requests.
+      const imageMap: Record<string, string> = {};
+      await Promise.all(
+        uniqueIds.map(async (pid) => {
           try {
-            const p = await fetch(`/api/admin/products/${item.productId}`).then((r) => r.json());
-            return { ...item, image: p.image || p.images?.[0] || "" };
-          } catch { return item; }
+            const p = await fetch(`/api/admin/products/${pid}`).then((r) => r.json());
+            imageMap[pid] = p.image || p.images?.[0] || "";
+          } catch {
+            imageMap[pid] = "";
+          }
         })
       );
+
+      const itemsWithImages = (o.items as OrderItem[]).map((item) => ({
+        ...item,
+        image: item.productId ? (imageMap[item.productId] ?? "") : "",
+      }));
+
       setOrder({ ...o, items: itemsWithImages });
       setCompany(c);
     });

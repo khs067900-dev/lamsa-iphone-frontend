@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { apiFetch } from "../../lib/api";
 
@@ -27,7 +27,6 @@ export default function SubCategoriesPage() {
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState("");
   const [editLoading, setEditLoading] = useState(false);
-  const allSubCategories = [...new Set(items.map((i) => i.name).filter(Boolean))];
   const [confirmDelete, setConfirmDelete] = useState<SubCat | null>(null);
   const [max, setMax] = useState(4);
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,11 +35,52 @@ export default function SubCategoriesPage() {
   const [addName, setAddName] = useState("");
   const [addLoading, setAddLoading] = useState(false);
 
-  function getSetting(cat: SubCat): Settings | undefined {
-    return settings.find((s) => s.category === cat.category && s.subCategory === cat.name);
-  }
+  // [PERF] Build a Map<"category::name", Settings> so getSetting() is O(1) per row
+  // instead of array.find() O(n) called on every render for every row.
+  const settingsMap = useMemo(() => {
+    const m = new Map<string, Settings>();
+    for (const s of settings) {
+      m.set(`${s.category}::${s.subCategory}`, s);
+    }
+    return m;
+  }, [settings]);
 
-  async function fetchData() {
+  const getSetting = useCallback(
+    (cat: SubCat) => settingsMap.get(`${cat.category}::${cat.name}`),
+    [settingsMap]
+  );
+
+  // [PERF] Memoize derived list — was recomputed on every render including
+  // unrelated state changes (search, modals, loading flags).
+  const allSubCategories = useMemo(
+    () => [...new Set(items.map((i) => i.name).filter(Boolean))],
+    [items]
+  );
+
+  // [PERF] Memoize visibleCount — was computed inline on every render.
+  const visibleCount = useMemo(
+    () => settings.filter((s) => s.showInHome && s.category !== "__config__").length,
+    [settings]
+  );
+
+  // [PERF] Memoize filtered list so pagination doesn't recompute on every keystroke
+  // from other state changes.
+  const filtered = useMemo(
+    () => items.filter((c) => c.name.includes(search) || c.category?.includes(search)),
+    [items, search]
+  );
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+
+  // [PERF] Memoize paginated slice.
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage]
+  );
+
+  // [PERF] Stable fetchData reference via useCallback — prevents recreation on
+  // every render so it can safely be listed in effect/mutation dependency arrays.
+  const fetchData = useCallback(async () => {
     const [res1, res2, res3, res4] = await Promise.all([
       apiFetch("/api/admin/sub-categories", { credentials: "include" }),
       apiFetch("/api/admin/sub-categories/settings", { credentials: "include" }),
@@ -53,9 +93,12 @@ export default function SubCategoriesPage() {
     setItems([...fromProducts, ...extra.filter((c) => !names.has(c.name))]);
     if (res2.ok) setSettings(await res2.json());
     if (res3.ok) { const d = await res3.json(); setMax(d?.max ?? 4); }
-  }
+  }, []);
 
-  async function handleAdd(e: React.FormEvent) {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleAdd = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setAddLoading(true);
     const res = await apiFetch("/api/admin/sub-categories", {
@@ -70,14 +113,9 @@ export default function SubCategoriesPage() {
     setShowAddModal(false);
     setAddName("");
     fetchData();
-  }
+  }, [addName, fetchData]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchData(); }, []);
-
-  const visibleCount = settings.filter((s) => s.showInHome && s.category !== "__config__").length;
-
-  async function handleToggleHome(cat: SubCat) {
+  const handleToggleHome = useCallback(async (cat: SubCat) => {
     const setting = getSetting(cat);
     if (!setting?.showInHome && visibleCount >= max) {
       return toast.error(`الحد الأقصى ${max} تصنيفات في الرئيسية`);
@@ -90,29 +128,31 @@ export default function SubCategoriesPage() {
     });
     if (!res.ok) return toast.error("حدث خطأ");
     const { showInHome } = await res.json();
+    // [PERF] Update state locally — no need to refetch the full list just for a toggle.
     setSettings((prev) => {
       const exists = prev.find((s) => s.category === cat.category && s.subCategory === cat.name);
       if (exists) return prev.map((s) => s.category === cat.category && s.subCategory === cat.name ? { ...s, showInHome } : s);
       return [...prev, { category: cat.category, subCategory: cat.name, showInHome, order: 0 }];
     });
     toast.success(showInHome ? "سيظهر في الرئيسية ✅" : "تم الإخفاء من الرئيسية");
-  }
+  }, [getSetting, visibleCount, max]);
 
-  async function handleOrderChange(cat: SubCat, order: number) {
+  const handleOrderChange = useCallback(async (cat: SubCat, order: number) => {
     await apiFetch("/api/admin/sub-categories/settings/order", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ category: cat.category, subCategory: cat.name, order }),
     });
+    // [PERF] Update state locally — no refetch needed.
     setSettings((prev) => {
       const exists = prev.find((s) => s.category === cat.category && s.subCategory === cat.name);
       if (exists) return prev.map((s) => s.category === cat.category && s.subCategory === cat.name ? { ...s, order } : s);
       return [...prev, { category: cat.category, subCategory: cat.name, showInHome: false, order }];
     });
-  }
+  }, []);
 
-  async function handleEdit(e: React.FormEvent) {
+  const handleEdit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editItem) return;
     setEditLoading(true);
@@ -127,9 +167,9 @@ export default function SubCategoriesPage() {
     toast.success("تم التعديل بنجاح ✅");
     setEditItem(null);
     fetchData();
-  }
+  }, [editItem, editName, editCategory, fetchData]);
 
-  async function handleDelete() {
+  const handleDelete = useCallback(async () => {
     if (!confirmDelete) return;
     const res = await apiFetch("/api/admin/sub-categories/remove", {
       method: "DELETE",
@@ -141,11 +181,12 @@ export default function SubCategoriesPage() {
     toast.success(`تم حذف "${confirmDelete.name}" بنجاح ✅`);
     setConfirmDelete(null);
     fetchData();
-  }
+  }, [confirmDelete, fetchData]);
 
-  const filtered = items.filter((c) => c.name.includes(search) || c.category?.includes(search));
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setCurrentPage(1);
+  }, []);
 
   return (
     <div>
@@ -177,7 +218,7 @@ export default function SubCategoriesPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+            onChange={handleSearchChange}
             placeholder="ابحث عن تصنيف..."
             className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48 md:w-52"
           />

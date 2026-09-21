@@ -1,6 +1,7 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import { apiFetch } from "../../../lib/api";
 import type { Category } from "../types";
 
 const BASE = "/api/admin/main-categories";
@@ -18,8 +19,9 @@ export function useMainCategories() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
+  // [PERF] Stable fetchCategories reference — won't cause extra effect runs.
   const fetchCategories = useCallback(() => {
-    fetch(`${BASE}/extra`, { credentials: "include" })
+    apiFetch(`${BASE}/extra`, { credentials: "include" })
       .then(async (res) => {
         const data: Category[] = res.ok ? await res.json() : [];
         setCategories(data);
@@ -28,11 +30,18 @@ export function useMainCategories() {
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
-  async function handleAdd(e: React.FormEvent) {
+  // [PERF] Memoized — was recomputed on every render including modal state changes.
+  const filtered = useMemo(
+    () => categories.filter((c) => c.name.includes(search)),
+    [categories, search]
+  );
+
+  // [PERF] useCallback so the function reference is stable across renders.
+  const handleAdd = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await fetch(BASE, {
+    const res = await apiFetch(BASE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -45,13 +54,13 @@ export function useMainCategories() {
     setName("");
     toast.success(`تم إضافة "${data.name}" بنجاح 🎉`);
     fetchCategories();
-  }
+  }, [name, fetchCategories]);
 
-  async function handleEdit(e: React.FormEvent) {
+  const handleEdit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setEditError("");
     setEditLoading(true);
-    const res = await fetch(`${BASE}/rename`, {
+    const res = await apiFetch(`${BASE}/rename`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -63,13 +72,13 @@ export function useMainCategories() {
     setEditCat(null);
     toast.success("تم حفظ التعديلات بنجاح ✅");
     fetchCategories();
-  }
+  }, [editCat, editName, fetchCategories]);
 
-  async function confirmDeleteAction() {
+  const confirmDeleteAction = useCallback(async () => {
     if (!confirmDelete) return;
     const catName = confirmDelete;
     setConfirmDelete(null);
-    const res = await fetch(`${BASE}/remove`, {
+    const res = await apiFetch(`${BASE}/remove`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -79,9 +88,7 @@ export function useMainCategories() {
     if (!res.ok) return toast.error(data.error);
     toast.success(`تم حذف "${catName}" بنجاح ✅`);
     fetchCategories();
-  }
-
-  const filtered = categories.filter((c) => c.name.includes(search));
+  }, [confirmDelete, fetchCategories]);
 
   return {
     categories, filtered, search, setSearch,

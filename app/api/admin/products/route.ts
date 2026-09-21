@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { getBackend, forwardCookies } from "../_lib";
 
+// Force dynamic — admin routes must never be cached by Next.js
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
-  const res = await fetch(`${getBackend()}/api/admin/products`, forwardCookies(req, { method: "GET" }));
+  // Forward ALL query params (page, limit, q, category) to the backend
+  const { searchParams } = req.nextUrl;
+  const query = searchParams.toString();
+  const url = `${getBackend()}/api/admin/products${query ? `?${query}` : ""}`;
+
+  const res = await fetch(url, forwardCookies(req, { method: "GET" }));
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }

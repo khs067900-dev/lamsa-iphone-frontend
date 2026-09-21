@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { apiFetch } from "../../lib/api";
+
 const PAGE_SIZE = 10;
 
 interface Review {
@@ -28,6 +29,12 @@ const EditIcon = () => (
 
 const emptyForm = { name: "", comment: "", rating: 5, gender: "male", approved: false };
 
+// [PERF] Defined outside component — stable references, never recreated on render.
+const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
+const truncateComment = (text: string, limit = 40) =>
+  text.length <= limit ? text : text.slice(0, limit) + "...";
+const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,28 +55,52 @@ export default function ReviewsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function toggleApproved(id: string) {
+  // [PERF] All derived values memoized — not recomputed on modal state changes,
+  // saving flag changes, or any unrelated state updates.
+  const filtered = useMemo(
+    () => reviews.filter(
+      (r) => r.name.toLowerCase().includes(search.toLowerCase()) || r.comment.includes(search)
+    ),
+    [reviews, search]
+  );
+
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filtered.length / PAGE_SIZE)), [filtered.length]);
+
+  const currentPage = useMemo(() => Math.min(page, totalPages), [page, totalPages]);
+
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage]
+  );
+
+  // [PERF] Stable handler references via useCallback.
+  const handleSearch = useCallback((val: string) => {
+    setSearch(val);
+    setPage(1);
+  }, []);
+
+  const toggleApproved = useCallback(async (id: string) => {
     const res = await apiFetch(`/api/admin/reviews/${id}/toggle`, { method: "PATCH", credentials: "include" });
     const data = await res.json();
     if (!res.ok) return toast.error("حدث خطأ");
     setReviews((prev) => prev.map((r) => r._id === id ? { ...r, approved: data.approved } : r));
     toast.success(data.approved ? "تم إظهاره في الرئيسية ✅" : "تم إخفاؤه من الرئيسية");
-  }
+  }, []);
 
-  async function remove(id: string) {
+  const remove = useCallback(async (id: string) => {
     setConfirmDelete(null);
     const res = await apiFetch(`/api/admin/reviews/${id}`, { method: "DELETE", credentials: "include" });
     if (!res.ok) return toast.error("حدث خطأ");
     toast.success("تم حذف التعليق ✅");
     setReviews((prev) => prev.filter((r) => r._id !== id));
-  }
+  }, []);
 
-  function openEdit(r: Review) {
+  const openEdit = useCallback((r: Review) => {
     setEditReview(r);
     setEditForm({ name: r.name, comment: r.comment, rating: r.rating, gender: r.gender || "male" });
-  }
+  }, []);
 
-  async function saveEdit() {
+  const saveEdit = useCallback(async () => {
     if (!editReview) return;
     setSaving(true);
     const res = await apiFetch(`/api/admin/reviews/${editReview._id}`, {
@@ -84,9 +115,9 @@ export default function ReviewsPage() {
     setReviews((prev) => prev.map((r) => r._id === updated._id ? updated : r));
     setEditReview(null);
     toast.success("تم التعديل ✅");
-  }
+  }, [editReview, editForm]);
 
-  async function saveAdd() {
+  const saveAdd = useCallback(async () => {
     setSaving(true);
     const res = await apiFetch("/api/admin/reviews/admin-add", {
       method: "POST",
@@ -101,24 +132,12 @@ export default function ReviewsPage() {
     setShowAddForm(false);
     setAddForm(emptyForm);
     toast.success("تم إضافة التعليق ✅");
-  }
+  }, [addForm]);
 
-  const filtered = reviews.filter(
-    (r) => r.name.toLowerCase().includes(search.toLowerCase()) || r.comment.includes(search)
-  );
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  function handleSearch(val: string) { setSearch(val); setPage(1); }
-
-  const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
-  const truncateComment = (text: string, limit = 40) => {
-    return text.length <= limit ? text : text.slice(0, limit) + "...";
-  };
-
-  const inputCls = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const closeAddForm = useCallback(() => {
+    setShowAddForm(false);
+    setAddForm(emptyForm);
+  }, []);
 
   if (loading) return <p className="text-center text-gray-400 py-10 text-base">جاري التحميل...</p>;
 
@@ -341,7 +360,7 @@ export default function ReviewsPage() {
 
       {/* Add Review Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setShowAddForm(false); setAddForm(emptyForm); }}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={closeAddForm}>
           <div className="bg-white rounded-xl shadow-xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-gray-800 mb-4">إضافة رأي عميل</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -379,7 +398,7 @@ export default function ReviewsPage() {
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-2 rounded-lg transition-colors disabled:opacity-50">
                 {saving ? "جاري الإضافة..." : "إضافة"}
               </button>
-              <button onClick={() => { setShowAddForm(false); setAddForm(emptyForm); }}
+              <button onClick={closeAddForm}
                 className="border border-gray-300 text-gray-700 text-sm font-bold px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 إلغاء
               </button>
