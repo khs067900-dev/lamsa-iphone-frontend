@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
-import { getAllProducts } from "../../../lib/productsCache";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 
 export const metadata: Metadata = {
   title: "Samsung Galaxy S26 Ultra | لمسه للاجهزه الذكيه",
@@ -8,9 +7,8 @@ export const metadata: Metadata = {
 };
 
 export default async function SamsungS26UltraPage() {
-  const products = await getAllProducts();
   return (
-    <PhoneHeroPage
+    <PhoneHeroPageWrapper
       slug="samsung-s26-ultra"
       heroImage="/s26.webp"
       nameEn="Galaxy S26"
@@ -22,7 +20,6 @@ export default async function SamsungS26UltraPage() {
         { icon: "chip", label: "معالج Snapdragon الأحدث" },
         { icon: "battery", label: "بطارية 5000mAh" },
       ]}
-      initialProducts={products}
     />
   );
 }

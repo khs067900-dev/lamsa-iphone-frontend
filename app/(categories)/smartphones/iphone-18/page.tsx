@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import IPhone18Hero from "./IPhone18Hero";
-import PhoneHeroPage from "../../../components/phones/PhoneHeroPage";
+import PhoneHeroPageWrapper from "../../../components/phones/PhoneHeroPageWrapper";
 import ComingSoon from "./ComingSoon";
-import { getAllProducts } from "../../../lib/productsCache";
 
 export const revalidate = 60;
 
@@ -31,11 +30,10 @@ export default async function IPhone18Page() {
     );
   }
 
-  const products = await getAllProducts();
   return (
     <>
       <IPhone18Hero />
-      <PhoneHeroPage
+      <PhoneHeroPageWrapper
         slug="iphone-18"
         heroImage=""
         nameEn="iPhone 18"
@@ -46,7 +44,6 @@ export default async function IPhone18Page() {
           { icon: "camera", label: "كاميرا 48MP Fusion" },
           { icon: "battery", label: "+6 ساعات بطارية" },
         ]}
-        initialProducts={products}
         hideHero
       />
     </>
