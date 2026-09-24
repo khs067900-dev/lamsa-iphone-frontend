@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { getBackend, forwardCookies } from "../../_lib";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +27,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (res.ok) {
     revalidateTag(`product-${encodeURIComponent(id)}`);
     revalidateTag("products");
+    revalidatePath("/");
   }
   return NextResponse.json(data, { status: res.status });
 }
@@ -39,6 +40,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if (res.ok) {
     revalidateTag(`product-${encodeURIComponent(id)}`);
     revalidateTag("products");
+    revalidatePath("/");
   }
   return NextResponse.json(data, { status: res.status });
 }
