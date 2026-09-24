@@ -13,8 +13,8 @@ const SITE_URL = "https://lamsasmart.com";
 async function getHomeConfig() {
   try {
     const [settingsRes, maxRes] = await Promise.all([
-      fetch(`${BACKEND}/api/admin/sub-categories/home-settings`, { next: { revalidate: 300, tags: ["home-config"] } }),
-      fetch(`${BACKEND}/api/admin/sub-categories/max`, { next: { revalidate: 300, tags: ["home-config"] } }),
+      fetch(`${BACKEND}/api/admin/sub-categories/home-settings`, { next: { revalidate: 60, tags: ["home-config"] } }),
+      fetch(`${BACKEND}/api/admin/sub-categories/max`, { next: { revalidate: 60, tags: ["home-config"] } }),
     ]);
     const settings = settingsRes.ok ? await settingsRes.json() : [];
     const maxData = maxRes.ok ? await maxRes.json() : { max: 4 };
@@ -24,8 +24,8 @@ async function getHomeConfig() {
   }
 }
 
-// ISR — re-render every 2 minutes and on on-demand revalidateTag("home-config")
-export const revalidate = 120;
+// ISR — re-render every 60 seconds and on on-demand revalidateTag("home-config") / revalidatePath("/")
+export const revalidate = 60;
 export const dynamicParams = true;
 
 export default async function Home() {
