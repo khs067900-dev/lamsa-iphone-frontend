@@ -59,7 +59,7 @@ export default function AppleOnlyClient({ initialProducts = [] }: { initialProdu
     ...rawImages,
     "iphone-18-pro-max": rawImages["iphone-18-pro-max"] || "/i-18.webp",
     "iphone-18-pro": rawImages["iphone-18-pro"] || "/i-18-1.webp",
-    "iphone-18-duo": rawImages["iphone-18-duo"] || "/i-18-3.webp",
+    "iphone-18-duo": "https://res.cloudinary.com/dllmx2yf3/image/upload/v1789508554/7b091608-972a-4925-bebd-0e7a53371c5e_zrsz8b.png",
   }), [rawImages]);
 
   return (
