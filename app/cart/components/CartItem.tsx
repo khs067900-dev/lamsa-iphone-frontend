@@ -22,13 +22,27 @@ interface CartItemProps {
 }
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 const resolveImg = (src: string) =>
   src.startsWith("http") ? src : src.startsWith("/uploads") ? src : `${API}${src}`;
+
+/**
+ * Injects a Cloudinary resize transformation (w_160,h_160,c_pad,q_auto,f_auto)
+ * so we load a small thumbnail instead of the full-size gallery image.
+ * Falls back to the original URL for non-Cloudinary sources.
+ */
+const toThumbnail = (url: string): string => {
+  const match = url.match(
+    /^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(?:v\d+\/)?(.*)/
+  );
+  if (!match) return url;
+  return `${match[1]}w_160,h_160,c_pad,q_auto,f_auto/${match[2]}`;
+};
 
 export default function CartItem({ product, qty, cartKey, onUpdateQty, onRemove }: CartItemProps) {
   const price = product.salePrice ?? product.originalPrice ?? product.price;
   const rawImg = product.images?.[0] || product.image;
-  const img = rawImg ? resolveImg(rawImg) : undefined;
+  const img = rawImg ? toThumbnail(resolveImg(rawImg)) : undefined;
 
   return (
     <div className="group relative rounded-xl overflow-hidden transition-all" style={{ backgroundColor: "#fff", border: "1px solid rgba(188,146,85,0.12)" }}>
@@ -45,7 +59,7 @@ export default function CartItem({ product, qty, cartKey, onUpdateQty, onRemove 
         {/* Image */}
         <div className="relative w-20 h-20 shrink-0" style={{ backgroundColor: "#faf7f2" }}>
           {img ? (
-            <Image src={img} alt={product.name} fill className="object-contain p-2" />
+            <Image src={img} alt={product.name} fill sizes="80px" className="object-contain p-2" unoptimized />
           ) : (
             <span className="text-2xl flex items-center justify-center w-full h-full">📱</span>
           )}

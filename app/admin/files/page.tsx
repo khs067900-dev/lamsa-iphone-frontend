@@ -51,8 +51,9 @@ export default function FilesPage() {
 
   // Clear all message timers on unmount
   useEffect(() => {
+    const timers = msgTimers.current;
     return () => {
-      Object.values(msgTimers.current).forEach(clearTimeout);
+      Object.values(timers).forEach(clearTimeout);
     };
   }, []);
 

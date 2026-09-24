@@ -24,9 +24,8 @@ async function getHomeConfig() {
   }
 }
 
-// Enable static generation with ISR
-export const revalidate = 120; // Revalidate every 2 minutes
-export const dynamic = 'force-static';
+// ISR — re-render every 2 minutes and on on-demand revalidateTag("home-config")
+export const revalidate = 120;
 export const dynamicParams = true;
 
 export default async function Home() {

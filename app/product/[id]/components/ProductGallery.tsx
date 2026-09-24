@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "../../../components/ProductImage";
 import type { Product } from "../../../components/products/types";
 
@@ -16,24 +16,17 @@ interface Props {
   overrideImages?: string[];
 }
 
-export default function ProductGallery({ product, overrideImages }: Props) {
+// Inner component receives a stable `images` array already resolved.
+// It always mounts fresh (via the key in ProductGallery) so useState(0) is correct.
+function GalleryInner({
+  product,
+  images,
+}: {
+  product: Product;
+  images: string[];
+}) {
   const [selected, setSelected] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
-
-  // Reset to first image whenever the active variant changes
-  useEffect(() => {
-    setSelected(0);
-  }, [overrideImages]);
-
-  const sourceImages = overrideImages?.length ? overrideImages : [
-    ...(product.images ?? []),
-    ...(product.image ? [product.image] : []),
-  ];
-
-  const allImages = [...new Set(sourceImages)]
-    .filter(Boolean)
-    .map(resolveImg)
-    .filter((src) => { try { new URL(src); return true; } catch { return false; } });
 
   const discountPercent =
     product.discountPercent ||
@@ -41,7 +34,7 @@ export default function ProductGallery({ product, overrideImages }: Props) {
       ? Math.round(((product.originalPrice - product.salePrice) / product.originalPrice) * 100)
       : 0);
 
-  const goTo = (i: number) => setSelected((i + allImages.length) % allImages.length);
+  const goTo = (i: number) => setSelected((i + images.length) % images.length);
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,7 +45,7 @@ export default function ProductGallery({ product, overrideImages }: Props) {
         onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
         onTouchEnd={(e) => {
           const diff = touchStart - e.changedTouches[0].clientX;
-          if (Math.abs(diff) > 40 && allImages.length > 1) goTo(selected + (diff > 0 ? 1 : -1));
+          if (Math.abs(diff) > 40 && images.length > 1) goTo(selected + (diff > 0 ? 1 : -1));
         }}
       >
         {discountPercent > 0 && (
@@ -66,18 +59,18 @@ export default function ProductGallery({ product, overrideImages }: Props) {
           </div>
         )}
 
-        {allImages.length > 1 && (
+        {images.length > 1 && (
           <div
             className="absolute top-3 left-3 z-10 text-[11px] font-bold px-2.5 py-1 rounded-full"
             style={{ background: "rgba(31,44,62,0.07)", color: "#A77D4B" }}
           >
-            {selected + 1} / {allImages.length}
+            {selected + 1} / {images.length}
           </div>
         )}
 
-        {allImages[selected] ? (
+        {images[selected] ? (
           <Image
-            src={allImages[selected]}
+            src={images[selected]}
             alt={product.name}
             fill
             className="object-contain p-8 transition-opacity duration-200"
@@ -91,9 +84,9 @@ export default function ProductGallery({ product, overrideImages }: Props) {
       </div>
 
       {/* Thumbnails */}
-      {allImages.length > 1 && (
+      {images.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-          {allImages.map((src, i) => (
+          {images.map((src, i) => (
             <button
               key={i}
               onClick={() => setSelected(i)}
@@ -120,4 +113,28 @@ export default function ProductGallery({ product, overrideImages }: Props) {
       )}
     </div>
   );
+}
+
+export default function ProductGallery({ product, overrideImages }: Props) {
+  const sourceImages = overrideImages?.length
+    ? overrideImages
+    : [...(product.images ?? []), ...(product.image ? [product.image] : [])];
+
+  const allImages = [...new Set(sourceImages)]
+    .filter(Boolean)
+    .map(resolveImg)
+    .filter((src) => {
+      try {
+        new URL(src);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+
+  // key changes whenever the variant's first image changes → GalleryInner remounts
+  // with selected=0, no useEffect needed.
+  const galleryKey = allImages[0] ?? "empty";
+
+  return <GalleryInner key={galleryKey} product={product} images={allImages} />;
 }

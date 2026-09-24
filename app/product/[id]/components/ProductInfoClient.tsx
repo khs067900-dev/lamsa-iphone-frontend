@@ -11,7 +11,6 @@ import type { Product } from "../../../components/products/types";
 import { useCartStore } from "../../../store/cartStore";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const toKey = (o: { storage: string; ram?: string; size?: string }) =>
   `${o.storage}|${o.ram ?? ""}|${o.size ?? ""}`;
