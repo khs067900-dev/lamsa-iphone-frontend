@@ -87,7 +87,7 @@ export const getAllProducts = unstable_cache(
     try {
       const url = new URL("/api/products", BACKEND);
       url.searchParams.set("page", "1");
-      url.searchParams.set("limit", "100");
+      url.searchParams.set("limit", "300");
       url.searchParams.set("fields", FIELDS);
       const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
       if (!r.ok) return [];
