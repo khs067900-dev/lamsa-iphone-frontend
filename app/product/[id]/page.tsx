@@ -3,8 +3,7 @@ import { Suspense } from "react";
 import { getProductById, BACKEND } from "../../lib/productsCache";
 import { SITE_URL, getCompany } from "../../lib/config";
 import ProductHeader from "./components/ProductHeader";
-import ProductGallery from "./components/ProductGallery";
-import ProductInfoClient from "./components/ProductInfoClient";
+import ProductClientWrapper from "./components/ProductClientWrapper";
 import ProductDetails from "./components/ProductDetails";
 import ProductSections from "./components/ProductSections";
 import { notFound } from "next/navigation";
@@ -107,22 +106,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
           {/* ── Critical Content Grid ── */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
-
-            {/* Images */}
-            <div className="lg:col-span-7">
-              <div className="bg-white rounded-3xl p-4 shadow-xl" style={{ border: "1px solid #EBE6E2" }}>
-                <ProductGallery product={product} hasVariants={Boolean(product.variants?.length)} />
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="lg:col-span-5">
-              <h2 className="hidden lg:block text-2xl xl:text-3xl font-black mb-5 leading-snug" style={{ color: "#1F2C3E" }}>
-                {product.name}
-              </h2>
-              {/* Single Client Component — handles variants, cart, price */}
-              <ProductInfoClient product={product} />
-            </div>
+            <ProductClientWrapper product={product} />
           </div>
 
           {/* ── Secondary Content (non-blocking) ── */}

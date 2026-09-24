@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "../../../components/ProductImage";
 import type { Product } from "../../../components/products/types";
 
@@ -9,12 +9,28 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) =>
   src.startsWith("http") ? src : `${API}${src.startsWith("/") ? src : "/" + src}`;
 
-export default function ProductGallery({ product }: { product: Product; hasVariants: boolean }) {
+interface Props {
+  product: Product;
+  hasVariants: boolean;
+  /** When provided, these images replace the product-level images (used for color variants) */
+  overrideImages?: string[];
+}
+
+export default function ProductGallery({ product, overrideImages }: Props) {
   const [selected, setSelected] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
 
-  const merged = [...(product.images ?? []), ...(product.image ? [product.image] : [])];
-  const allImages = [...new Set(merged)]
+  // Reset to first image whenever the active variant changes
+  useEffect(() => {
+    setSelected(0);
+  }, [overrideImages]);
+
+  const sourceImages = overrideImages?.length ? overrideImages : [
+    ...(product.images ?? []),
+    ...(product.image ? [product.image] : []),
+  ];
+
+  const allImages = [...new Set(sourceImages)]
     .filter(Boolean)
     .map(resolveImg)
     .filter((src) => { try { new URL(src); return true; } catch { return false; } });

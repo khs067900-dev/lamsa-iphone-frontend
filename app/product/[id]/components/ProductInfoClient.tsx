@@ -16,14 +16,26 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const toKey = (o: { storage: string; ram?: string; size?: string }) =>
   `${o.storage}|${o.ram ?? ""}|${o.size ?? ""}`;
 
-export default function ProductInfoClient({ product }: { product: Product }) {
+interface Props {
+  product: Product;
+  /** Controlled selected color — provided by ProductClientWrapper */
+  selectedColor?: string;
+  /** Called when the user picks a new color swatch */
+  onColorChange?: (color: string) => void;
+}
+
+export default function ProductInfoClient({ product, selectedColor: selectedColorProp, onColorChange }: Props) {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
 
   const firstVariant = product.variants?.[0];
-  const [selectedColor, setSelectedColor] = useState<string>(
+
+  // If a controlled color is passed in, use it; otherwise manage internally
+  const [internalColor, setInternalColor] = useState<string>(
     () => firstVariant?.color ?? product.color ?? ""
   );
+  const selectedColor = selectedColorProp ?? internalColor;
+
   const [selectedStorage, setSelectedStorage] = useState<string>(() => {
     const defOpt =
       firstVariant?.storageOptions?.find((o) => o.storage === firstVariant.defaultStorage) ??
@@ -48,13 +60,17 @@ export default function ProductInfoClient({ product }: { product: Product }) {
 
   const handleColorChange = useCallback(
     (c: string) => {
-      setSelectedColor(c);
+      // Update internal color (used when no controlled prop is provided)
+      setInternalColor(c);
+      // Notify parent wrapper so it can update the gallery images
+      onColorChange?.(c);
+      // Reset storage to the new variant's default
       const newVariant = product.variants?.find((v) => v.color === c);
       const opts = newVariant?.storageOptions ?? [];
       const defOpt = opts.find((o) => o.storage === newVariant?.defaultStorage) ?? opts[0];
       if (defOpt) setSelectedStorage(toKey(defOpt));
     },
-    [product.variants]
+    [product.variants, onColorChange]
   );
 
   const handleAddToCart = useCallback(() => {
