@@ -4,6 +4,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { apiFetch } from "../../lib/api";
 
+// Trigger Next.js on-demand ISR revalidation for the homepage so changes
+// appear immediately instead of waiting up to 60 seconds for the ISR window.
+async function revalidateHomepage() {
+  try {
+    await fetch("/api/revalidate?tag=home-config", {
+      method: "POST",
+      headers: { "x-revalidate-secret": process.env.NEXT_PUBLIC_REVALIDATE_SECRET || "" },
+    });
+  } catch {
+    // Non-critical — page will still refresh within the ISR window.
+  }
+}
+
 type SubCat = { name: string; category: string; count: number };
 type Settings = { category: string; subCategory: string; showInHome: boolean; order: number };
 
@@ -46,7 +59,8 @@ export default function SubCategoriesPage() {
   }, [settings]);
 
   const getSetting = useCallback(
-    (cat: SubCat) => settingsMap.get(`${cat.category}::${cat.name}`),
+    // [FIX] Use same effectiveCategory fallback so lookup matches the key used when saving.
+    (cat: SubCat) => settingsMap.get(`${cat.category || cat.name}::${cat.name}`),
     [settingsMap]
   );
 
