@@ -35,11 +35,9 @@ export default function LatestPhones({ products }: { products: Product[] }) {
   const totalDots = 5;
   const dragRef = useRef({ startX: 0, scrollLeft: 0, dragging: false, moved: false });
 
-  const hiddenSlugs = new Set(["iphone-18-pro-max", "iphone-18-pro", "iphone-18-duo", "iphone-18"]);
   const picks: (Product & { modelLabel: string })[] = [];
   const usedIds = new Set<string>();
   for (const model of modelSlugs) {
-    if (hiddenSlugs.has(model.slug)) continue;
     const found = filterBySlug(products, model.slug).find((p) => !usedIds.has(p._id));
     if (found) { usedIds.add(found._id); picks.push({ ...found, modelLabel: model.label }); }
   }
