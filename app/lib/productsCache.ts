@@ -106,7 +106,9 @@ async function fetchProductsWithBanners() {
   try {
     const url = new URL("/api/products", BACKEND);
     url.searchParams.set("page", "1");
-    url.searchParams.set("limit", "100");
+    // [FIX] Was 100 — not enough to cover all categories (DB has 230+ products).
+    // Missing categories (17s, Samsung) were cut off and never reached the homepage.
+    url.searchParams.set("limit", "300");
     url.searchParams.set("fields", FIELDS);
     const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
     if (r.ok) {
