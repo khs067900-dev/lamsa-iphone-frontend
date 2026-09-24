@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag, revalidatePath } from "next/cache";
 import { getBackend, forwardCookies } from "../../_lib";
 
-export async function DELETE(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   const body = await req.json();
-  const res = await fetch(`${getBackend()}/api/admin/sub-categories/remove`, forwardCookies(req, {
-    method: "DELETE",
+  const res = await fetch(`${getBackend()}/api/admin/sub-categories/rename`, forwardCookies(req, {
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }));
