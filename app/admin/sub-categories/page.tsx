@@ -120,35 +120,39 @@ export default function SubCategoriesPage() {
     if (!setting?.showInHome && visibleCount >= max) {
       return toast.error(`الحد الأقصى ${max} تصنيفات في الرئيسية`);
     }
+    // [FIX] cat.category is undefined for extra entries (sub-categories with no products).
+    // Fall back to cat.name so the backend always gets a valid, non-empty category key.
+    const effectiveCategory = cat.category || cat.name;
     const res = await apiFetch("/api/admin/sub-categories/settings/toggle", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ category: cat.category, subCategory: cat.name }),
+      body: JSON.stringify({ category: effectiveCategory, subCategory: cat.name }),
     });
     if (!res.ok) return toast.error("حدث خطأ");
     const { showInHome } = await res.json();
     // [PERF] Update state locally — no need to refetch the full list just for a toggle.
     setSettings((prev) => {
-      const exists = prev.find((s) => s.category === cat.category && s.subCategory === cat.name);
-      if (exists) return prev.map((s) => s.category === cat.category && s.subCategory === cat.name ? { ...s, showInHome } : s);
-      return [...prev, { category: cat.category, subCategory: cat.name, showInHome, order: 0 }];
+      const exists = prev.find((s) => s.category === effectiveCategory && s.subCategory === cat.name);
+      if (exists) return prev.map((s) => s.category === effectiveCategory && s.subCategory === cat.name ? { ...s, showInHome } : s);
+      return [...prev, { category: effectiveCategory, subCategory: cat.name, showInHome, order: 0 }];
     });
     toast.success(showInHome ? "سيظهر في الرئيسية ✅" : "تم الإخفاء من الرئيسية");
   }, [getSetting, visibleCount, max]);
 
   const handleOrderChange = useCallback(async (cat: SubCat, order: number) => {
+    const effectiveCategory = cat.category || cat.name;
     await apiFetch("/api/admin/sub-categories/settings/order", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ category: cat.category, subCategory: cat.name, order }),
+      body: JSON.stringify({ category: effectiveCategory, subCategory: cat.name, order }),
     });
     // [PERF] Update state locally — no refetch needed.
     setSettings((prev) => {
-      const exists = prev.find((s) => s.category === cat.category && s.subCategory === cat.name);
-      if (exists) return prev.map((s) => s.category === cat.category && s.subCategory === cat.name ? { ...s, order } : s);
-      return [...prev, { category: cat.category, subCategory: cat.name, showInHome: false, order }];
+      const exists = prev.find((s) => s.category === effectiveCategory && s.subCategory === cat.name);
+      if (exists) return prev.map((s) => s.category === effectiveCategory && s.subCategory === cat.name ? { ...s, order } : s);
+      return [...prev, { category: effectiveCategory, subCategory: cat.name, showInHome: false, order }];
     });
   }, []);
 
