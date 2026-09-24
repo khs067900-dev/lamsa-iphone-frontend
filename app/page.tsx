@@ -1,17 +1,12 @@
 import { Suspense } from "react";
-import { sortProducts } from "./lib/sortProducts";
+import { sortProducts, sortByPriceAsc } from "./lib/sortProducts";
 import { Banner } from "./components/banner";
 import { ProductGrid } from "./components/products";
 import { getAllProductsWithBanners, BACKEND } from "./lib/productsCache";
 import { getCompany } from "./lib/config";
-import { getFeaturedIPhones } from "./lib/iphone18Featured";
+
 import CustomerReviews from "./components/CustomerReviews";
 import ShopByCategory from "./components/ShopByCategory";
-import ShopByDevice from "./components/ShopByDevice";
-
-function isReservationOpen() {
-  return Date.now() >= new Date(process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T20:00:00+03:00").getTime();
-}
 
 const SITE_URL = "https://lamsasmart.com";
 
@@ -45,9 +40,12 @@ export default async function Home() {
     .filter((s: { showInHome: boolean }) => s.showInHome)
     .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
     .slice(0, Math.max(0, homeConfig.max));
-  const homeProducts = selectedCategories.flatMap((setting: { category: string; subCategory: string }) =>
-    sortProducts(products.filter((p) => (p.category || p.subCategory) === setting.category || (p.category || p.subCategory) === setting.subCategory)).slice(0, 4)
-  ).filter((p: { _id: string }, i: number, all: { _id: string }[]) => all.findIndex((other) => other._id === p._id) === i);
+  const homeProducts = selectedCategories.flatMap((setting: { category: string; subCategory: string }) => {
+    const cat = setting.category || setting.subCategory;
+    const filtered = products.filter((p) => (p.category || p.subCategory) === cat);
+    const isIPhone18Cat = cat.includes("18");
+    return (isIPhone18Cat ? sortByPriceAsc(filtered) : sortProducts(filtered)).slice(0, 4);
+  }).filter((p: { _id: string }, i: number, all: { _id: string }[]) => all.findIndex((other) => other._id === p._id) === i);
   const homeBanners = Object.fromEntries(Object.entries(bannerMap).filter(([category]) => homeProducts.some((p: { category?: string; subCategory?: string }) => (p.category || p.subCategory) === category)));
 
   const siteName = c.nameAr || "لمسه للاجهزه الذكيه";
@@ -115,7 +113,6 @@ export default async function Home() {
       <main className="min-h-screen bg-gradient-to-b from-white via-gray-50/50 to-[#f5f0e8]/30">
         <Banner />
         <ShopByCategory />
-        <ShopByDevice entries={getFeaturedIPhones(products)} initiallyOpen={isReservationOpen()} />
         <div id="products">
           <ProductGrid initialProducts={homeProducts} initialHomeConfig={homeConfig} initialBannerMap={homeBanners} companyLogo={logoUrl} />
         </div>

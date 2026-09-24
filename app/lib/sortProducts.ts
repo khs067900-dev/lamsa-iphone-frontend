@@ -51,6 +51,17 @@ function parseStorage(s?: string, name?: string): number {
 }
 
 /**
+ * Sort products by price ascending (salePrice if available, else originalPrice/price)
+ */
+export function sortByPriceAsc(products: Product[]): Product[] {
+  return [...products].sort((a, b) => {
+    const priceA = (a.salePrice && a.salePrice > 0 ? a.salePrice : a.originalPrice) ?? a.price ?? 0;
+    const priceB = (b.salePrice && b.salePrice > 0 ? b.salePrice : b.originalPrice) ?? b.price ?? 0;
+    return priceA - priceB;
+  });
+}
+
+/**
  * Sort products by storage (ascending) then by color priority
  * NOTE: This is now only used for client-side color/storage filtering
  * Server-side sorting is preferred and should be used via API

@@ -13,6 +13,10 @@ export default async function PhoneHeroPageWrapper(
   const config = slugConfigs[slug];
   const filters = config?.filters || {};
 
+  // iPhone 18 pages sort by price ascending; all others by storage ascending
+  const isIPhone18 = slug.startsWith("iphone-18");
+  const sort = isIPhone18 ? "price-asc" : "storage-asc";
+
   // Fetch only the products we need, already filtered and sorted
   const result = await getProductsByCategory({
     category: filters.category,
@@ -20,7 +24,7 @@ export default async function PhoneHeroPageWrapper(
     nameIncludes: filters.nameIncludes,
     nameExcludes: filters.nameExcludes,
     limit: 100,
-    sort: "storage-asc",
+    sort,
   });
 
   return <PhoneHeroPage {...rest} slug={slug} initialProducts={result.products} />;

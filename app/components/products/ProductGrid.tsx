@@ -30,6 +30,9 @@ const categoryPageMap: Record<string, string> = {
   microphone: "/games/microphones",
   figures: "/games/figures",
   rgb: "/games/rgb-lighting",
+  "ابل ايفون 18 برو ماكس": "/smartphones/iphone-18-pro-max",
+  "ابل ايفون 18 برو": "/smartphones/iphone-18-pro",
+  "ابل ايفون 18": "/smartphones/iphone-18",
   "ابل ايفون 17 برو": "/smartphones/iphone-17-pro",
   "ابل ايفون 17 برو ماكس": "/smartphones/iphone-17-pro-max",
   "ابل ايفون 17برو ماكس": "/smartphones/iphone-17-pro-max",
@@ -67,6 +70,7 @@ function CategoryRow({ category, items, isFirst, accentIdx }: { category: string
   const visible = items.slice(0, LIMIT);
   const href = categoryPageMap[category] ?? categoryPageMap[category.toLowerCase()] ?? "#";
   const isGold = accentIdx % 2 === 0;
+  const isIPhone18 = category.includes("18");
   const accentGradient = isGold
     ? 'linear-gradient(135deg, #BC9255, #A77D4B)'
     : 'linear-gradient(135deg, #2d4a6f, #1F2C3E)';
@@ -101,7 +105,7 @@ function CategoryRow({ category, items, isFirst, accentIdx }: { category: string
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {visible.map((p, i) => (
-            <ProductCard key={p._id} product={p} priority={isFirst && i === 0} />
+            <ProductCard key={p._id} product={p} priority={isFirst && i === 0} imageZoom={isIPhone18} imageScale={isIPhone18 ? "scale-[1.45]" : "scale-110"} />
           ))}
         </div>
       </div>
