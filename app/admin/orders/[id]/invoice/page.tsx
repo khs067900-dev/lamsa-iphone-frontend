@@ -43,53 +43,48 @@ export default function InvoicePrintPage() {
 
   useEffect(() => {
     if (!order) return;
-    setTimeout(() => {
-      const images = document.querySelectorAll("img");
-      if (images.length === 0) { window.print(); return; }
-      let loaded = 0;
-      const tryPrint = () => { if (++loaded >= images.length) window.print(); };
-      images.forEach((img) => {
-        if (img.complete) tryPrint();
-        else { img.onload = tryPrint; img.onerror = tryPrint; }
-      });
-    }, 100);
+    const images = Array.from(document.querySelectorAll("img"));
+    if (images.length === 0) {
+      window.print();
+      return;
+    }
+    let loaded = 0;
+    let printed = false;
+    const tryPrint = () => {
+      if (printed) return;
+      if (++loaded >= images.length) {
+        printed = true;
+        window.print();
+      }
+    };
+    images.forEach((img) => {
+      if (img.complete) tryPrint();
+      else {
+        img.onload = tryPrint;
+        img.onerror = tryPrint;
+      }
+    });
+    const fallbackTimer = setTimeout(() => {
+      if (!printed) {
+        printed = true;
+        window.print();
+      }
+    }, 1500);
+    return () => clearTimeout(fallbackTimer);
   }, [order]);
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/admin/orders/${id}`).then((r) => r.json()),
-      fetch("/api/admin/company").then((r) => r.json()).catch(() => ({})),
-    ]).then(async ([o, c]) => {
-      if (!o || !o.items) { setOrder(null); setCompany(c); return; }
-
-      // De-duplicate productIds so the same product is never fetched twice
-      // (e.g. 2 of the same item in one order).
-      const uniqueIds = [...new Set(
-        (o.items as OrderItem[]).filter((i) => i.productId).map((i) => i.productId)
-      )];
-
-      // Fetch all unique products in parallel — one request per unique product,
-      // not one per item. For most orders this is 1–2 requests.
-      const imageMap: Record<string, string> = {};
-      await Promise.all(
-        uniqueIds.map(async (pid) => {
-          try {
-            const p = await fetch(`/api/admin/products/${pid}`).then((r) => r.json());
-            imageMap[pid] = p.image || p.images?.[0] || "";
-          } catch {
-            imageMap[pid] = "";
-          }
-        })
-      );
-
-      const itemsWithImages = (o.items as OrderItem[]).map((item) => ({
-        ...item,
-        image: item.productId ? (imageMap[item.productId] ?? "") : "",
-      }));
-
-      setOrder({ ...o, items: itemsWithImages });
-      setCompany(c);
-    });
+    fetch(`/api/admin/orders/${id}/invoice`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d && d.order && Array.isArray(d.order.items)) {
+          setOrder(d.order);
+          setCompany(d.company || {});
+        } else {
+          setOrder(null);
+        }
+      })
+      .catch(() => setOrder(null));
   }, [id]);
 
   if (!order) return <div style={{ textAlign: "center", padding: 40, fontFamily: "Arial" }}>جاري التحميل...</div>;

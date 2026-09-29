@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import SamsungOnlyClient from "./SamsungOnlyClient";
-import type { Product } from "../../../components/products/types";
-import { getAllProducts } from "../../../lib/productsCache";
+import { getProductsByCategory } from "../../../lib/productsCache";
 import { getCompany } from "../../../lib/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,6 +13,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SamsungOnlyPage() {
-  const products = await getAllProducts() as Product[];
-  return <SamsungOnlyClient initialProducts={products} />;
+  const result = await getProductsByCategory({ brand: "Samsung", limit: 100, sort: "storage-asc" });
+  return <SamsungOnlyClient initialProducts={result.products} />;
 }

@@ -152,17 +152,17 @@ export default async function Footer() {
                 {qrSrc && (
                   qrLink
                     ? <a href={qrLink} target="_blank" rel="noreferrer" className="shrink-0 p-2 rounded-xl transition-transform hover:scale-105" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(167,125,75,0.2)' }}>
-                        <Image src={qrSrc} alt="qr" width={56} height={56} className="rounded object-contain" style={{ width: 56, height: 56 }} />
+                        <Image src={qrSrc} alt="qr" width={56} height={56} loading="lazy" sizes="56px" className="rounded object-contain" style={{ width: 56, height: 56 }} />
                       </a>
                     : <span className="shrink-0 p-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(167,125,75,0.2)' }}>
-                        <Image src={qrSrc} alt="qr" width={56} height={56} className="rounded object-contain" style={{ width: 56, height: 56 }} />
+                        <Image src={qrSrc} alt="qr" width={56} height={56} loading="lazy" sizes="56px" className="rounded object-contain" style={{ width: 56, height: 56 }} />
                       </span>
                 )}
 
                 {footerItems.map((item, i) => {
                   const href = getHref(item);
                   const el = (
-                    <Image key={i} src={item.image} alt={`footer-item-${i}`} width={56} height={56}
+                    <Image key={i} src={item.image} alt={`footer-item-${i}`} width={56} height={56} loading="lazy" sizes="56px"
                       className="rounded object-contain" style={{ width: 56, height: 56 }} />
                   );
                   return href
@@ -173,20 +173,20 @@ export default async function Footer() {
                 {img1 && (
                   link1
                     ? <a href={link1} target="_blank" rel="noreferrer" className="shrink-0 p-2 rounded-xl transition-transform hover:scale-105" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(167,125,75,0.2)' }}>
-                        <Image src={img1} alt="img1" width={56} height={56} className="rounded object-contain" style={{ width: 56, height: 56 }} />
+                        <Image src={img1} alt="img1" width={56} height={56} loading="lazy" sizes="56px" className="rounded object-contain" style={{ width: 56, height: 56 }} />
                       </a>
                     : <span className="shrink-0 p-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(167,125,75,0.2)' }}>
-                        <Image src={img1} alt="img1" width={56} height={56} className="rounded object-contain" style={{ width: 56, height: 56 }} />
+                        <Image src={img1} alt="img1" width={56} height={56} loading="lazy" sizes="56px" className="rounded object-contain" style={{ width: 56, height: 56 }} />
                       </span>
                 )}
 
                 {img2 && (
                   link2
                     ? <a href={link2} target="_blank" rel="noreferrer" className="shrink-0 p-2 rounded-xl transition-transform hover:scale-105" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(167,125,75,0.2)' }}>
-                        <Image src={img2} alt="img2" width={56} height={56} className="rounded object-contain" style={{ width: 56, height: 56 }} />
+                        <Image src={img2} alt="img2" width={56} height={56} loading="lazy" sizes="56px" className="rounded object-contain" style={{ width: 56, height: 56 }} />
                       </a>
                     : <span className="shrink-0 p-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(167,125,75,0.2)' }}>
-                        <Image src={img2} alt="img2" width={56} height={56} className="rounded object-contain" style={{ width: 56, height: 56 }} />
+                        <Image src={img2} alt="img2" width={56} height={56} loading="lazy" sizes="56px" className="rounded object-contain" style={{ width: 56, height: 56 }} />
                       </span>
                 )}
               </div>
@@ -196,8 +196,8 @@ export default async function Footer() {
           {/* Bottom bar */}
           <div className="pt-6 border-t border-[#A77D4B]/20 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <Image src="/cc975b.png" alt="cc" width={50} height={30} className="object-contain opacity-70 hover:opacity-100 transition-opacity" style={{ width: 50, height: 30 }} />
-              <Image src="/mada975b.png" alt="mada" width={50} height={30} className="object-contain opacity-70 hover:opacity-100 transition-opacity" style={{ width: 50, height: 30 }} />
+              <Image src="/cc975b.png" alt="cc" width={50} height={30} loading="lazy" sizes="50px" className="object-contain opacity-70 hover:opacity-100 transition-opacity" style={{ width: 50, height: 30 }} />
+              <Image src="/mada975b.png" alt="mada" width={50} height={30} loading="lazy" sizes="50px" className="object-contain opacity-70 hover:opacity-100 transition-opacity" style={{ width: 50, height: 30 }} />
             </div>
             <span className="text-[11px] font-medium" style={{ color: 'rgba(223,196,164,0.85)' }}>
               جميع الحقوق محفوظة © {new Date().getFullYear()} — لمسه للأجهزة الذكية

@@ -49,7 +49,7 @@ function toMinimalProduct(product: Product | MinimalProduct): MinimalProduct {
   return {
     _id: product._id,
     name: product.name,
-    price: product.price || product.salePrice || product.originalPrice,
+    price: (product.salePrice != null && product.salePrice > 0 ? product.salePrice : (product.price || product.originalPrice)),
     originalPrice: product.originalPrice,
     salePrice: product.salePrice,
     image: product.image,

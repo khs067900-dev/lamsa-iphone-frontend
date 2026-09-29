@@ -42,7 +42,7 @@ export default function Navbar({ companyLogo }: { companyLogo?: string }) {
     if (!q.trim()) { setResults([]); return; }
     setSearching(true);
     try {
-      const res = await fetch(`/api/products?q=${encodeURIComponent(q.trim())}`, { signal });
+      const res = await fetch(`/api/products?q=${encodeURIComponent(q.trim())}&fields=name,images,image,salePrice,originalPrice,price&limit=6`, { signal });
       if (!res.ok) throw new Error('Search failed');
       const data = await res.json();
       setResults(Array.isArray(data) ? data : []);
@@ -97,8 +97,8 @@ export default function Navbar({ companyLogo }: { companyLogo?: string }) {
                 <Image
                   src={companyLogo}
                   alt="Logo"
-                  width={0}
-                  height={0}
+                  width={160}
+                  height={64}
                   sizes="80px"
                   className="h-16 sm:h-16 lg:h-20 w-auto"
                   priority

@@ -10,7 +10,6 @@
     "test:orders": "jest __tests__/admin-orders.test.ts --verbose --forceExit"
   },
   "dependencies": {
-    "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@vercel/analytics": "^2.0.1",
     "credit-card-type": "^10.1.2",
     "critters": "^0.0.23",

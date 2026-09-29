@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { isCloudinaryUrl, getThumbnailUrl, getMainImageUrl } from "../../../lib/imageUrl";
 
 interface ProductImagesProps {
   images: string[];
@@ -63,11 +64,12 @@ export default function ProductImages({ images, name, discountPercent = 0 }: Pro
           >
             {images[selected] && (
               <Image
-                src={images[selected]}
+                src={isCloudinaryUrl(images[selected]) ? getMainImageUrl(images[selected], 900) : images[selected]}
                 alt={name}
                 fill
                 className="object-cover"
                 priority
+                unoptimized={isCloudinaryUrl(images[selected])}
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
             )}
@@ -93,7 +95,14 @@ export default function ProductImages({ images, name, discountPercent = 0 }: Pro
                 opacity: i === selected ? 1 : 0.6,
               }}
             >
-              <Image src={img} alt="" fill className="object-contain p-2" sizes="68px" />
+              <Image
+                src={isCloudinaryUrl(img) ? getThumbnailUrl(img, 140) : img}
+                alt=""
+                fill
+                unoptimized={isCloudinaryUrl(img)}
+                className="object-contain p-2"
+                sizes="68px"
+              />
               {i === selected && (
                 <motion.div
                   layoutId="thumb-indicator"

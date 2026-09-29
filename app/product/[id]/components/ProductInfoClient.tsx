@@ -80,6 +80,7 @@ export default function ProductInfoClient({ product, selectedColor: selectedColo
       storage: resolvedStorage,
       originalPrice,
       salePrice,
+      price: salePrice || originalPrice,
       image: activeVariant?.images?.[0] ?? product.image,
       images: activeVariant?.images?.length ? activeVariant.images : product.images,
     };

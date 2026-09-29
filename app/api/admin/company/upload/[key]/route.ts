@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { getBackend } from "../../../_lib";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ key: string }> }) {
@@ -11,5 +12,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ key
     body: formData,
   });
   const data = await res.json();
+  if (res.ok) {
+    revalidateTag("company");
+    revalidatePath("/");
+  }
   return NextResponse.json(data, { status: res.status });
 }

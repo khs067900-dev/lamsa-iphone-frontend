@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import GamesClient from "./GamesClient";
-import { getAllProducts } from "../../lib/productsCache";
+import { getProductsByCategory } from "../../lib/productsCache";
 import { SITE_URL, getCompany } from "../../lib/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,9 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function GamesPage() {
-  // GamesClient filters across multiple game sub-categories client-side
-  // (gaming, mice-keyboards, microphone, figures, rgb) so we fetch all products
-  // and let the client filter — consistent with how this page has always worked.
-  const products = await getAllProducts();
-  return <GamesClient initialProducts={products} />;
+  const result = await getProductsByCategory({
+    category: "gaming,mice-keyboards,microphone,figures,rgb",
+    limit: 100,
+  });
+  return <GamesClient initialProducts={result.products} />;
 }

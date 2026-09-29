@@ -27,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const slug_urls: MetadataRoute.Sitemap = Object.keys(slugConfigs).map((slug) => ({
-    url: `${BASE_URL}/categories/${slug}`,
+    url: `${BASE_URL}/${slug}`,
     changeFrequency: "weekly",
     priority: 0.7,
   }));

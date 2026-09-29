@@ -6,8 +6,12 @@ import BannerCard, { type BannerItem } from "../_components/BannerCard";
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
+// In-memory client cache to avoid re-fetching when switching back and forth between categories
+const _categoryBannersCache: Record<string, BannerItem[]> = {};
+
 function useCategoryBanners(category: string) {
-  const [banners, setBanners] = useState<BannerItem[]>([]);
+  const [banners, setBanners] = useState<BannerItem[]>(() => _categoryBannersCache[category] || []);
+  const [initialLoading, setInitialLoading] = useState(!_categoryBannersCache[category]);
   const [loading, setLoading] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -15,12 +19,42 @@ function useCategoryBanners(category: string) {
 
   useEffect(() => {
     if (!category) return;
-    setBanners([]);
+    let cancelled = false;
+
+    if (_categoryBannersCache[category]) {
+      setBanners(_categoryBannersCache[category]);
+      setInitialLoading(false);
+    } else {
+      setInitialLoading(true);
+    }
+
     fetch(BASE, { credentials: "include" })
       .then((r) => r.json())
-      .then((d) => Array.isArray(d) && setBanners(d))
-      .catch(() => {});
+      .then((d) => {
+        if (!cancelled && Array.isArray(d)) {
+          _categoryBannersCache[category] = d;
+          setBanners(d);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("فشل تحميل البانرات");
+      })
+      .finally(() => {
+        if (!cancelled) setInitialLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [category, BASE]);
+
+  const updateBannersState = (updater: (prev: BannerItem[]) => BannerItem[]) => {
+    setBanners((prev) => {
+      const next = updater(prev);
+      _categoryBannersCache[category] = next;
+      return next;
+    });
+  };
 
   const handleUpload = async (index: number, file: File) => {
     setLoading(index);
@@ -30,8 +64,8 @@ function useCategoryBanners(category: string) {
       const res = await fetch(`${BASE}/upload/${index}`, { method: "POST", credentials: "include", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setBanners((prev) => prev.map((b, i) => i === index ? { ...b, url: data.url } : b));
-      toast.success("تم رفع البانر");
+      updateBannersState((prev) => prev.map((b, i) => i === index ? { ...b, url: data.url } : b));
+      toast.success("تم رفع البانر بنجاح");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "فشل الرفع");
     } finally { setLoading(null); }
@@ -43,7 +77,7 @@ function useCategoryBanners(category: string) {
       const res = await fetch(`${BASE}/toggle/${index}`, { method: "PATCH", credentials: "include" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setBanners((prev) => prev.map((b, i) => i === index ? { ...b, active: data.active } : b));
+      updateBannersState((prev) => prev.map((b, i) => i === index ? { ...b, active: data.active } : b));
       toast.success(data.active ? "تم تفعيل البانر" : "تم إيقاف البانر");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "فشل التعديل");
@@ -55,8 +89,8 @@ function useCategoryBanners(category: string) {
     try {
       const res = await fetch(`${BASE}/${index}/image`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("فشل الحذف");
-      setBanners((prev) => prev.map((b, i) => i === index ? { ...b, url: "" } : b));
-      toast.success("تم حذف الصورة");
+      updateBannersState((prev) => prev.map((b, i) => i === index ? { ...b, url: "" } : b));
+      toast.success("تم حذف الصورة بنجاح");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "فشل الحذف");
     } finally { setLoading(null); }
@@ -67,8 +101,8 @@ function useCategoryBanners(category: string) {
     try {
       const res = await fetch(`${BASE}/${index}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) throw new Error("فشل الحذف");
-      setBanners((prev) => prev.filter((_, i) => i !== index));
-      toast.success("تم حذف البانر");
+      updateBannersState((prev) => prev.filter((_, i) => i !== index));
+      toast.success("تم حذف البانر بنجاح");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "فشل الحذف");
     } finally { setLoading(null); }
@@ -80,24 +114,48 @@ function useCategoryBanners(category: string) {
       const res = await fetch(`${BASE}/add`, { method: "POST", credentials: "include" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setBanners((prev) => [...prev, { url: "", active: true }]);
+      updateBannersState((prev) => [...prev, { url: "", active: true }]);
       toast.success("تمت إضافة بانر جديد");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "فشلت الإضافة");
     } finally { setAdding(false); }
   };
 
-  return { banners, loading, adding, inputRefs, handleUpload, handleToggle, handleDeleteImage, handleDeleteSlot, handleAdd };
+  return { banners, initialLoading, loading, adding, inputRefs, handleUpload, handleToggle, handleDeleteImage, handleDeleteSlot, handleAdd };
 }
 
 // ─── Panel ───────────────────────────────────────────────────────────────────
 
 function CategoryBannersPanel({ category }: { category: string }) {
-  const { banners, loading, adding, inputRefs, handleUpload, handleToggle, handleDeleteImage, handleDeleteSlot, handleAdd } =
-    useCategoryBanners(category);
+  const {
+    banners, initialLoading, loading, adding, inputRefs,
+    handleUpload, handleToggle, handleDeleteImage, handleDeleteSlot, handleAdd,
+  } = useCategoryBanners(category);
 
   const filled = banners.filter((b) => b.url).length;
   const activeCount = banners.filter((b) => b.url && b.active).length;
+
+  if (initialLoading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="h-12 w-64 bg-gray-200 rounded-2xl" />
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+              <div className="w-full aspect-[2.5/1] bg-gray-200" />
+              <div className="px-4 py-3 flex items-center justify-between">
+                <div className="w-24 h-4 bg-gray-200 rounded" />
+                <div className="flex gap-2">
+                  <div className="w-14 h-7 bg-gray-200 rounded-lg" />
+                  <div className="w-14 h-7 bg-gray-200 rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -153,19 +211,34 @@ function CategoryBannersPanel({ category }: { category: string }) {
 
 export default function CategoryBannersPage() {
   const [categories, setCategories] = useState<string[]>([]);
+  const [searchCategory, setSearchCategory] = useState("");
   const [selected, setSelected] = useState("");
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/admin/sub-categories", { credentials: "include" })
       .then((r) => r.json())
       .then((data: { category: string }[]) => {
-        if (!Array.isArray(data)) return;
-        const unique = [...new Set(data.map((d) => d.category).filter(Boolean))];
-        setCategories(unique);
-        if (unique.length) setSelected(unique[0]);
+        if (!cancelled && Array.isArray(data)) {
+          const unique = [...new Set(data.map((d) => d.category).filter(Boolean))];
+          setCategories(unique);
+          if (unique.length) setSelected(unique[0]);
+        }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setCategoriesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  const filteredCategories = categories.filter((cat) =>
+    cat.toLowerCase().includes(searchCategory.trim().toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 -mx-3 -mt-0 sm:-mx-5 md:-mx-6">
@@ -184,10 +257,33 @@ export default function CategoryBannersPage() {
           <span>اختر التصنيف من الأزرار بالأسفل ثم ارفع صور البانرات — يمكنك تفعيل أو إيقاف أو حذف كل بانر على حدة. البانرات المفعّلة فقط هي التي تظهر للعملاء في صفحة التصنيف.</span>
         </div>
 
-        {categories.length === 0 ? (
-          <div className="text-center text-gray-400 py-16">جاري تحميل التصنيفات...</div>
+        {categoriesLoading ? (
+          <div className="space-y-4 animate-pulse">
+            <div className="h-10 bg-gray-200 rounded-xl w-64 mb-4" />
+            <div className="flex gap-2 overflow-hidden pb-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-9 w-24 bg-gray-200 rounded-xl shrink-0" />
+              ))}
+            </div>
+            <div className="h-64 bg-gray-200 rounded-2xl mt-6" />
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center text-gray-400 py-16">لا توجد تصنيفات حالياً</div>
         ) : (
           <>
+            {/* Search filter for categories if more than 5 */}
+            {categories.length > 5 && (
+              <div className="mb-3 max-w-xs">
+                <input
+                  type="text"
+                  placeholder="ابحث عن تصنيف..."
+                  value={searchCategory}
+                  onChange={(e) => setSearchCategory(e.target.value)}
+                  className="w-full text-xs px-3 py-1.5 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            )}
+
             {/* Category tabs */}
             <div
               className="cat-scroll flex gap-2 mb-6 overflow-x-auto pb-2"
@@ -198,7 +294,7 @@ export default function CategoryBannersPage() {
                 .cat-scroll::-webkit-scrollbar-track { background: #e0e7ff; border-radius: 3px; }
                 .cat-scroll::-webkit-scrollbar-thumb { background: #a5b4fc; border-radius: 3px; }
               `}</style>
-              {categories.map((cat) => (
+              {filteredCategories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelected(cat)}
@@ -211,9 +307,12 @@ export default function CategoryBannersPage() {
                   {cat}
                 </button>
               ))}
+              {filteredCategories.length === 0 && (
+                <span className="text-xs text-gray-400 py-2">لا توجد تصنيفات تطابق بحثك</span>
+              )}
             </div>
 
-            {/* Panel — keyed so it remounts (and re-fetches) on category change */}
+            {/* Panel — keyed so it remounts on category change */}
             {selected && <CategoryBannersPanel key={selected} category={selected} />}
           </>
         )}

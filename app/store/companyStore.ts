@@ -8,12 +8,13 @@ interface CompanyState {
   fetchCompany: () => Promise<void>;
 }
 
-export const useCompanyStore = create<CompanyState>((set) => ({
+export const useCompanyStore = create<CompanyState>((set, get) => ({
   logo: "",
   whatsapp: "",
   email: "",
   setLogo: (logo) => set({ logo }),
   fetchCompany: async () => {
+    if (get().logo) return;
     try {
       const res = await fetch("/api/company");
       if (!res.ok) return;

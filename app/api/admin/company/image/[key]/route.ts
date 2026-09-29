@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { getBackend } from "../../../_lib";
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ key: string }> }) {
@@ -9,6 +10,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ k
       method: "DELETE",
       headers: { cookie },
     });
+    if (res.ok) {
+      revalidateTag("company");
+      revalidatePath("/");
+    }
     const text = await res.text();
     try {
       return NextResponse.json(JSON.parse(text), { status: res.status });

@@ -48,13 +48,10 @@ export function useFingerprint() {
       setFingerprintCookie(id);
     };
 
-    const fallbackId = () => crypto.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36);
-
-    import("@fingerprintjs/fingerprintjs")
-      .then((FingerprintJS) => FingerprintJS.load())
-      .then((fp) => fp.get())
-      .then((result) => save(result.visitorId))
-      .catch(() => save(fallbackId()));
+    const id = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2) + Date.now().toString(36);
+    save(id);
   }, []);
 }
 

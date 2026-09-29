@@ -15,14 +15,20 @@ export default function OrderDetailPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/admin/orders/${id}`)
+    const controller = new AbortController();
+    fetch(`/api/admin/orders/${id}`, { signal: controller.signal })
       .then((r) => r.json())
       .then((d) => {
-        setOrder(d);
-        setFin({ total: d.total, downPayment: d.downPayment, months: d.months, monthlyPayment: d.monthlyPayment });
+        if (d && d._id) {
+          setOrder(d);
+          setFin({ total: d.total || 0, downPayment: d.downPayment || 0, months: d.months || 0, monthlyPayment: d.monthlyPayment || 0 });
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        if (err?.name !== "AbortError") setLoading(false);
+      });
+    return () => controller.abort();
   }, [id]);
 
   function calcMonthly() {

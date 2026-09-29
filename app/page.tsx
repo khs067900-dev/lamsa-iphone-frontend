@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { sortProducts, sortByPriceAsc } from "./lib/sortProducts";
 import { Banner } from "./components/banner";
 import { ProductGrid } from "./components/products";
-import { getAllProductsWithBanners, BACKEND } from "./lib/productsCache";
+import { getHomePageData, BACKEND } from "./lib/productsCache";
 import { getCompany } from "./lib/config";
 
 import CustomerReviews from "./components/CustomerReviews";
@@ -10,42 +10,33 @@ import ShopByCategory from "./components/ShopByCategory";
 
 const SITE_URL = "https://lamsasmart.com";
 
-async function getHomeConfig() {
-  try {
-    const [settingsRes, maxRes] = await Promise.all([
-      fetch(`${BACKEND}/api/admin/sub-categories/home-settings`, { next: { revalidate: 60, tags: ["home-config"] } }),
-      fetch(`${BACKEND}/api/admin/sub-categories/max`, { next: { revalidate: 60, tags: ["home-config"] } }),
-    ]);
-    const settings = settingsRes.ok ? await settingsRes.json() : [];
-    const maxData = maxRes.ok ? await maxRes.json() : { max: 4 };
-    return { settings, max: maxData.max ?? 4 };
-  } catch {
-    return { settings: [], max: 4 };
-  }
-}
-
 // ISR — re-render every 60 seconds and on on-demand revalidateTag("home-config") / revalidatePath("/")
 export const revalidate = 60;
 export const dynamicParams = true;
 
 export default async function Home() {
-  const [c, { products, bannerMap }, homeConfig] = await Promise.all([
+  const [c, { products, bannerMap, homeConfig }] = await Promise.all([
     getCompany(),
-    getAllProductsWithBanners(),
-    getHomeConfig(),
+    getHomePageData(),
   ]);
 
   const selectedCategories = homeConfig.settings
     .filter((s: { showInHome: boolean }) => s.showInHome)
     .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
     .slice(0, Math.max(0, homeConfig.max));
+
   const homeProducts = selectedCategories.flatMap((setting: { category: string; subCategory: string }) => {
     const cat = setting.category || setting.subCategory;
     const filtered = products.filter((p) => (p.category || p.subCategory) === cat);
     const isIPhone18Cat = cat.includes("18");
     return (isIPhone18Cat ? sortByPriceAsc(filtered) : sortProducts(filtered)).slice(0, 4);
   }).filter((p: { _id: string }, i: number, all: { _id: string }[]) => all.findIndex((other) => other._id === p._id) === i);
-  const homeBanners = Object.fromEntries(Object.entries(bannerMap).filter(([category]) => homeProducts.some((p: { category?: string; subCategory?: string }) => (p.category || p.subCategory) === category)));
+
+  const homeBanners = Object.fromEntries(
+    Object.entries(bannerMap).filter(([category]) =>
+      homeProducts.some((p: { category?: string; subCategory?: string }) => (p.category || p.subCategory) === category)
+    )
+  );
 
   const siteName = c.nameAr || "لمسه للاجهزه الذكيه";
   const logoUrl = c.logo

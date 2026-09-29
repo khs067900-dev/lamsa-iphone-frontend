@@ -21,16 +21,28 @@ export default function ReceiptPrintPage() {
 
   useEffect(() => {
     if (!data) return;
-    setTimeout(() => {
-      const images = document.querySelectorAll("img");
-      if (images.length === 0) { window.print(); return; }
-      let loaded = 0;
-      const tryPrint = () => { if (++loaded >= images.length) window.print(); };
-      images.forEach((img) => {
-        if (img.complete) tryPrint();
-        else { img.onload = tryPrint; img.onerror = tryPrint; }
-      });
-    }, 100);
+    const images = Array.from(document.querySelectorAll("img"));
+    if (images.length === 0) { window.print(); return; }
+    let loaded = 0;
+    let printed = false;
+    const tryPrint = () => {
+      if (printed) return;
+      if (++loaded >= images.length) {
+        printed = true;
+        window.print();
+      }
+    };
+    images.forEach((img) => {
+      if (img.complete) tryPrint();
+      else { img.onload = tryPrint; img.onerror = tryPrint; }
+    });
+    const fallback = setTimeout(() => {
+      if (!printed) {
+        printed = true;
+        window.print();
+      }
+    }, 1500);
+    return () => clearTimeout(fallback);
   }, [data]);
 
   if (!data) return <div style={{ textAlign: "center", padding: 40 }}>جاري التحميل...</div>;

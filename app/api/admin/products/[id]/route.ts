@@ -32,6 +32,21 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   return NextResponse.json(data, { status: res.status });
 }
 
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const res = await fetch(
+    `${getBackend()}/api/admin/products/${id}/toggle-stock`,
+    forwardCookies(req, { method: "PATCH" })
+  );
+  const data = await res.json();
+  if (res.ok) {
+    revalidateTag(`product-${encodeURIComponent(id)}`);
+    revalidateTag("products");
+    revalidatePath("/");
+  }
+  return NextResponse.json(data, { status: res.status });
+}
+
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const res = await fetch(`${getBackend()}/api/admin/products/${id}`, forwardCookies(req, { method: "DELETE" }));

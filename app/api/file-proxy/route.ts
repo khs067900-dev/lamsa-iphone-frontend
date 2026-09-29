@@ -24,12 +24,12 @@ export async function GET(req: NextRequest) {
   if (!res.ok) return new NextResponse("failed", { status: res.status });
 
   const contentType = res.headers.get("content-type") || "application/pdf";
-  const body = await res.arrayBuffer();
 
-  return new NextResponse(body, {
+  return new NextResponse(res.body, {
     headers: {
       "Content-Type": contentType,
       "Content-Disposition": "inline",
+      "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400, immutable",
     },
   });
 }

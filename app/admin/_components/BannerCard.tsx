@@ -5,7 +5,7 @@
  * the payload sent to the backend and cut Cloudinary upload time.
  */
 import Image from "next/image";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export type BannerItem = { url: string; active: boolean };
 
@@ -35,6 +35,11 @@ interface BannerCardProps {
  * This runs in the browser via Canvas — zero npm deps, works everywhere.
  */
 async function compressImage(file: File, maxWidth = 1600, maxHeight = 900, quality = 0.8): Promise<File> {
+  // Never attempt to rasterize SVG vectors or strip GIF frames
+  if (file.type === "image/svg+xml" || file.type === "image/gif") {
+    return file;
+  }
+
   return new Promise((resolve) => {
     const img = new window.Image();
     const url = URL.createObjectURL(file);
@@ -52,7 +57,10 @@ async function compressImage(file: File, maxWidth = 1600, maxHeight = 900, quali
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return resolve(file);
+
+      ctx.drawImage(img, 0, 0, width, height);
 
       canvas.toBlob(
         (blob) => {
@@ -74,14 +82,22 @@ async function compressImage(file: File, maxWidth = 1600, maxHeight = 900, quali
   });
 }
 
+/** Transform Cloudinary URL into lightweight ~800px thumbnail for fast admin rendering */
+function getAdminThumbnail(url: string): string {
+  if (!url || !url.includes("res.cloudinary.com")) return url;
+  if (url.includes("/upload/w_") || url.includes("/upload/c_")) return url;
+  return url.replace("/upload/", "/upload/w_800,c_scale,q_auto,f_auto/");
+}
+
 export default function BannerCard({
   banner, index, isLoading, inputRef, onUpload, onToggle, onDeleteImage, onDeleteSlot,
 }: BannerCardProps) {
   const hasImage = !!banner.url;
   const localRef = useRef<HTMLInputElement | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<"image" | "slot" | null>(null);
 
   const triggerInput = () => {
-    if (!isLoading) localRef.current?.click();
+    if (!isLoading && !confirmDelete) localRef.current?.click();
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +138,7 @@ export default function BannerCard({
         {hasImage ? (
           <>
             <Image
-              src={banner.url}
+              src={getAdminThumbnail(banner.url)}
               alt={LABELS[index] || `بانر ${index + 1}`}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-90"
@@ -149,7 +165,7 @@ export default function BannerCard({
           <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
             <div className="flex flex-col items-center gap-2">
               <div className="w-8 h-8 border-[3px] border-indigo-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm text-indigo-600 font-medium">جاري التحميل...</span>
+              <span className="text-sm text-indigo-600 font-medium">جاري المعالجة...</span>
             </div>
           </div>
         )}
@@ -174,50 +190,80 @@ export default function BannerCard({
             onChange={handleFileChange}
           />
 
-          <button
-            onClick={triggerInput}
-            disabled={isLoading}
-            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition disabled:opacity-40 whitespace-nowrap"
-          >
-            {hasImage ? "تغيير" : "رفع"}
-          </button>
-
-          {hasImage && (
-            <>
+          {confirmDelete ? (
+            <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 px-2 py-1 rounded-lg">
+              <span className="text-xs text-red-600 font-medium">
+                {confirmDelete === "image" ? "تأكيد حذف الصورة؟" : "تأكيد حذف البانر؟"}
+              </span>
               <button
-                onClick={() => onToggle(index)}
+                type="button"
+                onClick={() => {
+                  if (confirmDelete === "image") onDeleteImage(index);
+                  else onDeleteSlot(index);
+                  setConfirmDelete(null);
+                }}
                 disabled={isLoading}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition disabled:opacity-40 whitespace-nowrap ${
-                  banner.active
-                    ? "bg-orange-50 hover:bg-orange-100 text-orange-500"
-                    : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
-                }`}
+                className="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded"
               >
-                {banner.active ? "إيقاف" : "تفعيل"}
+                نعم
               </button>
               <button
-                onClick={() => onDeleteImage(index)}
+                type="button"
+                onClick={() => setConfirmDelete(null)}
                 disabled={isLoading}
-                title="حذف الصورة"
-                className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition disabled:opacity-40"
+                className="px-2 py-0.5 bg-white border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50"
+              >
+                إلغاء
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={triggerInput}
+                disabled={isLoading}
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition disabled:opacity-40 whitespace-nowrap"
+              >
+                {hasImage ? "تغيير" : "رفع"}
+              </button>
+
+              {hasImage && (
+                <>
+                  <button
+                    onClick={() => onToggle(index)}
+                    disabled={isLoading}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition disabled:opacity-40 whitespace-nowrap ${
+                      banner.active
+                        ? "bg-orange-50 hover:bg-orange-100 text-orange-500"
+                        : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
+                    }`}
+                  >
+                    {banner.active ? "إيقاف" : "تفعيل"}
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete("image")}
+                    disabled={isLoading}
+                    title="حذف الصورة"
+                    className="p-1.5 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition disabled:opacity-40"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </>
+              )}
+
+              <button
+                onClick={() => setConfirmDelete("slot")}
+                disabled={isLoading}
+                title="حذف البانر بالكامل"
+                className="p-1.5 bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-lg transition disabled:opacity-40"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </>
           )}
-
-          <button
-            onClick={() => onDeleteSlot(index)}
-            disabled={isLoading}
-            title="حذف البانر بالكامل"
-            className="p-1.5 bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 rounded-lg transition disabled:opacity-40"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>

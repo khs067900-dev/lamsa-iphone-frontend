@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import type { ProductSection } from "../../../components/products/types";
+import { getOptimizedImageUrl, isCloudinaryUrl } from "../../../lib/imageUrl";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -14,6 +15,37 @@ const stagger = { show: { transition: { staggerChildren: 0.12 } } };
 const GOLD = "#BC9255";
 const GOLD_LIGHT = "#DFC4A4";
 const DARK = "#1F2C3E";
+
+function SectionImage({
+  src,
+  alt,
+  fill = true,
+  className = "object-cover",
+  sizes = "(max-width: 1152px) 100vw, 1152px",
+  width,
+}: {
+  src: string;
+  alt: string;
+  fill?: boolean;
+  className?: string;
+  sizes?: string;
+  width?: number;
+}) {
+  const isCloudinary = isCloudinaryUrl(src);
+  const targetWidth = width || 1200;
+  const optimized = isCloudinary ? getOptimizedImageUrl(src, { width: targetWidth }) : src;
+  return (
+    <Image
+      src={optimized}
+      alt={alt}
+      fill={fill}
+      className={className}
+      sizes={sizes}
+      loading="lazy"
+      unoptimized={isCloudinary}
+    />
+  );
+}
 
 function InView({ children, className }: { children: React.ReactNode; className?: string }) {
   const ref = useRef(null);
@@ -76,7 +108,7 @@ function DesignSection({ section }: { section: ProductSection }) {
       <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden" style={{ minHeight: "clamp(360px, 60vw, 560px)" }}>
         <AnimatePresence mode="wait">
           <motion.div key={displayImage} initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="absolute inset-0">
-            {displayImage && <Image src={displayImage} alt={feat?.label ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />}
+            {displayImage && <SectionImage src={displayImage} alt={feat?.label ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />}
           </motion.div>
         </AnimatePresence>
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
@@ -120,7 +152,7 @@ function LensesCard({ lensesCard }: { lensesCard: { image: string; lenses: { nam
     <InView>
       <motion.div variants={fadeUp} className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4">
         <div className="relative w-full" style={{ minHeight: "clamp(260px, 50vw, 400px)" }}>
-          <Image src={lensesCard.image} alt="نظام الكاميرا" fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
+          <SectionImage src={lensesCard.image} alt="نظام الكاميرا" fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/10" />
         </div>
         <div className="absolute bottom-0 inset-x-0 p-4 sm:p-8">
@@ -169,7 +201,7 @@ function CameraSection({ section }: { section: ProductSection }) {
       {section.media?.[0]?.url && hero && (
         <InView>
           <motion.div variants={fadeUp} className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4" style={{ minHeight: "clamp(300px, 55vw, 480px)" }}>
-            <Image src={section.media[0].url} alt={section.media[0].alt ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
+            <SectionImage src={section.media[0].url} alt={section.media[0].alt ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10" />
             <div className="relative z-10 flex flex-col justify-end h-full p-4 sm:p-10" style={{ minHeight: "clamp(300px, 55vw, 480px)" }}>
               <div className="flex gap-5 sm:gap-14 mb-3 sm:mb-5 justify-center sm:justify-start">
@@ -191,7 +223,7 @@ function CameraSection({ section }: { section: ProductSection }) {
           <motion.div variants={fadeUp} className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4" style={{ minHeight: "clamp(260px, 50vw, 400px)" }}>
             <AnimatePresence mode="wait">
               <motion.div key={activeZoom} initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className="absolute inset-0">
-                <Image src={zoomLevels[activeZoom].image} alt={zoomLevels[activeZoom].label} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
+                <SectionImage src={zoomLevels[activeZoom].image} alt={zoomLevels[activeZoom].label} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
               </motion.div>
             </AnimatePresence>
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
@@ -219,7 +251,7 @@ function CameraSection({ section }: { section: ProductSection }) {
       {zoomFooter && zoomLevels.length === 0 && (
         <InView>
           <motion.div variants={fadeUp} className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4" style={{ minHeight: "clamp(220px, 40vw, 340px)" }}>
-            {zoomFooter.image && <Image src={zoomFooter.image} alt="zoom" fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />}
+            {zoomFooter.image && <SectionImage src={zoomFooter.image} alt="zoom" fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />}
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
             <div className="relative z-10 flex flex-col justify-end h-full p-4 sm:p-10" style={{ minHeight: "clamp(220px, 40vw, 340px)" }}>
               <p className="text-white/70 text-xs sm:text-sm leading-relaxed max-w-2xl">{zoomFooter.text}</p>
@@ -237,7 +269,7 @@ function CameraSection({ section }: { section: ProductSection }) {
             <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
               {proPhotos.items.map((item, i) => (
                 <div key={i} className="relative rounded-2xl overflow-hidden shrink-0" style={{ width: "clamp(220px, 60vw, 320px)", aspectRatio: "3/4" }}>
-                  <Image src={item.image} alt={item.label} fill className="object-cover" sizes="320px" />
+                  <SectionImage src={item.image} alt={item.label} fill className="object-cover" sizes="320px" width={450} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <p className="absolute bottom-0 inset-x-0 p-3 text-white text-[11px] sm:text-xs font-semibold leading-snug">{item.label}</p>
                 </div>
@@ -250,7 +282,7 @@ function CameraSection({ section }: { section: ProductSection }) {
       {video && (
         <InView>
           <motion.div variants={fadeUp} className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4" style={{ minHeight: "clamp(240px, 50vw, 420px)" }}>
-            <Image src={video.image} alt={video.title} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
+            <SectionImage src={video.image} alt={video.title} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
             <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-10">
               <p className="text-[10px] font-black tracking-widest uppercase text-white/40 mb-1">{video.title}</p>
               <p className="text-base sm:text-2xl font-black text-white mb-2 leading-snug">{video.subtitle}</p>
@@ -267,7 +299,7 @@ function CameraSection({ section }: { section: ProductSection }) {
             <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
               {proVideo.items.map((item, i) => (
                 <div key={i} className="relative rounded-2xl overflow-hidden shrink-0" style={{ width: "clamp(220px, 60vw, 320px)", aspectRatio: "3/4" }}>
-                  <Image src={item.image} alt={item.label} fill className="object-cover" sizes="320px" />
+                  <SectionImage src={item.image} alt={item.label} fill className="object-cover" sizes="320px" width={450} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <p className="absolute bottom-0 inset-x-0 p-3 text-white text-[11px] sm:text-xs font-semibold leading-snug">{item.label}</p>
                 </div>
@@ -294,7 +326,7 @@ function PerformanceSection({ section }: { section: ProductSection }) {
         <motion.div variants={fadeUp} className="relative rounded-2xl sm:rounded-3xl overflow-hidden" style={{ backgroundColor: "#1a1a2e" }}>
           {section.media?.[0]?.url && (
             <div className="relative w-full" style={{ minHeight: "clamp(200px, 40vw, 320px)" }}>
-              <Image src={section.media[0].url} alt={section.media[0].alt ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
+              <SectionImage src={section.media[0].url} alt={section.media[0].alt ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.1), #1a1a2e)" }} />
             </div>
           )}
@@ -338,7 +370,7 @@ function BatterySection({ section }: { section: ProductSection }) {
         <motion.div variants={fadeUp} className="relative rounded-2xl sm:rounded-3xl overflow-hidden" style={{ backgroundColor: "#0f1a0f" }}>
           {section.media?.[0]?.url && (
             <div className="relative w-full" style={{ minHeight: "clamp(180px, 35vw, 280px)" }}>
-              <Image src={section.media[0].url} alt={section.media[0].alt ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
+              <SectionImage src={section.media[0].url} alt={section.media[0].alt ?? ""} fill className="object-cover" sizes="(max-width: 1152px) 100vw, 1152px" />
               <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.1), #0f1a0f)" }} />
             </div>
           )}
@@ -369,6 +401,8 @@ function BatterySection({ section }: { section: ProductSection }) {
 export default function ProductSections({ sections }: { sections?: ProductSection[] }) {
   if (!sections?.length) return null;
   const active = sections.filter((s) => s.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
+  if (!active.length) return null;
+
   return (
     <div className="pb-10">
       {active.map((s) => {

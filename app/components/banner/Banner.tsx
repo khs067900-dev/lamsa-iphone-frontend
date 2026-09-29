@@ -1,21 +1,17 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { FaApple } from "react-icons/fa";
 import { IoShieldCheckmarkOutline, IoRocketOutline } from "react-icons/io5";
 import { TbTruckDelivery } from "react-icons/tb";
 
-const slides = [
-  {
-    image: "/i-18.webp",
-    tag: "متاح الآن حصرياً",
-    title: "iPhone 18",
-    titleHighlight: "خذه اليوم",
-    description: "كن في الصف الأول — أحدث إصدار من Apple متاح الآن حصرياً على لمسه",
-    buttons: [{ text: "اطلبه الآن", href: "/smartphones/apple/iphone-18" }],
-  },
-];
+const slide = {
+  image: "/i-18.webp",
+  tag: "متاح الآن حصرياً",
+  title: "iPhone 18",
+  titleHighlight: "خذه اليوم",
+  description: "كن في الصف الأول — أحدث إصدار من Apple متاح الآن حصرياً على لمسه",
+  buttons: [{ text: "اطلبه الآن", href: "/smartphones/apple/iphone-18" }],
+};
 
 const TRUST = [
   { icon: <IoShieldCheckmarkOutline size={14} />, label: "ضمان رسمي" },
@@ -24,24 +20,6 @@ const TRUST = [
 ];
 
 export default function Banner() {
-  const [current, setCurrent] = useState(0);
-  const [mounted, setMounted] = useState(false);
-
-  const next = useCallback(() => setCurrent((c) => (c + 1) % slides.length), []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (slides.length < 2) return;
-    const timer = setInterval(next, 6000);
-    return () => clearInterval(timer);
-  }, [next]);
-
-  const slide = slides[current];
-
   return (
     <section
       className="relative w-full min-h-[44vh] sm:min-h-[58vh] md:min-h-[88vh] flex items-center overflow-hidden"
@@ -60,24 +38,18 @@ export default function Banner() {
         .b-cta:active{transform:translateY(0)}
       `}</style>
 
-      {/* Background image */}
-      {slides.map((s, i) => (
-        <div
-          key={i}
-          className="absolute inset-0"
-          style={{ opacity: i === current ? 1 : 0}}
-        >
-          <Image
-            src={s.image}
-            alt={s.tag}
-            fill
-            className="object-cover object-center "
-            priority={i === 0}
-            sizes="100vw"
-            quality={80}
-          />
-        </div>
-      ))}
+      {/* Background image — Priority LCP */}
+      <div className="absolute inset-0">
+        <Image
+          src={slide.image}
+          alt={slide.tag}
+          fill
+          className="object-cover object-center"
+          priority
+          sizes="100vw"
+          quality={80}
+        />
+      </div>
 
       {/* Overlays */}
       <div
@@ -120,48 +92,28 @@ export default function Banner() {
           {/* CTA */}
           <div className="b-fade-3 flex flex-wrap items-center gap-3 mb-7 sm:mb-10">
             {slide.buttons.map((btn) => (
-              <a
+              <Link
                 key={btn.text}
                 href={btn.href}
                 className="b-cta inline-flex items-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-full text-[13px] sm:text-[15px] font-black text-[#060e18]"
               >
                 <IoRocketOutline size={17} />
                 {btn.text}
-              </a>
+              </Link>
             ))}
           </div>
 
-          {/* Trust badges */}
-          {mounted && (
-            <div className="b-fade-3 flex flex-wrap items-center gap-4 sm:gap-6">
-              {TRUST.map(({ icon, label }) => (
-                <span key={label} className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-white/35 font-medium">
-                  <span className="text-[#BC9255]/70">{icon}</span>
-                  {label}
-                </span>
-              ))}
-            </div>
-          )}
+          {/* Trust badges — rendered directly in SSR to prevent CLS */}
+          <div className="b-fade-3 flex flex-wrap items-center gap-4 sm:gap-6">
+            {TRUST.map(({ icon, label }) => (
+              <span key={label} className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-white/35 font-medium">
+                <span className="text-[#BC9255]/70">{icon}</span>
+                {label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
-
-      {/* Dots */}
-      {slides.length > 1 && (
-        <div className="absolute bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              aria-label={`الانتقال للشريحة ${i + 1}`}
-              className="h-1.5 rounded-full transition-all duration-500"
-              style={{
-                width: i === current ? 28 : 8,
-                backgroundColor: i === current ? "#BC9255" : "rgba(255,255,255,0.3)",
-              }}
-            />
-          ))}
-        </div>
-      )}
 
       {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-24 bg-gradient-to-t from-[#060e18]/60 to-transparent pointer-events-none" />

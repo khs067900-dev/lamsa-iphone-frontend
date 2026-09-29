@@ -42,12 +42,19 @@ export function useRateLimit() {
     setBlocked(secs > 0);
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (secs <= 0) return;
+
+    const targetTime = Date.now() + secs * 1000;
     intervalRef.current = setInterval(() => {
-      const s = calcSecondsLeft();
-      setSecondsLeft(s);
-      if (s <= 0) { setBlocked(false); clearInterval(intervalRef.current!); }
+      const remaining = Math.ceil((targetTime - Date.now()) / 1000);
+      if (remaining <= 0) {
+        setSecondsLeft(0);
+        setBlocked(false);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+      } else {
+        setSecondsLeft(remaining);
+      }
     }, 1000);
-  }, [calcSecondsLeft]);
+  }, []);
 
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === "visible") startTimer(calcSecondsLeft()); };

@@ -24,6 +24,7 @@ export default function ProductClientWrapper({ product }: Props) {
   const activeVariant = product.variants?.find((v) => v.color === selectedColor);
   const variantImages =
     activeVariant?.images?.length ? activeVariant.images : undefined;
+  const displayName = activeVariant?.name ?? product.name;
 
   return (
     <>
@@ -44,7 +45,7 @@ export default function ProductClientWrapper({ product }: Props) {
           className="hidden lg:block text-2xl xl:text-3xl font-black mb-5 leading-snug"
           style={{ color: "#1F2C3E" }}
         >
-          {product.name}
+          {displayName}
         </h2>
         <ProductInfoClient
           product={product}

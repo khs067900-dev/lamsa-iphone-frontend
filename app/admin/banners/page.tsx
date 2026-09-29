@@ -5,7 +5,7 @@ import BannerCard from "./components/BannerCard";
 
 export default function BannersPage() {
   const {
-    banners, loading, addingBanner, inputRefs,
+    banners, initialLoading, loading, addingBanner, inputRefs,
     handleUpload, handleDeleteImage, handleDeleteSlot, handleToggle, handleAddBanner,
   } = useBanners();
 
@@ -21,21 +21,39 @@ export default function BannersPage() {
         addingBanner={addingBanner}
         onAdd={handleAddBanner}
       />
-      <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-        {banners.map((banner, i) => (
-          <BannerCard
-            key={i}
-            banner={banner}
-            index={i}
-            isLoading={loading === i}
-            inputRef={(el) => { inputRefs.current[i] = el; }}
-            onUpload={handleUpload}
-            onToggle={handleToggle}
-            onDeleteImage={handleDeleteImage}
-            onDeleteSlot={handleDeleteSlot}
-          />
-        ))}
-      </div>
+      
+      {initialLoading ? (
+        <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 md:gap-6 animate-pulse">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+              <div className="w-full aspect-[2.5/1] bg-gray-200" />
+              <div className="px-4 py-3 flex items-center justify-between">
+                <div className="w-24 h-4 bg-gray-200 rounded" />
+                <div className="flex gap-2">
+                  <div className="w-14 h-7 bg-gray-200 rounded-lg" />
+                  <div className="w-14 h-7 bg-gray-200 rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-4 sm:p-6 md:p-8 grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+          {banners.map((banner, i) => (
+            <BannerCard
+              key={i}
+              banner={banner}
+              index={i}
+              isLoading={loading === i}
+              inputRef={(el) => { inputRefs.current[i] = el; }}
+              onUpload={handleUpload}
+              onToggle={handleToggle}
+              onDeleteImage={handleDeleteImage}
+              onDeleteSlot={handleDeleteSlot}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

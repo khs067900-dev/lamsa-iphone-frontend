@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "./navbar";
 import WhatsappButton from "./WhatsappButton";
+import { Toaster } from "react-hot-toast";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ export default function ClientLayout({ children, footer, initialLogo, whatsapp }
 
   return (
     <>
+      <Toaster position="top-center" />
       {!hideLayout && <Navbar companyLogo={initialLogo} />}
       {children}
       {!hideLayout && footer}

@@ -42,7 +42,7 @@ async function reverseGeocodeGoogle(lat: number, lng: number): Promise<Omit<Addr
 
 async function reverseGeocodeNominatim(lat: number, lng: number): Promise<Omit<AddressData, "latitude" | "longitude"> | null> {
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ar`, { headers: { "User-Agent": "lamsa-app" } });
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ar`);
     const data = await res.json();
     if (!data?.address) return null;
     const a = data.address;
@@ -57,8 +57,23 @@ async function reverseGeocodeNominatim(lat: number, lng: number): Promise<Omit<A
   } catch { return null; }
 }
 
+const geoCache = new Map<string, Omit<AddressData, "latitude" | "longitude"> | null>();
+
 export async function reverseGeocode(lat: number, lng: number): Promise<Omit<AddressData, "latitude" | "longitude"> | null> {
+  const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+  if (geoCache.has(key)) return geoCache.get(key) ?? null;
+
   const google = await reverseGeocodeGoogle(lat, lng);
-  if (google) return google;
-  return reverseGeocodeNominatim(lat, lng);
+  if (google) {
+    geoCache.set(key, google);
+    return google;
+  }
+
+  const nominatim = await reverseGeocodeNominatim(lat, lng);
+  if (nominatim) {
+    geoCache.set(key, nominatim);
+    return nominatim;
+  }
+
+  return null;
 }

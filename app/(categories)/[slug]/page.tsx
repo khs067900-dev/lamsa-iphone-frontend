@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     keywords: [label, parentLabel, siteName, "أقساط", "شراء", "السعودية"].filter(Boolean),
     openGraph: {
       type: "website",
-      url: `${SITE_URL}/categories/${slug}`,
+      url: `${SITE_URL}/${slug}`,
       title: `${title} | ${siteName}`,
       description,
       siteName,
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       images: logoUrl ? [logoUrl] : [],
     },
     alternates: {
-      canonical: `${SITE_URL}/categories/${slug}`,
+      canonical: `${SITE_URL}/${slug}`,
     },
   };
 }

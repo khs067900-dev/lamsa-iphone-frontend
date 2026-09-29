@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackend, forwardCookies } from "../../_lib";
 
@@ -10,6 +11,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     body: JSON.stringify(body),
   }));
   const data = await res.json();
+  if (res.ok) revalidateTag("reviews");
   return NextResponse.json(data, { status: res.status });
 }
 
@@ -17,5 +19,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const res = await fetch(`${getBackend()}/api/admin/reviews/${id}`, forwardCookies(req, { method: "DELETE" }));
   const data = await res.json();
+  if (res.ok) revalidateTag("reviews");
   return NextResponse.json(data, { status: res.status });
 }

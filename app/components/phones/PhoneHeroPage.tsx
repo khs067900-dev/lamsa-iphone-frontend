@@ -58,10 +58,11 @@ export default function PhoneHeroPage({ slug, heroImage, nameEn, nameEnLine2, ta
       // brand filter
       if (filters.brand && brand !== filters.brand.toLowerCase()) return false;
 
-      // category filter (matches name or category field)
+      // category filter (matches name or category field, supports comma-separated list)
       if (filters.category) {
-        const fc = filters.category.toLowerCase();
-        if (!name.includes(fc) && !cat.includes(fc)) return false;
+        const catKeywords = filters.category.toLowerCase().split(",").map((k) => k.trim()).filter(Boolean);
+        const matchesCat = catKeywords.some((kw) => name.includes(kw) || cat.includes(kw));
+        if (!matchesCat) return false;
       }
 
       // nameIncludes: at least one keyword must match

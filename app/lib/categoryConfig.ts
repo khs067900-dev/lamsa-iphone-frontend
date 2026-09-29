@@ -288,7 +288,7 @@ export const slugConfigs: Record<string, SlugConfig> = {
     label: "الاكسسوارات",
     parentLabel: "الاكسسوارات",
     parentHref: "/accessories",
-    filters: { category: "اكسسوار" },
+    filters: { category: "اكسسورات,اكسسوار" },
   },
   "anker-batteries": {
     label: "بطاريات متنقلة",

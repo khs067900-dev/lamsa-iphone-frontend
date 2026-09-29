@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import AppleOnlyClient from "./AppleOnlyClient";
-import type { Product } from "../../../components/products/types";
-import { getAllProducts } from "../../../lib/productsCache";
+import { getProductsByCategory } from "../../../lib/productsCache";
 import { getCompany } from "../../../lib/config";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,6 +13,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AppleOnlyPage() {
-  const products = await getAllProducts() as Product[];
-  return <AppleOnlyClient initialProducts={products} />;
+  const result = await getProductsByCategory({ brand: "Apple", limit: 200, sort: "storage-asc" });
+  return <AppleOnlyClient initialProducts={result.products} />;
 }

@@ -1,36 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import ContactSection from "../components/ContactSection";
-
-function useInView(threshold = 0.12) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, visible };
-}
-
-function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const { ref, visible } = useInView();
-  return (
-    <div ref={ref} className={className} style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(24px)",
-      transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
-    }}>
-      {children}
-    </div>
-  );
-}
 
 /* Icons */
 const IconShield = () => (
@@ -114,23 +84,8 @@ const sections = [
 ];
 
 export default function AboutClient({ whatsapp, email }: { whatsapp: string; email: string }) {
-  const [heroVisible, setHeroVisible] = useState(false);
-
-  useEffect(() => { const t = setTimeout(() => setHeroVisible(true), 60); return () => clearTimeout(t); }, []);
-
-  const anim = (delay: number, extra = "") =>
-    ({
-      style: {
-        opacity: heroVisible ? 1 : 0,
-        transform: heroVisible ? "translateY(0)" : "translateY(22px)",
-        transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
-      },
-      className: extra,
-    } as React.HTMLAttributes<HTMLElement>);
-
   return (
     <main className="min-h-screen bg-[#faf7f2] overflow-x-hidden" dir="rtl">
-
       {/* ════════ HERO ════════ */}
       <section className="relative w-full overflow-hidden" style={{ background: "linear-gradient(135deg, #0A1825 0%, #122a42 50%, #0A1825 100%)" }}>
         {/* Decorative elements */}
@@ -142,18 +97,18 @@ export default function AboutClient({ whatsapp, email }: { whatsapp: string; ema
         </div>
 
         <div className="relative w-full px-5 sm:px-12 lg:px-20 py-20 sm:py-28 text-center">
-          <div {...anim(100)} className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium mb-6" style={{ backgroundColor: "rgba(188,146,85,0.15)", color: "#BC9255", border: "1px solid rgba(188,146,85,0.3)" }}>
+          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium mb-6" style={{ backgroundColor: "rgba(188,146,85,0.15)", color: "#BC9255", border: "1px solid rgba(188,146,85,0.3)" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-[#BC9255] animate-pulse" />
             تعرف علينا
           </div>
 
-          <h1 {...anim(200)} className="text-3xl sm:text-5xl lg:text-6xl font-extrabold mb-5 leading-tight text-white">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold mb-5 leading-tight text-white">
             عن{" "}
             <span className="text-[#BC9255]">لمسه</span>
             <span className="block text-white/90 text-2xl sm:text-4xl lg:text-5xl mt-2">للأجهزة الذكية</span>
           </h1>
 
-          <p {...anim(350)} className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
             تعرف على نشاط المتجر ورؤيتنا والخدمات التي نقدمها لعملائنا
           </p>
         </div>
@@ -165,8 +120,8 @@ export default function AboutClient({ whatsapp, email }: { whatsapp: string; ema
       {/* ════════ STATS ════════ */}
       <section className="w-full max-w-4xl mx-auto px-4 sm:px-8 pt-10 pb-4">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {stats.map((s, i) => (
-            <FadeUp key={s.label} delay={i * 80}>
+          {stats.map((s) => (
+            <div key={s.label}>
               <div className="group relative bg-white rounded-2xl border p-4 sm:p-5 text-center overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300" style={{ borderColor: "rgba(188,146,85,0.2)" }}>
                 <div className="absolute top-0 left-0 w-full h-0.5" style={{ background: "linear-gradient(to right, #BC9255, #A77D4B)" }} />
                 <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mx-auto mb-2 text-white group-hover:scale-110 transition-transform duration-300" style={{ background: "linear-gradient(135deg, #BC9255, #A77D4B)" }}>
@@ -175,15 +130,15 @@ export default function AboutClient({ whatsapp, email }: { whatsapp: string; ema
                 <p className="text-xl sm:text-2xl font-extrabold text-[#0A1825] mb-0.5">{s.value}</p>
                 <p className="text-[11px] sm:text-xs text-[#A77D4B] font-semibold">{s.label}</p>
               </div>
-            </FadeUp>
+            </div>
           ))}
         </div>
       </section>
 
       {/* ════════ SECTIONS ════════ */}
       <section className="w-full max-w-4xl mx-auto px-4 sm:px-8 py-8 sm:py-10 space-y-4 sm:space-y-5">
-        {sections.map((s, i) => (
-          <FadeUp key={s.title} delay={i * 100}>
+        {sections.map((s) => (
+          <div key={s.title}>
             <div className="group bg-white rounded-2xl overflow-hidden hover:shadow-md transition-all duration-300" style={{ border: "1px solid rgba(188,146,85,0.2)" }}>
               <div className="flex flex-col sm:flex-row">
                 <div className="w-full h-1 sm:w-1 sm:h-auto shrink-0" style={{ background: "linear-gradient(to bottom, #BC9255, #A77D4B)" }} />
@@ -205,7 +160,7 @@ export default function AboutClient({ whatsapp, email }: { whatsapp: string; ema
                 </div>
               </div>
             </div>
-          </FadeUp>
+          </div>
         ))}
 
         <ContactSection
@@ -213,12 +168,11 @@ export default function AboutClient({ whatsapp, email }: { whatsapp: string; ema
           phone={whatsapp}
           whatsapp={whatsapp}
           email={email}
-          fadeDelay={300}
         />
       </section>
 
       <div className="h-16" />
-      <Script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" strategy="afterInteractive" />
+      <Script src="https://eauthenticate.saudibusiness.gov.sa/EAuthSealApi/seal.js" strategy="lazyOnload" />
     </main>
   );
 }

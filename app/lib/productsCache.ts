@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 import type { Product } from "../components/products/types";
 
 const ALLOWED_HOSTS = ["lamsasmart.com", "localhost", "127.0.0.1", "vercel.app"];
@@ -35,10 +36,80 @@ function safeFetch(url: URL, init?: RequestInit): Promise<Response> {
   return fetch(safeHref, { ...init, signal: init?.signal ?? AbortSignal.timeout(10000) });
 }
 
-const FIELDS = "name originalPrice salePrice image images color storage category subCategory brand inStock freeDelivery warrantyYears installment discountPercent network price";
+const FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,network,price";
 
-// [NEW] Optimized function to get products by category with server-side filtering
-export const getProductsByCategory = (params: {
+export interface HomeSettings {
+  category: string;
+  subCategory: string;
+  showInHome: boolean;
+  order: number;
+}
+
+export interface HomeConfig {
+  settings: HomeSettings[];
+  max: number;
+}
+
+export interface HomePageData {
+  products: Product[];
+  bannerMap: Record<string, string[]>;
+  homeConfig: HomeConfig;
+}
+
+// [OPTIMIZATION] High-performance home page data fetcher
+async function fetchHomePageData(): Promise<HomePageData> {
+  // 1. Try dedicated fast home endpoint
+  try {
+    const url = new URL("/api/products/home", BACKEND);
+    const r = await safeFetch(url, { next: { revalidate: 120, tags: ["products", "banners", "home-config"] } } as RequestInit);
+    if (r.ok) {
+      const data = await r.json();
+      if (data && Array.isArray(data.products)) return data;
+    }
+  } catch {}
+
+  // Fallback if /api/products/home is unreachable
+  try {
+    const [settingsRes, maxRes] = await Promise.all([
+      safeFetch(new URL("/api/admin/sub-categories/home-settings", BACKEND), { next: { revalidate: 120, tags: ["home-config"] } } as RequestInit),
+      safeFetch(new URL("/api/admin/sub-categories/max", BACKEND), { next: { revalidate: 120, tags: ["home-config"] } } as RequestInit),
+    ]);
+    const settings = settingsRes.ok ? await settingsRes.json() : [];
+    const maxData = maxRes.ok ? await maxRes.json() : { max: 4 };
+    const homeConfig: HomeConfig = { settings, max: maxData.max ?? 4 };
+
+    const { products, bannerMap } = await getAllProductsWithBanners();
+    return { products, bannerMap, homeConfig };
+  } catch {
+    return { products: [], bannerMap: {}, homeConfig: { settings: [], max: 4 } };
+  }
+}
+
+export const getHomePageData = unstable_cache(
+  fetchHomePageData,
+  ["home-page-data"],
+  { revalidate: 120, tags: ["products", "banners", "home-config"] }
+);
+
+// [OPTIMIZED] Module-level cached fetcher for category queries
+const cachedFetchCategoryProducts = unstable_cache(
+  async (queryString: string) => {
+    try {
+      const url = new URL("/api/products/by-category", BACKEND);
+      url.search = queryString;
+      const r = await safeFetch(url, { next: { revalidate: 120, tags: ["products"] } } as RequestInit);
+      if (!r.ok) return { products: [], total: 0, page: 1, pages: 0 };
+      const data = await r.json();
+      return data;
+    } catch {
+      return { products: [], total: 0, page: 1, pages: 0 };
+    }
+  },
+  ["products-by-category"],
+  { revalidate: 120, tags: ["products"] }
+);
+
+export const getProductsByCategory = async (params: {
   category?: string;
   subCategory?: string;
   brand?: string;
@@ -62,24 +133,7 @@ export const getProductsByCategory = (params: {
   queryParams.set("sort", sort);
   queryParams.set("fields", FIELDS);
   
-  const cacheKey = `products-by-category:${queryParams.toString()}`;
-  
-  return unstable_cache(
-    async () => {
-      try {
-        const url = new URL("/api/products/by-category", BACKEND);
-        url.search = queryParams.toString();
-        const r = await safeFetch(url, { next: { tags: ["products"] } } as RequestInit);
-        if (!r.ok) return { products: [], total: 0, page: 1, pages: 0 };
-        const data = await r.json();
-        return data;
-      } catch {
-        return { products: [], total: 0, page: 1, pages: 0 };
-      }
-    },
-    [cacheKey],
-    { revalidate: 120, tags: ["products"] }
-  )();
+  return cachedFetchCategoryProducts(queryParams.toString());
 };
 
 export const getAllProducts = unstable_cache(
@@ -149,21 +203,24 @@ export async function getAllProductsWithBanners() {
 // All fields needed for product detail page — variants + specGroups + sections included
 const PRODUCT_DETAIL_FIELDS = "name,originalPrice,salePrice,image,images,color,storage,category,subCategory,brand,inStock,freeDelivery,warrantyYears,installment,discountPercent,description,specs,specGroups,variants,sections,network,price,taxIncluded,deliveryTime,brief";
 
-export const getProductById = (id: string) => {
-  const safeId = encodeURIComponent(id);
-  return unstable_cache(
-    async () => {
-      try {
-        const url = new URL(`/api/products/${safeId}`, BACKEND);
-        url.searchParams.set("fields", PRODUCT_DETAIL_FIELDS);
-        const r = await safeFetch(url, { next: { tags: ["products", `product-${safeId}`] } } as RequestInit);
-        if (!r.ok) return null;
-        return (await r.json()) as Product;
-      } catch {
-        return null;
-      }
-    },
-    ["product-by-id", safeId],
-    { revalidate: 120, tags: ["products", `product-${safeId}`] }
-  )();
-};
+const fetchProductRaw = unstable_cache(
+  async (safeId: string) => {
+    try {
+      const url = new URL(`/api/products/${safeId}`, BACKEND);
+      url.searchParams.set("fields", PRODUCT_DETAIL_FIELDS);
+      const r = await safeFetch(url, { next: { revalidate: 300, tags: ["products", `product-${safeId}`] } } as RequestInit);
+      if (!r.ok) return null;
+      return (await r.json()) as Product;
+    } catch {
+      return null;
+    }
+  },
+  ["product-by-id"],
+  { revalidate: 300, tags: ["products"] }
+);
+
+export const getProductById = cache(async (id: string) => {
+  if (!id || typeof id !== "string") return null;
+  const safeId = encodeURIComponent(id.trim());
+  return fetchProductRaw(safeId);
+});

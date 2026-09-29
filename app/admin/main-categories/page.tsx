@@ -7,10 +7,34 @@ import DeleteModal from "./components/DeleteModal";
 
 export default function MainCategoriesPage() {
   const {
-    categories, filtered, search, setSearch,
-    showModal, setShowModal, name, setName, error, loading, handleAdd,
-    editCat, setEditCat, editName, setEditName, editError, editLoading, handleEdit,
-    confirmDelete, setConfirmDelete, confirmDeleteAction,
+    categories,
+    filtered,
+    paginated,
+    fetching,
+    search,
+    setSearch,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    pageSize,
+    showModal,
+    setShowModal,
+    name,
+    setName,
+    error,
+    loading,
+    handleAdd,
+    editCat,
+    setEditCat,
+    editName,
+    setEditName,
+    editError,
+    editLoading,
+    handleEdit,
+    confirmDelete,
+    setConfirmDelete,
+    deleteLoading,
+    confirmDeleteAction,
   } = useMainCategories();
 
   return (
@@ -19,7 +43,7 @@ export default function MainCategoriesPage() {
         <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">التصنيفات الرئيسية</h1>
         <button
           onClick={() => { setShowModal(true); }}
-          className="bg-blue-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-blue-700 text-xs sm:text-sm font-medium whitespace-nowrap"
+          className="bg-blue-600 text-white px-3 py-2 sm:px-4 rounded-lg hover:bg-blue-700 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors"
         >
           + إضافة تصنيف
         </button>
@@ -28,10 +52,16 @@ export default function MainCategoriesPage() {
       <CategoriesTable
         categories={categories}
         filtered={filtered}
+        paginated={paginated}
+        fetching={fetching}
         search={search}
         onSearchChange={setSearch}
         onEdit={(cat) => { setEditCat(cat); setEditName(cat.name); }}
         onDelete={setConfirmDelete}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
       />
 
       {showModal && (
@@ -61,7 +91,7 @@ export default function MainCategoriesPage() {
         <DeleteModal
           name={confirmDelete}
           onConfirm={confirmDeleteAction}
-          onClose={() => setConfirmDelete(null)}
+          onClose={() => { if (!deleteLoading) setConfirmDelete(null); }}
         />
       )}
     </div>

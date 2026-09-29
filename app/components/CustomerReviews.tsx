@@ -1,6 +1,10 @@
 import { unstable_cache } from "next/cache";
+import dynamic from "next/dynamic";
 import { BACKEND } from "../lib/productsCache";
-import CustomerReviewsClient from "./CustomerReviewsClient";
+
+const CustomerReviewsClient = dynamic(() => import("./CustomerReviewsClient"), {
+  loading: () => <div className="min-h-80" />,
+});
 
 const getReviews = unstable_cache(
   async () => {

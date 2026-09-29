@@ -5,7 +5,7 @@ import { apiFetch } from "../../lib/api";
 
 type SubCat = { name: string; category: string; count: number };
 type Settings = { category: string; subCategory: string; showInHome: boolean; order: number };
-type CatImage = { name: string; image: string };
+type CatImage = { name: string; image: string; count?: number };
 
 export default function CategoryItemsPage() {
   const [items, setItems] = useState<SubCat[]>([]);
@@ -23,75 +23,142 @@ export default function CategoryItemsPage() {
   const [hasFile, setHasFile] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Clean up object URLs
+  const clearPreview = useCallback(() => {
+    if (preview && preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
+    setPreview("");
+  }, [preview]);
+
+  // [PERF] High-speed single bundle request with fallback
   useEffect(() => {
-    Promise.all([
-      apiFetch("/api/admin/sub-categories", { credentials: "include" }).then((r) => r.json()),
-      apiFetch("/api/admin/sub-categories/settings", { credentials: "include" }).then((r) => r.json()),
-      // [PERF] Use the canonical /max endpoint directly — avoids the extra
-      // /settings/max proxy hop that previously added a redundant round-trip.
-      apiFetch("/api/admin/sub-categories/max", { credentials: "include" }).then((r) => r.json()),
-      apiFetch("/api/admin/sub-categories/public").then((r) => r.json()),
-    ]).then(([subs, sets, maxData, cats]) => {
-      setItems(subs);
-      setSettings(sets);
-      const m = maxData?.max ?? 4;
-      setMax(m);
-      setMaxInput(m);
-      setCategories(cats);
-      setLoading(false);
-    });
+    let isMounted = true;
+
+    async function loadData() {
+      try {
+        const res = await apiFetch("/api/admin/sub-categories/bundle", { credentials: "include" });
+        if (res.ok) {
+          const bundle = await res.json();
+          if (isMounted) {
+            setItems(bundle.items || []);
+            setSettings(bundle.settings || []);
+            const m = bundle.max ?? 4;
+            setMax(m);
+            setMaxInput(m);
+            setCategories(bundle.publicCategories || []);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Bundle endpoint fallback in category-items:", err);
+      }
+
+      // Fallback
+      try {
+        const [subs, sets, maxData, cats] = await Promise.all([
+          apiFetch("/api/admin/sub-categories", { credentials: "include" }).then((r) => r.json()),
+          apiFetch("/api/admin/sub-categories/settings", { credentials: "include" }).then((r) => r.json()),
+          apiFetch("/api/admin/sub-categories/max", { credentials: "include" }).then((r) => r.json()),
+          apiFetch("/api/admin/sub-categories/public").then((r) => r.json()),
+        ]);
+        if (isMounted) {
+          setItems(Array.isArray(subs) ? subs : []);
+          setSettings(Array.isArray(sets) ? sets : []);
+          const m = maxData?.max ?? 4;
+          setMax(m);
+          setMaxInput(m);
+          setCategories(Array.isArray(cats) ? cats : []);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("loadData error:", err);
+        if (isMounted) {
+          toast.error("فشل تحميل البيانات");
+          setLoading(false);
+        }
+      }
+    }
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   async function handleSaveMax() {
     if (maxInput < 1) return toast.error("الحد الأدنى 1");
+    if (maxInput > 50) return toast.error("الحد الأقصى المسموح به 50");
     setSaving(true);
-    const res = await apiFetch("/api/admin/sub-categories/max", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ max: maxInput }),
-    });
-    setSaving(false);
-    if (!res.ok) return toast.error("حدث خطأ");
-    setMax(maxInput);
-    toast.success(`تم تحديث الحد إلى ${maxInput} ✅`);
+    try {
+      const res = await apiFetch("/api/admin/sub-categories/max", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ max: maxInput }),
+      });
+      if (!res.ok) throw new Error("Failed to save max");
+      setMax(maxInput);
+      toast.success(`تم تحديث الحد إلى ${maxInput} ✅`);
+    } catch (err) {
+      console.error(err);
+      toast.error("حدث خطأ أثناء حفظ الحد الأقصى");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     setHasFile(!!file);
+    clearPreview();
     if (!file) return;
     setPreview(URL.createObjectURL(file));
   }
 
-  const handleCatChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCat(e.target.value);
-    setPreview("");
-    setHasFile(false);
-    if (fileRef.current) fileRef.current.value = "";
-  }, []);
+  const handleCatChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedCat(e.target.value);
+      clearPreview();
+      setHasFile(false);
+      if (fileRef.current) fileRef.current.value = "";
+    },
+    [clearPreview]
+  );
 
   async function handleUploadImage() {
     if (!selectedCat) return toast.error("اختر تصنيفاً أولاً");
     const file = fileRef.current?.files?.[0];
     if (!file) return toast.error("اختر صورة أولاً");
     setUploading(true);
-    const fd = new FormData();
-    fd.append("category", selectedCat);
-    fd.append("image", file);
-    const res = await apiFetch("/api/admin/sub-categories/settings/image", {
-      method: "POST",
-      credentials: "include",
-      body: fd,
-    });
-    setUploading(false);
-    if (!res.ok) return toast.error("حدث خطأ أثناء الرفع");
-    const { url } = await res.json();
-    setCategories((prev) => prev.map((c) => c.name === selectedCat ? { ...c, image: url } : c));
-    setPreview("");
-    setHasFile(false);
-    if (fileRef.current) fileRef.current.value = "";
-    toast.success("تم رفع الصورة بنجاح ✅");
+    try {
+      const fd = new FormData();
+      fd.append("category", selectedCat);
+      fd.append("image", file);
+      const res = await apiFetch("/api/admin/sub-categories/settings/image", {
+        method: "POST",
+        credentials: "include",
+        body: fd,
+      });
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+      const { url } = await res.json();
+      setCategories((prev) =>
+        prev.map((c) => (c.name === selectedCat ? { ...c, image: url } : c))
+      );
+      clearPreview();
+      setHasFile(false);
+      if (fileRef.current) fileRef.current.value = "";
+      toast.success("تم رفع الصورة بنجاح ✅");
+    } catch (err) {
+      console.error(err);
+      toast.error("حدث خطأ أثناء رفع الصورة");
+    } finally {
+      setUploading(false);
+    }
   }
 
   const currentImage = useMemo(
@@ -99,18 +166,32 @@ export default function CategoryItemsPage() {
     [categories, selectedCat]
   );
 
-  // [PERF] Memoize the visible list — previously recomputed (sort + map + find) on
-  // every render including state updates unrelated to items/settings/max.
+  // [PERF] O(1) count lookup map
+  const countMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const item of items) {
+      m.set(`${item.category}::${item.name}`, item.count);
+      if (!m.has(item.category)) m.set(item.category, item.count);
+      if (!m.has(item.name)) m.set(item.name, item.count);
+    }
+    return m;
+  }, [items]);
+
+  // [PERF] Memoize visible list with O(1) counts
   const visible = useMemo(
     () =>
       settings
         .filter((s) => s.showInHome && s.category !== "__config__")
         .sort((a, b) => a.order - b.order)
         .map((s) => {
-          const item = items.find((i) => i.category === s.category && i.name === s.subCategory);
-          return { ...s, count: item?.count ?? 0 };
+          const count =
+            countMap.get(`${s.category}::${s.subCategory}`) ??
+            countMap.get(s.category) ??
+            countMap.get(s.subCategory) ??
+            0;
+          return { ...s, count };
         }),
-    [settings, items]
+    [settings, countMap]
   );
 
   return (
@@ -128,7 +209,7 @@ export default function CategoryItemsPage() {
         <input
           type="number"
           min={1}
-          max={20}
+          max={50}
           value={maxInput}
           onChange={(e) => setMaxInput(parseInt(e.target.value) || 1)}
           className="w-20 border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -136,7 +217,7 @@ export default function CategoryItemsPage() {
         <button
           onClick={handleSaveMax}
           disabled={saving || maxInput === max}
-          className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-blue-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {saving ? "جاري الحفظ..." : "حفظ"}
         </button>
@@ -168,17 +249,27 @@ export default function CategoryItemsPage() {
           {selectedCat && (
             <>
               {(preview || currentImage) && (
-                <img src={preview || currentImage} alt="" className="w-16 h-16 object-cover rounded-lg border" />
+                <img
+                  src={preview || currentImage}
+                  alt="معاينة الصورة"
+                  className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
+                />
               )}
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-gray-500">ارفع صورة جديدة</label>
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange}
-                  className="text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                  className="text-sm text-gray-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+                />
               </div>
               <button
                 onClick={handleUploadImage}
                 disabled={uploading || !hasFile}
-                className="bg-teal-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-teal-600 text-white text-sm px-4 py-1.5 rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {uploading ? "جاري الرفع..." : "رفع الصورة"}
               </button>
@@ -192,23 +283,30 @@ export default function CategoryItemsPage() {
           <table className="w-full text-sm text-right min-w-[500px]">
             <thead className="bg-gray-50 text-gray-600 font-semibold text-xs sm:text-sm">
               <tr>
-                <th className="px-4 py-3">الترتيب</th>
+                <th className="px-4 py-3 w-20">الترتيب</th>
                 <th className="px-4 py-3">الاسم</th>
                 <th className="px-4 py-3">النوع</th>
-                <th className="px-4 py-3">عدد المنتجات</th>
+                <th className="px-4 py-3 w-32">عدد المنتجات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400 text-sm">جاري التحميل...</td></tr>
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-8"></div></td>
+                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-28"></div></td>
+                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-28"></div></td>
+                    <td className="px-4 py-3"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                  </tr>
+                ))
               ) : visible.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400 text-sm">لا توجد تصنيفات معروضة في الرئيسية</td></tr>
               ) : (
                 visible.map((s, i) => (
-                  <tr key={`${s.category}-${s.subCategory}`} className={`hover:bg-gray-50 ${i >= max ? "opacity-40" : ""}`}>
+                  <tr key={`${s.category}-${s.subCategory}`} className={`hover:bg-gray-50 transition-colors ${i >= max ? "opacity-40" : ""}`}>
                     <td className="px-4 py-3 text-gray-400 font-medium text-xs sm:text-sm">
                       {i + 1}
-                      {i >= max && <span className="mr-1 text-xs text-red-400">(مخفي)</span>}
+                      {i >= max && <span className="mr-1 text-xs text-red-500 font-normal">(مخفي)</span>}
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-800 text-xs sm:text-sm">{s.category}</td>
                     <td className="px-4 py-3 font-medium text-gray-800 text-xs sm:text-sm">{s.subCategory}</td>

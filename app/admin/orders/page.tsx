@@ -30,19 +30,33 @@ const perPage = 10;
 
 export default function OrdersPage() {
   const router = useRouter();
-  const [orders, setOrders]           = useState<Order[]>([]);
-  const [total, setTotal]             = useState(0);
-  const [totalPages, setTotalPages]   = useState(1);
-  const [search, setSearch]           = useState("");
-  const [page, setPage]               = useState(1);
-  const [loading, setLoading]         = useState(true);
-  const [deletingId, setDeletingId]   = useState<string | null>(null);
-  const [updatingId, setUpdatingId]   = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [orders, setOrders]                 = useState<Order[]>([]);
+  const [total, setTotal]                   = useState(0);
+  const [totalPages, setTotalPages]         = useState(1);
+  const [searchInput, setSearchInput]       = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage]                     = useState(1);
+  const [loading, setLoading]               = useState(true);
+  const [deletingId, setDeletingId]         = useState<string | null>(null);
+  const [updatingId, setUpdatingId]         = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete]   = useState<{ id: string; name: string } | null>(null);
 
   // AbortController ref — cancel in-flight fetch when newer request fires
-  const abortRef      = useRef<AbortController | null>(null);
-  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Debounced search input — 350 ms, resets to page 1 without immediate double-fetching
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch((prev) => {
+        if (prev !== searchInput) {
+          setPage(1);
+          return searchInput;
+        }
+        return prev;
+      });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const load = useCallback(async (p: number, s: string) => {
     // Cancel any previous in-flight request
@@ -50,6 +64,7 @@ export default function OrdersPage() {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    setLoading(true);
     try {
       const res = await fetch(
         `/api/admin/orders?page=${p}&limit=${perPage}&search=${encodeURIComponent(s)}`,
@@ -58,8 +73,6 @@ export default function OrdersPage() {
       if (!res.ok) return;
       const d = await res.json();
       setOrders(Array.isArray(d.orders) ? d.orders : []);
-      // Backend omits total/pages on mid-page navigation without filter changes
-      // to avoid a costly countDocuments — keep the cached values in that case.
       if (d.total !== undefined) setTotal(d.total);
       if (d.pages !== undefined) setTotalPages(d.pages);
     } catch (err: unknown) {
@@ -69,19 +82,11 @@ export default function OrdersPage() {
     }
   }, []);
 
-  // Initial load — no polling
+  // Fetch when page or debounced query changes
   useEffect(() => {
-    load(page, search);
+    load(page, debouncedSearch);
     return () => abortRef.current?.abort();
-  }, [page, search, load]);
-
-  // Debounced search — 400 ms, resets to page 1
-  function handleSearch(val: string) {
-    setSearch(val);
-    setPage(1);
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    searchTimeout.current = setTimeout(() => load(1, val), 400);
-  }
+  }, [page, debouncedSearch, load]);
 
   async function deleteOrder(id: string) {
     setDeletingId(id);
@@ -90,8 +95,11 @@ export default function OrdersPage() {
       if (res.ok) {
         // Targeted removal — no full re-fetch
         setOrders((prev) => prev.filter((o) => o._id !== id));
-        setTotal((prev) => Math.max(0, prev - 1));
-        setTotalPages(Math.max(1, Math.ceil((total - 1) / perPage)));
+        setTotal((prev) => {
+          const newTotal = Math.max(0, prev - 1);
+          setTotalPages(Math.max(1, Math.ceil(newTotal / perPage)));
+          return newTotal;
+        });
         toast.success("تم حذف الطلب ✅");
       } else {
         toast.error("حدث خطأ أثناء الحذف");
@@ -139,8 +147,8 @@ export default function OrdersPage() {
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-500">ابحث:</label>
             <input
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 w-52"
               placeholder="اسم، واتس، هوية، رقم طلب"
             />

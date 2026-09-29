@@ -5,68 +5,38 @@ import type { BannerItem } from "../types";
 
 const BASE = "/api/admin/banners";
 
-/**
- * Compress an image before uploading — resize to max 1600×900, convert to WebP.
- * Runs in the browser via Canvas with no extra dependencies.
- */
-async function compressImage(file: File, maxWidth = 1600, maxHeight = 900, quality = 0.8): Promise<File> {
-  return new Promise((resolve) => {
-    const img = new window.Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-
-      let { width, height } = img;
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
-
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) return resolve(file);
-          const name = file.name.replace(/\.[^.]+$/, "") + ".webp";
-          resolve(new File([blob], name, { type: "image/webp" }));
-        },
-        "image/webp",
-        quality
-      );
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve(file); // fallback: send original
-    };
-
-    img.src = url;
-  });
-}
-
 export function useBanners() {
   const [banners, setBanners] = useState<BannerItem[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState<number | null>(null);
   const [addingBanner, setAddingBanner] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
     fetch(BASE, { credentials: "include" })
       .then((r) => r.json())
-      .then((data) => Array.isArray(data) && setBanners(data))
-      .catch(() => {});
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) {
+          setBanners(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("فشل تحميل البانرات");
+      })
+      .finally(() => {
+        if (!cancelled) setInitialLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleUpload = async (index: number, file: File) => {
     setLoading(index);
-    const compressed = await compressImage(file);
     const form = new FormData();
-    form.append("image", compressed);
+    form.append("image", file);
     try {
       const res = await fetch(`${BASE}/upload/${index}`, {
         method: "POST", credentials: "include", body: form,
@@ -74,7 +44,7 @@ export function useBanners() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setBanners((prev) => prev.map((b, i) => i === index ? { ...b, url: data.url } : b));
-      toast.success("تم رفع البانر");
+      toast.success("تم رفع البانر بنجاح");
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "فشل الرفع");
     } finally {
@@ -148,5 +118,16 @@ export function useBanners() {
     }
   };
 
-  return { banners, loading, addingBanner, inputRefs, handleUpload, handleDeleteImage, handleDeleteSlot, handleToggle, handleAddBanner };
+  return {
+    banners,
+    initialLoading,
+    loading,
+    addingBanner,
+    inputRefs,
+    handleUpload,
+    handleDeleteImage,
+    handleDeleteSlot,
+    handleToggle,
+    handleAddBanner,
+  };
 }

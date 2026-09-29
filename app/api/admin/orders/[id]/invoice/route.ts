@@ -24,5 +24,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "order not found" }, { status: orderRes.status });
   }
 
-  return NextResponse.json({ order, company });
+  return NextResponse.json(
+    { order, company },
+    {
+      headers: {
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+      },
+    }
+  );
 }

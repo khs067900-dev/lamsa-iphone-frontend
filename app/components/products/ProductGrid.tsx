@@ -1,5 +1,3 @@
-"use client";
-import { useMemo } from "react";
 import Link from "next/link";
 import { IoArrowBack } from "react-icons/io5";
 import ProductCard from "./ProductCard";
@@ -32,6 +30,7 @@ const categoryPageMap: Record<string, string> = {
   rgb: "/games/rgb-lighting",
   "ابل ايفون 18 برو ماكس": "/smartphones/iphone-18-pro-max",
   "ابل ايفون 18 برو": "/smartphones/iphone-18-pro",
+  "ابل ايفون 18 دو": "/smartphones/iphone-18-duo",
   "ابل ايفون 18": "/smartphones/iphone-18",
   "ابل ايفون 17 برو": "/smartphones/iphone-17-pro",
   "ابل ايفون 17 برو ماكس": "/smartphones/iphone-17-pro-max",
@@ -53,16 +52,24 @@ const categoryPageMap: Record<string, string> = {
   "ابل ايفون 13 برو ماكس": "/smartphones/iphone-13-pro-max",
   "سامسونج جالكسي": "/smartphones/samsung-s25-ultra",
   "سامسونج جالاكسي S22": "/smartphones/samsung-s22-ultra",
+  "سامسونج جلاكسي S23 الترا": "/smartphones/samsung-s23-ultra",
   "سامسونج جالاكسي S23": "/smartphones/samsung-s23-ultra",
   "سامسونج جالاكسي S24": "/smartphones/samsung-s24-ultra",
   "سامسونج جالاكسي S25": "/smartphones/samsung-s25-ultra",
   "سامسونج جالاكسي S26": "/smartphones/samsung-s26-ultra",
   "ساعات ابل": "/apple-watches/se",
   "سماعات ابل": "/audio/airpods-pro",
+  "سماعات": "/audio",
   "بلاي ستيشن": "/playstation/ps5",
-  "لابتوبات": "/tablets/ipad",
-  "ايبادات": "/tablets/ipad-pro",
+  "ماك بوك إير": "/laptops/macbook-air",
+  "ماك بوك اير": "/laptops/macbook-air",
+  "لابتوبات": "/laptops/macbook-air",
+  "ايبادات": "/tablets/ipad",
   "ملحقات": "/accessories/anker-batteries",
+  "اكسسورات": "/accessories",
+  "اكسسوارات": "/accessories",
+  "بطاريات متنقله": "/accessories/anker-batteries",
+  "بطاريات متنقلة": "/accessories/anker-batteries",
   "العاب": "/games/ps5-games",
 };
 
@@ -103,7 +110,7 @@ function CategoryRow({ category, items, isFirst, accentIdx }: { category: string
         className="rounded-[20px]"
         style={{ background: bgTint, border: `1px solid ${borderColor}`, boxShadow: '0 4px 24px -8px rgba(0,0,0,0.04)' }}
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 p-3 sm:p-4">
           {visible.map((p, i) => (
             <ProductCard key={p._id} product={p} priority={isFirst && i === 0} imageZoom={isIPhone18} imageScale={isIPhone18 ? "scale-[1.45]" : "scale-110"} />
           ))}
@@ -124,31 +131,31 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ initialProducts, initialHomeConfig, initialBannerMap }: ProductGridProps) {
-  const products = useMemo(() => initialProducts || [], [initialProducts]);
+  const products = initialProducts || [];
   const homeConfig = initialHomeConfig || null;
   const bannerMap = initialBannerMap || {};
 
-  const grouped = useMemo(() => {
-    const map: Record<string, Product[]> = {};
-    products.forEach((p) => {
-      const cat = p.category || p.subCategory || "أخرى";
-      (map[cat] ??= []).push(p);
-    });
-    Object.keys(map).forEach((cat) => { map[cat] = sortProducts(map[cat]); });
-    return map;
-  }, [products]);
+  const map: Record<string, Product[]> = {};
+  products.forEach((p) => {
+    const cat = p.category || p.subCategory || "أخرى";
+    (map[cat] ??= []).push(p);
+  });
+  Object.keys(map).forEach((cat) => {
+    map[cat] = sortProducts(map[cat]);
+  });
 
-  const orderedCategories = useMemo(() => {
-    const allCats = Object.keys(grouped).filter((c) => c !== "أخرى");
-    if (!homeConfig) return allCats;
+  const allCats = Object.keys(map).filter((c) => c !== "أخرى");
+  let orderedCategories: string[] = allCats;
+
+  if (homeConfig) {
     const { settings, max } = homeConfig;
     const visibleSettings = settings.filter((s) => s.showInHome);
-    return visibleSettings
+    orderedCategories = visibleSettings
       .sort((a, b) => a.order - b.order)
       .flatMap((s) => allCats.filter((c) => c === s.category || c === s.subCategory))
       .filter((c, idx, arr) => arr.indexOf(c) === idx)
       .slice(0, Math.max(0, max));
-  }, [grouped, homeConfig]);
+  }
 
   if (!products.length) return <p className="text-center text-gray-400 py-10">لا توجد منتجات حالياً</p>;
 
@@ -162,7 +169,7 @@ export default function ProductGrid({ initialProducts, initialHomeConfig, initia
                 <CategoryBanner category={category} images={bannerMap[category]} />
               </div>
             )}
-            <CategoryRow category={category} items={grouped[category]} isFirst={catIdx === 0} accentIdx={catIdx} />
+            <CategoryRow category={category} items={map[category]} isFirst={catIdx === 0} accentIdx={catIdx} />
           </div>
         ))}
       </div>

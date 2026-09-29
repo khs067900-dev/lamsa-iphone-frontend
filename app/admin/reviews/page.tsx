@@ -41,6 +41,8 @@ export default function ReviewsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [editReview, setEditReview] = useState<Review | null>(null);
   const [editForm, setEditForm] = useState({ name: "", comment: "", rating: 5, gender: "male" });
   const [showAddForm, setShowAddForm] = useState(false);
@@ -49,14 +51,24 @@ export default function ReviewsPage() {
   const [commentPopup, setCommentPopup] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     apiFetch("/api/admin/reviews/all", { credentials: "include" })
       .then((r) => r.json())
-      .then((data) => { if (Array.isArray(data)) setReviews(data); })
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) setReviews(data);
+      })
+      .catch(() => {
+        if (!cancelled) toast.error("فشل تحميل آراء العملاء");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // [PERF] All derived values memoized — not recomputed on modal state changes,
-  // saving flag changes, or any unrelated state updates.
   const filtered = useMemo(
     () => reviews.filter(
       (r) => r.name.toLowerCase().includes(search.toLowerCase()) || r.comment.includes(search)
@@ -73,26 +85,56 @@ export default function ReviewsPage() {
     [filtered, currentPage]
   );
 
-  // [PERF] Stable handler references via useCallback.
   const handleSearch = useCallback((val: string) => {
     setSearch(val);
     setPage(1);
   }, []);
 
   const toggleApproved = useCallback(async (id: string) => {
-    const res = await apiFetch(`/api/admin/reviews/${id}/toggle`, { method: "PATCH", credentials: "include" });
-    const data = await res.json();
-    if (!res.ok) return toast.error("حدث خطأ");
-    setReviews((prev) => prev.map((r) => r._id === id ? { ...r, approved: data.approved } : r));
-    toast.success(data.approved ? "تم إظهاره في الرئيسية ✅" : "تم إخفاؤه من الرئيسية");
-  }, []);
+    if (togglingId) return;
+    setTogglingId(id);
+    
+    // Optimistic toggle
+    let previousApproved = false;
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r._id === id) {
+          previousApproved = r.approved;
+          return { ...r, approved: !r.approved };
+        }
+        return r;
+      })
+    );
+
+    try {
+      const res = await apiFetch(`/api/admin/reviews/${id}/toggle`, { method: "PATCH", credentials: "include" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success(data.approved ? "تم إظهاره في الرئيسية ✅" : "تم إخفاؤه من الرئيسية");
+    } catch {
+      // Revert optimistic update
+      setReviews((prev) =>
+        prev.map((r) => (r._id === id ? { ...r, approved: previousApproved } : r))
+      );
+      toast.error("فشل تعديل حالة العرض");
+    } finally {
+      setTogglingId(null);
+    }
+  }, [togglingId]);
 
   const remove = useCallback(async (id: string) => {
-    setConfirmDelete(null);
-    const res = await apiFetch(`/api/admin/reviews/${id}`, { method: "DELETE", credentials: "include" });
-    if (!res.ok) return toast.error("حدث خطأ");
-    toast.success("تم حذف التعليق ✅");
-    setReviews((prev) => prev.filter((r) => r._id !== id));
+    setDeleting(true);
+    try {
+      const res = await apiFetch(`/api/admin/reviews/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) throw new Error();
+      toast.success("تم حذف التعليق ✅");
+      setReviews((prev) => prev.filter((r) => r._id !== id));
+      setConfirmDelete(null);
+    } catch {
+      toast.error("حدث خطأ أثناء الحذف");
+    } finally {
+      setDeleting(false);
+    }
   }, []);
 
   const openEdit = useCallback((r: Review) => {
@@ -103,35 +145,45 @@ export default function ReviewsPage() {
   const saveEdit = useCallback(async () => {
     if (!editReview) return;
     setSaving(true);
-    const res = await apiFetch(`/api/admin/reviews/${editReview._id}`, {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editForm),
-    });
-    setSaving(false);
-    if (!res.ok) return toast.error("حدث خطأ");
-    const updated = await res.json();
-    setReviews((prev) => prev.map((r) => r._id === updated._id ? updated : r));
-    setEditReview(null);
-    toast.success("تم التعديل ✅");
+    try {
+      const res = await apiFetch(`/api/admin/reviews/${editReview._id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+      if (!res.ok) throw new Error();
+      const updated = await res.json();
+      setReviews((prev) => prev.map((r) => r._id === updated._id ? updated : r));
+      setEditReview(null);
+      toast.success("تم التعديل ✅");
+    } catch {
+      toast.error("حدث خطأ أثناء حفظ التعديلات");
+    } finally {
+      setSaving(false);
+    }
   }, [editReview, editForm]);
 
   const saveAdd = useCallback(async () => {
     setSaving(true);
-    const res = await apiFetch("/api/admin/reviews/admin-add", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(addForm),
-    });
-    setSaving(false);
-    if (!res.ok) return toast.error("حدث خطأ");
-    const created = await res.json();
-    setReviews((prev) => [created, ...prev]);
-    setShowAddForm(false);
-    setAddForm(emptyForm);
-    toast.success("تم إضافة التعليق ✅");
+    try {
+      const res = await apiFetch("/api/admin/reviews/admin-add", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(addForm),
+      });
+      if (!res.ok) throw new Error();
+      const created = await res.json();
+      setReviews((prev) => [created, ...prev]);
+      setShowAddForm(false);
+      setAddForm(emptyForm);
+      toast.success("تم إضافة التعليق ✅");
+    } catch {
+      toast.error("حدث خطأ أثناء إضافة التعليق");
+    } finally {
+      setSaving(false);
+    }
   }, [addForm]);
 
   const closeAddForm = useCallback(() => {
@@ -139,16 +191,17 @@ export default function ReviewsPage() {
     setAddForm(emptyForm);
   }, []);
 
-  if (loading) return <p className="text-center text-gray-400 py-10 text-base">جاري التحميل...</p>;
-
   return (
     <div dir="rtl">
       {/* Header */}
       <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">آراء العملاء</h1>
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">آراء العملاء</h1>
+          <p className="text-xs text-gray-500 mt-0.5">إدارة التقييمات والتحكم في ظهورها على الصفحة الرئيسية</p>
+        </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors whitespace-nowrap shadow-sm"
         >
           + إضافة تعليق
         </button>
@@ -167,98 +220,156 @@ export default function ReviewsPage() {
             <input
               type="text"
               value={search}
+              placeholder="ابحث بالاسم أو المحتوى..."
               onChange={(e) => handleSearch(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-52"
+              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-60"
             />
           </div>
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm text-right">
-            <thead className="bg-gray-50 text-gray-600 font-semibold text-sm">
-              <tr>
-                <th className="px-4 py-3">الاسم</th>
-                <th className="px-4 py-3">التعليق</th>
-                <th className="px-4 py-3">الجنس</th>
-                <th className="px-4 py-3">عدد النجوم</th>
-                <th className="px-4 py-3">معروض في الرئيسية</th>
-                <th className="px-4 py-3">إجراء</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {paginated.map((r) => (
-                <tr key={r._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{r.name}</td>
-                  <td className="px-4 py-3 text-gray-600 max-w-xs">
-                    <button onClick={() => setCommentPopup(r.comment)} className="text-right hover:text-blue-600 cursor-pointer transition-colors">
-                      {truncateComment(r.comment)}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{r.gender === "female" ? "أنثى" : "ذكر"}</td>
-                  <td className="px-4 py-3">
-                    <span className="text-yellow-400">{stars(r.rating)}</span>
-                    <span className="text-gray-400 text-xs mr-1">({r.rating})</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => toggleApproved(r._id)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${r.approved ? "bg-green-500" : "bg-gray-300"}`}
-                    >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${r.approved ? "translate-x-6" : "translate-x-1"}`} />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => openEdit(r)} className="text-blue-500 hover:text-blue-700"><EditIcon /></button>
-                      <button onClick={() => setConfirmDelete(r._id)} className="text-red-500 hover:text-red-700"><TrashIcon /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {paginated.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">لا توجد نتائج</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Cards */}
-        <div className="md:hidden divide-y divide-gray-100">
-          {paginated.length === 0 && (
-            <p className="px-4 py-8 text-center text-gray-400 text-sm">لا توجد نتائج</p>
-          )}
-          {paginated.map((r) => (
-            <div key={r._id} className="p-4 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="font-semibold text-gray-800 text-base">{r.name}</p>
-                  <p className="text-xs text-gray-400">{r.gender === "female" ? "أنثى" : "ذكر"}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => openEdit(r)} className="text-blue-500 hover:text-blue-700 p-1"><EditIcon /></button>
-                  <button onClick={() => setConfirmDelete(r._id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
-                </div>
+        {loading ? (
+          <div className="p-6 space-y-4 animate-pulse">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50">
+                <div className="w-28 h-4 bg-gray-200 rounded" />
+                <div className="w-56 h-4 bg-gray-200 rounded" />
+                <div className="w-16 h-4 bg-gray-200 rounded" />
+                <div className="w-20 h-4 bg-gray-200 rounded" />
+                <div className="w-11 h-6 bg-gray-200 rounded-full" />
               </div>
-              <button onClick={() => setCommentPopup(r.comment)} className="text-sm text-gray-600 leading-relaxed text-right hover:text-blue-600 cursor-pointer transition-colors">{truncateComment(r.comment)}</button>
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <span className="text-yellow-400 text-base">{stars(r.rating)}</span>
-                  <span className="text-gray-400 text-xs mr-1">({r.rating})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">{r.approved ? "معروض" : "مخفي"}</span>
-                  <button
-                    onClick={() => toggleApproved(r._id)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${r.approved ? "bg-green-500" : "bg-gray-300"}`}
-                  >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${r.approved ? "translate-x-6" : "translate-x-1"}`} />
-                  </button>
-                </div>
-              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm text-right">
+                <thead className="bg-gray-50 text-gray-600 font-semibold text-sm">
+                  <tr>
+                    <th className="px-4 py-3">الاسم</th>
+                    <th className="px-4 py-3">التعليق</th>
+                    <th className="px-4 py-3">الجنس</th>
+                    <th className="px-4 py-3">عدد النجوم</th>
+                    <th className="px-4 py-3">معروض في الرئيسية</th>
+                    <th className="px-4 py-3">إجراء</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {paginated.map((r) => (
+                    <tr key={r._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{r.name}</td>
+                      <td className="px-4 py-3 text-gray-600 max-w-xs">
+                        <button
+                          onClick={() => setCommentPopup(r.comment)}
+                          className="text-right hover:text-blue-600 cursor-pointer transition-colors block truncate w-full"
+                          title="اضغط لقراءة التعليق بالكامل"
+                        >
+                          {truncateComment(r.comment)}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{r.gender === "female" ? "أنثى" : "ذكر"}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-yellow-400">{stars(r.rating)}</span>
+                        <span className="text-gray-400 text-xs mr-1">({r.rating})</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div dir="ltr" className="inline-block">
+                          <button
+                            type="button"
+                            onClick={() => toggleApproved(r._id)}
+                            disabled={togglingId === r._id}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 disabled:opacity-50 ${
+                              r.approved ? "bg-green-500" : "bg-gray-300"
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                                r.approved ? "translate-x-6" : "translate-x-1"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEdit(r)}
+                            title="تعديل"
+                            className="text-blue-500 hover:text-blue-700 p-1 transition-colors"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(r._id)}
+                            title="حذف"
+                            className="text-red-500 hover:text-red-700 p-1 transition-colors"
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {paginated.length === 0 && (
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">لا توجد نتائج</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {paginated.length === 0 && (
+                <p className="px-4 py-8 text-center text-gray-400 text-sm">لا توجد نتائج</p>
+              )}
+              {paginated.map((r) => (
+                <div key={r._id} className="p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-gray-800 text-base">{r.name}</p>
+                      <p className="text-xs text-gray-400">{r.gender === "female" ? "أنثى" : "ذكر"}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button onClick={() => openEdit(r)} className="text-blue-500 hover:text-blue-700 p-1"><EditIcon /></button>
+                      <button onClick={() => setConfirmDelete(r._id)} className="text-red-500 hover:text-red-700 p-1"><TrashIcon /></button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setCommentPopup(r.comment)}
+                    className="text-sm text-gray-600 leading-relaxed text-right hover:text-blue-600 cursor-pointer transition-colors block w-full"
+                  >
+                    {truncateComment(r.comment)}
+                  </button>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <span className="text-yellow-400 text-base">{stars(r.rating)}</span>
+                      <span className="text-gray-400 text-xs mr-1">({r.rating})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">{r.approved ? "معروض" : "مخفي"}</span>
+                      <div dir="ltr" className="inline-block">
+                        <button
+                          type="button"
+                          onClick={() => toggleApproved(r._id)}
+                          disabled={togglingId === r._id}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 disabled:opacity-50 ${
+                            r.approved ? "bg-green-500" : "bg-gray-300"
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                              r.approved ? "translate-x-6" : "translate-x-1"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Pagination */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-gray-100 gap-3">
@@ -308,8 +419,20 @@ export default function ReviewsPage() {
             <h2 className="text-lg font-bold text-gray-800 mb-1">تأكيد الحذف</h2>
             <p className="text-sm text-gray-500 mb-4">هل أنت متأكد من حذف هذا التعليق؟</p>
             <div className="flex gap-3 justify-center">
-              <button onClick={() => remove(confirmDelete)} className="bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-6 py-2 rounded-lg transition-colors">نعم، احذف</button>
-              <button onClick={() => setConfirmDelete(null)} className="border border-gray-300 text-gray-700 text-sm font-bold px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors">إلغاء</button>
+              <button
+                onClick={() => remove(confirmDelete)}
+                disabled={deleting}
+                className="bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-6 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {deleting ? "جاري الحذف..." : "نعم، احذف"}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleting}
+                className="border border-gray-300 text-gray-700 text-sm font-bold px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                إلغاء
+              </button>
             </div>
           </div>
         </div>

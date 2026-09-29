@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { IoCheckmarkCircle, IoDocumentTextOutline, IoListOutline, IoCardOutline, IoSparkles, IoDiamondOutline } from "react-icons/io5";
 import type { Product } from "../../../components/products/types";
 
@@ -57,12 +57,23 @@ export default function ProductDetails({ installment, description, specs, specGr
 
   const setTabRef = (el: HTMLButtonElement | null, idx: number) => {
     tabsRef.current[idx] = el;
-    // On mount, position indicator under the initially-active tab (no setState)
-    if (el) {
-      const activeIdx = visibleTabs.findIndex((t) => t.key === active);
-      if (idx === activeIdx) moveIndicator(el);
-    }
   };
+
+  useEffect(() => {
+    const activeIdx = visibleTabs.findIndex((t) => t.key === active);
+    const el = tabsRef.current[activeIdx];
+    if (el) moveIndicator(el);
+  }, [active, visibleTabs]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const activeIdx = visibleTabs.findIndex((t) => t.key === active);
+      const el = tabsRef.current[activeIdx];
+      if (el) moveIndicator(el);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [active, visibleTabs]);
 
   if (!visibleTabs.length) return null;
 

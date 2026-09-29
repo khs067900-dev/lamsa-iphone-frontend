@@ -18,17 +18,27 @@ export default function PrintOrderPage() {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/admin/orders/${id}`).then((r) => r.json()),
-      fetch("/api/admin/company").then((r) => r.json()).catch(() => ({})),
-    ]).then(([o, c]) => { if (o && o.items) setOrder(o); setCompany(c); });
+    fetch(`/api/admin/orders/${id}/invoice`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d && d.order && d.order.items) {
+          setOrder(d.order);
+          setCompany(d.company || {});
+        }
+      })
+      .catch(() => {});
   }, [id]);
 
   useEffect(() => {
     if (!order) return;
     const imgs = document.querySelectorAll<HTMLImageElement>("img");
     const pending = Array.from(imgs).filter((img) => !img.complete);
-    const printNow = () => window.print();
+    let printed = false;
+    const printNow = () => {
+      if (printed) return;
+      printed = true;
+      window.print();
+    };
     if (pending.length === 0) { printNow(); return; }
     let loaded = 0;
     pending.forEach((img) => {
@@ -36,6 +46,8 @@ export default function PrintOrderPage() {
       img.addEventListener("load", done, { once: true });
       img.addEventListener("error", done, { once: true });
     });
+    const fallback = setTimeout(printNow, 1500);
+    return () => clearTimeout(fallback);
   }, [order]);
 
   if (!order) return <div style={{ textAlign: "center", padding: 40 }}>جاري التحميل...</div>;
